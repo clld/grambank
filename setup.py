@@ -5,7 +5,7 @@ requires = [
     'clld>=0.20',
     'clldmpg>=0.5',
     'pyramid>=1.5.1',
-    'SQLAlchemy==0.9.8',
+    'SQLAlchemy>=1.0.6',
     'transaction',
     'pyramid_tm',
     'zope.sqlalchemy',
