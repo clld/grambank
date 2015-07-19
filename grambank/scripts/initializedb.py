@@ -9,11 +9,12 @@ from clld.db.models import common
 import grambank
 from grambank import models
 from grambank.scripts.util import import_features, import_cldf
+from clld.scripts.util import glottocodes_by_isocode, add_language_codes
 
 
 def main(args):
     data = Data()
-    datadir = '/home/robert/venvs/glottobank/Grambank'
+    datadir = 'C:\\Python26\\Grambank\\'
 
     dataset = common.Dataset(
         id=grambank.__name__,
@@ -23,11 +24,14 @@ def main(args):
         publisher_url="http://shh.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
         domain='grambank.clld.org',
+        contact='harald.hammarstrom@gmail.com',
         jsondata={
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     DBSession.add(dataset)
 
+
+    #glottolog = glottocodes_by_isocode('postgresql://robert@/glottolog3')
     #
     # TODO: add editors!
     #

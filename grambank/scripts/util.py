@@ -3,11 +3,12 @@ import re
 from collections import OrderedDict
 import json
 
-from clld.db.models.common import Language, Parameter, ValueSet, Value, Contribution, DomainElement
+from clld.db.models.common import Parameter, ValueSet, Value, Contribution, DomainElement
 from clld.db.meta import DBSession
 from clld.lib.dsv import reader
 from clld.web.icon import ORDERED_ICONS
 
+from grambank.models import grambankLanguage
 
 def import_dataset(path, data):
     # look for metadata
@@ -42,12 +43,13 @@ def import_dataset(path, data):
                 if lmd.get('geometry', {}).get('coordinates'):
                     lon, lat = lmd['geometry']['coordinates']
 
-            language = data.add(
-                Language, row['Language_ID'],
-                id=row['Language_ID'],
-                name=name,
-                latitude=lat,
-                longitude=lon)
+            if not data['grambankLanguage'].has_key(row['Language_ID']):
+                language = data.add(
+                    grambankLanguage, row['Language_ID'],
+                    id=row['Language_ID'],
+                    name=name,
+                    latitude=lat,
+                    longitude=lon)
 
         parameter = data['Parameter'].get(row['Feature_ID'])
         if parameter is None:
