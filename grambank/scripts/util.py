@@ -3,10 +3,15 @@ import re
 from collections import OrderedDict
 import json
 
-from clld.db.models.common import Parameter, ValueSet, Value, Contribution, DomainElement
+from clld.db.models.common import (
+    Language, Parameter, ValueSet, Value, Contribution, DomainElement, Source,
+    ValueSetReference,
+)
 from clld.db.meta import DBSession
 from clld.lib.dsv import reader
+from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
+from clld.scripts.util import bibtex2source
 
 from grambank.models import grambankLanguage
 
@@ -24,6 +29,12 @@ def import_dataset(path, data):
     if os.path.exists(mdpath):
         with open(mdpath, 'rb') as fp:
             md = json.load(fp)
+
+    bibpath = os.path.join(dirpath, basename + '.bib')
+    if os.path.exists(bibpath):
+        for rec in Database.from_file(bibpath):
+            if rec['key'] not in data['Source']:
+                data.add(Source, rec['key'], _obj=bibtex2source(rec))
 
     languages = {f['properties']['glottocode']: f for f in md.get('features', [])}
 
@@ -63,20 +74,24 @@ def import_dataset(path, data):
                 id=vsid,
                 parameter=parameter,
                 language=language,
-                contribution=contrib)
+                contribution=contrib,
+                source=row['Source'])
 
         domain = {de.abbr: de for de in parameter.domain}
         name = row['Value']
         if name in domain:
             name = domain[name].name
 
-        Value(id=vid, valueset=vs, name=name, domainelement=domain.get(row['Value']))
+        Value(
+            id=vid,
+            valueset=vs,
+            name=name,
+            description=row['Comment'],
+            domainelement=domain.get(row['Value']))
 
-        #
-        # TODO: sources, comment, ...
-        #
-
-    pass
+        for key, src in data['Source'].items():
+            if key in vs.source:
+                ValueSetReference(valueset=vs, source=src, key=key)
 
 
 def import_cldf(srcdir, data):
