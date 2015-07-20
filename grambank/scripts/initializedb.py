@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import sys
 import os
+import getpass
 
 from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
@@ -13,8 +14,10 @@ from clld.scripts.util import glottocodes_by_isocode, add_language_codes
 
 
 def main(args):
+    user = getpass.getuser()
     data = Data()
-    datadir = 'C:\\Python26\\Grambank\\'
+    datadir = 'C:\\Python26\\Grambank\\' if user != 'robert' \
+        else '/home/robert/venvs/glottobank/Grambank'
 
     dataset = common.Dataset(
         id=grambank.__name__,
@@ -29,7 +32,6 @@ def main(args):
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     DBSession.add(dataset)
-
 
     #glottolog = glottocodes_by_isocode('postgresql://robert@/glottolog3')
     #

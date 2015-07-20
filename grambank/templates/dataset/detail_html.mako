@@ -21,9 +21,9 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
     </tr>
     </thead>
     <tbody>
-##    <tr><td>Languages</td><td>${stats['language']}</td></tr>
-##    <tr><td>Features</td><td>${stats['parameter']}</td></tr>
-##    <tr><td>Datapoints</td><td>${stats['value']}</td></tr>
+    <tr><td>Languages</td><td>${stats['language']}</td></tr>
+    <tr><td>Features</td><td>${stats['parameter']}</td></tr>
+    <tr><td>Datapoints</td><td>${stats['value']}</td></tr>
     </tbody>
 </table>
 </p>
@@ -92,7 +92,7 @@ ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural
 </p>
 
 
-<h3>How to cite NTS Online</h3>
+<h3>How to cite GramBank Online</h3>
 <p>
 TODO
 </p>

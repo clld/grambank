@@ -1,20 +1,38 @@
-from sqlalchemy.orm import joinedload, joinedload_all
+from clld.db.util import get_distinct_values, icontains
+from clld.web.util.helpers import map_marker_img
+from clld.web.util.htmllib import HTML
 
-from clld.db.meta import DBSession
-from clld.db.models import common
-from clld.db.util import get_distinct_values
-from clld.web.util.helpers import linked_contributors, linked_references
+from clld.web.datatables.base import Col
+from clld.web.datatables.language import Languages
 
-from clld.web import datatables
-from clld.web.datatables.base import (
-    DataTable, Col, filter_number, LinkCol, DetailsRowLinkCol, IdCol, LinkToMapCol
-)
+from models import GrambankLanguage, Family
 
-from clld.web.datatables.value import Values, ValueNameCol
 
-from models import grambankLanguage, Family
+class FamilyCol(Col):
+    def __init__(self, dt, name, **kw):
+        kw['choices'] = get_distinct_values(Family.name)
+        Col.__init__(self, dt, name, **kw)
+
+    def order(self):
+        return Family.name
+
+    def search(self, qs):
+        return icontains(Family.name, qs)
+
+    def format(self, item):
+        return HTML.div(map_marker_img(self.dt.req, item), ' ', item.family.name)
+
+
+class GrambankLanguages(Languages):
+    def base_query(self, query):
+        return query.join(Family)
+
+    def col_defs(self):
+        res = Languages.col_defs(self)
+        res.append(Col(self, 'macroarea', model_col=GrambankLanguage.macroarea))
+        res.append(FamilyCol(self, 'family'))
+        return res
 
 
 def includeme(config):
-    pass
-
+    config.register_datatable('languages', GrambankLanguages)

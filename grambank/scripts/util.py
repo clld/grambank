@@ -1,21 +1,41 @@
+from __future__ import unicode_literals
 import os
 import re
 from collections import OrderedDict
 import json
+from itertools import cycle
 
+import requests
+
+from clld.util import jsondump, jsonload
 from clld.db.models.common import (
-    Language, Parameter, ValueSet, Value, Contribution, DomainElement, Source,
-    ValueSetReference,
+    Parameter, ValueSet, Value, Contribution, DomainElement, Source, ValueSetReference,
 )
-from clld.db.meta import DBSession
 from clld.lib.dsv import reader
 from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
-from clld.scripts.util import bibtex2source
+from clld.scripts.util import bibtex2source, add_language_codes
 
-from grambank.models import grambankLanguage
+from grambank.models import GrambankLanguage, Family
 
-def import_dataset(path, data):
+
+GLOTTOLOG_CACHE = os.path.join(os.path.expanduser("~"), '.glottolog-cache.json')
+
+
+def glottolog_md(glottocode):
+    cache = jsonload(GLOTTOLOG_CACHE) if os.path.exists(GLOTTOLOG_CACHE) else {}
+    if glottocode not in cache:
+        print('cache miss: %s' % glottocode)
+        cache[glottocode] = requests.get(
+        'http://glottolog.org/resource/languoid/id/{0}.json'.format(glottocode)).json()
+    jsondump(cache, GLOTTOLOG_CACHE, indent=4)
+    md = cache[glottocode]
+    md['family'] = md['classification'][0] if md.get('classification') else None
+    md['macroarea'] = list(md['macroareas'].items())[0]
+    return md
+
+
+def import_dataset(path, data, icons):
     # look for metadata
     # look for sources
     # then loop over values
@@ -43,24 +63,46 @@ def import_dataset(path, data):
             continue
         vsid = '%s-%s-%s' % (basename, row['Language_ID'], row['Feature_ID'])
         vid = row.get('ID', '%s-%s' % (basename, i + 1))
-        language = data['Language'].get(row['Language_ID'])
+        language = data['GrambankLanguage'].get(row['Language_ID'])
         if language is None:
-            # look for lang in metadata! or look up on glottolog?
-            name, lat, lon = row['Language_ID'], None, None
+            # query glottolog!
+            gl_md = glottolog_md(row['Language_ID'])
             lmd = languages.get(row['Language_ID'])
             if lmd:
                 if lmd.get('properties', {}).get('name'):
-                    name = lmd['properties']['name']
+                    gl_md['name'] = lmd['properties']['name']
                 if lmd.get('geometry', {}).get('coordinates'):
-                    lon, lat = lmd['geometry']['coordinates']
+                    gl_md['longitude'], gl_md['latitude'] = lmd['geometry']['coordinates']
 
-            if not data['grambankLanguage'].has_key(row['Language_ID']):
-                language = data.add(
-                    grambankLanguage, row['Language_ID'],
-                    id=row['Language_ID'],
-                    name=name,
-                    latitude=lat,
-                    longitude=lon)
+            if gl_md['family']:
+                family = data['Family'].get(gl_md['family']['id'])
+                if not family:
+                    family = data.add(
+                        Family, gl_md['family']['id'],
+                        id=gl_md['family']['id'],
+                        name=gl_md['family']['name'],
+                        description=gl_md['family']['url'],
+                        icon=icons.next().name)
+            else:
+                family = data['Family'].get('isolates')
+                if not family:
+                    family = data.add(
+                        Family, 'isolates',
+                        id='isolates',
+                        name='Isolates',
+                        description='Isolated languages',
+                        icon=icons.next().name)
+
+            language = data.add(
+                GrambankLanguage, row['Language_ID'],
+                id=row['Language_ID'],
+                name=gl_md['name'],
+                family=family,
+                latitude=gl_md.get('latitude'),
+                longitude=gl_md.get('longitude'),
+                macroarea=gl_md['macroarea'][1])
+            add_language_codes(
+                data, language, gl_md.get('iso639-3'), glottocode=row['Language_ID'])
 
         parameter = data['Parameter'].get(row['Feature_ID'])
         if parameter is None:
@@ -99,12 +141,13 @@ def import_cldf(srcdir, data):
     # check if language needs to be inserted
     # check if feature needs to be inserted
     # add value if in domain
+    icons = cycle(ORDERED_ICONS)
 
     for dirpath, dnames, fnames in os.walk(srcdir):
         for fname in fnames:
             if os.path.splitext(fname)[1] in ['.tsv', '.csv']:
                 try:
-                    import_dataset(os.path.join(dirpath, fname), data)
+                    import_dataset(os.path.join(dirpath, fname), data, icons)
                 except:
                     print os.path.join(dirpath, fname)
                     raise
