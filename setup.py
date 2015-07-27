@@ -3,10 +3,11 @@ from setuptools import setup, find_packages
 
 requires = [
     'clldmpg>=1.0.0',
+    'clld-glottologfamily-plugin>=0.1',
 ]
 
 tests_require = [
-    'WebTest >= 1.3.1', # py3 compat
+    'WebTest >= 1.3.1',  # py3 compat
     'mock',
 ]
 

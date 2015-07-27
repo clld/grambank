@@ -1,36 +1,18 @@
-from clld.db.util import get_distinct_values, icontains
-from clld.web.util.helpers import map_marker_img
-from clld.web.util.htmllib import HTML
-
-from clld.web.datatables.base import Col
 from clld.web.datatables.language import Languages
+from clld_glottologfamily_plugin.datatables import FamilyCol, MacroareaCol
+from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Family
-
-
-class FamilyCol(Col):
-    def __init__(self, dt, name, **kw):
-        kw['choices'] = get_distinct_values(Family.name)
-        Col.__init__(self, dt, name, **kw)
-
-    def order(self):
-        return Family.name
-
-    def search(self, qs):
-        return icontains(Family.name, qs)
-
-    def format(self, item):
-        return HTML.div(map_marker_img(self.dt.req, item), ' ', item.family.name)
+from models import GrambankLanguage
 
 
 class GrambankLanguages(Languages):
     def base_query(self, query):
-        return query.join(Family)
+        return query.outerjoin(Family)
 
     def col_defs(self):
         res = Languages.col_defs(self)
-        res.append(Col(self, 'macroarea', model_col=GrambankLanguage.macroarea))
-        res.append(FamilyCol(self, 'family'))
+        res.append(MacroareaCol(self, 'macroarea', language_cls=GrambankLanguage))
+        res.append(FamilyCol(self, 'family', language_cls=GrambankLanguage))
         return res
 
 
