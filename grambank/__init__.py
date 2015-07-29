@@ -24,6 +24,7 @@ def main(global_config, **settings):
     """
     config = Configurator(settings=settings)
     config.include('clldmpg')
+    config.include('clld_glottologfamily_plugin')
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
     config.register_adapter(adapter_factory(
         'parameter/detail_tab.mako',

@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 
 requires = [
+    'clld>=1.2.1',
     'clldmpg>=1.0.0',
-    'clld-glottologfamily-plugin>=0.1',
+    'clld-glottologfamily-plugin>=1.0',
 ]
 
 tests_require = [
