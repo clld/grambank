@@ -4,29 +4,37 @@ from sqlalchemy import (
     String,
     Unicode,
     Integer,
+    Boolean,
     ForeignKey,
+    UniqueConstraint,
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.versioned import Versioned
-from clld.db.models.common import Parameter, Language
+from clld.db.models.common import (
+    Parameter, IdNameDescriptionMixin, Language
+)
 
-from clld_glottologfamily_plugin.models import HasFamilyMixin
 
-
-@implementer(interfaces.ILanguage)
-class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
-    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
-
+class Family(Base, IdNameDescriptionMixin):
+    icon = Column(String, default='cff6600')
 
 class FeatureDomain(Base, Versioned):
     name = Column(Unicode, unique=True)
 
+@implementer(interfaces.ILanguage)
+class GrambankLanguage(CustomModelMixin, Language):
+    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    family_pk = Column(Integer, ForeignKey('family.pk'))
+    family = relationship(Family, backref='languages')
+    macroarea = Column(Unicode)
 
 @implementer(interfaces.IParameter)
-class Feature(CustomModelMixin, Parameter):
+class Feature(CustomModelMixin, Parameter, Versioned):
     """Parameters in GramBank are called features. They are always related to one Designer.
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
@@ -56,8 +64,8 @@ class Feature(CustomModelMixin, Parameter):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
-
-
+    standardized_comments = Column(String)
+    
 #\* Feature number
 #Feature question in English
 #Value set
@@ -77,3 +85,5 @@ class Feature(CustomModelMixin, Parameter):
 #Requires extensive data on the language
 #Last edited
 #Is there a typological survey that already covers this feature somehow?
+
+

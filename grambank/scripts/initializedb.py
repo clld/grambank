@@ -16,7 +16,7 @@ from clld.scripts.util import glottocodes_by_isocode, add_language_codes
 def main(args):
     user = getpass.getuser()
     data = Data()
-    datadir = 'C:\\Python26\\Grambank\\' if user != 'robert' \
+    datadir = 'C:\\Python27\\glottobank\\Grambank\\' if user != 'robert' \
         else '/home/robert/venvs/glottobank/Grambank'
 
     dataset = common.Dataset(
