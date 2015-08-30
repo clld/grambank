@@ -9,14 +9,15 @@ import requests
 
 from clld.util import jsondump, jsonload
 from clld.db.models.common import (
-    Parameter, ValueSet, Value, Contribution, DomainElement, Source, ValueSetReference,
+    ValueSet, Value, Contribution, DomainElement, Source, ValueSetReference,
 )
+#Parameter
 from clld.lib.dsv import reader
 from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
 from clld.scripts.util import bibtex2source, add_language_codes
 
-from grambank.models import GrambankLanguage, Family
+from grambank.models import GrambankLanguage, Family, Feature
 
 
 GLOTTOLOG_CACHE = os.path.join(os.path.expanduser("~"), '.glottolog-cache.json')
@@ -104,10 +105,10 @@ def import_dataset(path, data, icons):
             add_language_codes(
                 data, language, gl_md.get('iso639-3'), glottocode=row['Language_ID'])
 
-        parameter = data['Parameter'].get(row['Feature_ID'])
+        parameter = data['Feature'].get(row['Feature_ID'])
         if parameter is None:
             parameter = data.add(
-                Parameter, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
+                Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
 
         vs = data['ValueSet'].get(vsid)
         if vs is None:
@@ -175,6 +176,18 @@ class FeatureSpec(object):
     def __init__(self, d):
         self.id = d['GramBank ID'].strip()
         self.name = d['Feature']
+        self.doc = d['Clarifying Comments']
+        self.patron = d['Feature patron']
+        self.std_comments = d['Suggested standardised comments']
+        self.name_french = d['Feature question in French']
+        self.jl_relevant_unit = d['Relevant unit(s)']
+        self.jl_function = d['Function']
+        self.jl_formal_means = d['Formal means']
+        self.hard_to_deny = d['Very hard to deny']
+        self.prone_misunderstanding = d['Prone to misunderstandings among researchers']
+        self.requires_extensive_data = d['Requires extensive data on the language']
+        self.last_edited = d['Last edited']
+        self.other_survey = d['Is there a typological survey that already covers this feature somehow?']
         self.domain = OrderedDict()
         for n, desc in self.yield_domainelements(d['Possible Values']):
             self.domain[n] = desc
@@ -188,6 +201,20 @@ def import_features(datadir, data):
     for feature in reader(os.path.join(datadir, 'features.csv'), dicts=True):
         feature = FeatureSpec(feature)
         f = data.add(Parameter, feature.id, id=feature.id, name=feature.name)
+        for i, (deid, desc) in enumerate(feature.domain.items()):
+            DomainElement(
+                id='%s-%s' % (f.id, deid),
+                parameter=f,
+                abbr=deid,
+                name='%s - %s' % (deid, desc),
+                number=int(deid) if deid != '?' else 999,
+                description=desc,
+                jsondata=dict(icon=ORDERED_ICONS[i].name))
+
+def import_features_collaborative_sheet(datadir, data):
+    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), dicts=True):
+        feature = FeatureSpec(feature)
+        f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
         for i, (deid, desc) in enumerate(feature.domain.items()):
             DomainElement(
                 id='%s-%s' % (f.id, deid),

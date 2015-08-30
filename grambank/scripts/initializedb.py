@@ -9,7 +9,7 @@ from clld.db.models import common
 
 import grambank
 from grambank import models
-from grambank.scripts.util import import_features, import_cldf
+from grambank.scripts.util import import_features, import_features_collaborative_sheet, import_cldf
 from clld.scripts.util import glottocodes_by_isocode, add_language_codes
 
 
@@ -33,16 +33,11 @@ def main(args):
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     DBSession.add(dataset)
 
-    #glottolog = glottocodes_by_isocode('postgresql://robert@/glottolog3')
-    #
-    # TODO: add editors!
-    #
-
-    # must add features from somewhere
-    # then call util.import_cldf
-    import_features(datadir, data)
+    import_features_collaborative_sheet(datadir, data)
     import_cldf(os.path.join(datadir, 'datasets'), data)
-
+    #print data.keys()
+    #print data['Parameter'].keys()
+    #parameter = data['Parameter'].get(row['Feature_ID'])
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.

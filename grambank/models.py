@@ -39,6 +39,7 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
     doc = Column(String)
+    patron = Column(String)
     newdoc = Column(String)
     vdoc = Column(String)
     std_comments = Column(String)
@@ -64,7 +65,6 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
-    standardized_comments = Column(String)
     
 #\* Feature number
 #Feature question in English

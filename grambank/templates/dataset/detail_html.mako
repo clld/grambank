@@ -33,13 +33,8 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
 <ulist>
 <ul>Example sheets:
 <ulist>
-<ul>Empty GramBank sheet 
-<a href="http://haraldhammarstrom.ruhosting.nl/GB.xlsx">.xlsx</a>
-<a href="http://haraldhammarstrom.ruhosting.nl/GB.tsv">.tsv</a>
-</ul>
-<ul>Empty GramBank sheet with feature categories
-<a href="http://haraldhammarstrom.ruhosting.nl/GB-with-categories.xlsx">.xlsx</a>
-<a href="http://haraldhammarstrom.ruhosting.nl/GB-with-categories.tsv">.tsv</a>
+<ul>Empty GB coder sheet, i.e., the most recent version of GramBank sheet with feature categories and standardised comments:
+<a href="https://docs.google.com/spreadsheets/d/1PcYvGJ3dg2m0p_1_AO1IXA5uiNbrpT-0ydd2G7Y96II/edit?usp=sharing">google doc</a>
 </ul>
 <ul>Example filled-in sheet (by Harald)
 <a href="http://haraldhammarstrom.ruhosting.nl/Harald Hammarstrom_Nyam [nmi].tsv">.tsv</a>
