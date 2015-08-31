@@ -16,14 +16,17 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
 <table class="table table-condensed table-nonfluid">
     <thead>
     <tr>
-        <th>Statistics</th>
-        <th></th>
+        <th colspan="3">Statistics</th>
     </tr>
     </thead>
     <tbody>
-    <tr><td>Languages</td><td>${stats['language']}</td></tr>
-    <tr><td>Features</td><td>${stats['parameter']}</td></tr>
-    <tr><td>Datapoints</td><td>${stats['value']}</td></tr>
+    <tr><td>Languages</td><td></td><td>${stats['language']}</td></tr>
+    <tr><td>Features</td><td></td><td>${stats['parameter']}</td></tr>
+    <tr><td>Datapoints</td><td></td><td></td></tr>
+    % for name, count in contribs:
+        <tr><td></td><td>${name}</td><td>${count}</td></tr>
+    % endfor
+     <tr><td></td><td><b>total</b></td><td>${stats['value']}</td></tr>
     </tbody>
 </table>
 </p>

@@ -2,11 +2,14 @@ from clld.db.util import get_distinct_values, icontains
 from clld.web.util.helpers import map_marker_img
 from clld.web.util.htmllib import HTML
 
-from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol
+from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
 
-from models import GrambankLanguage, Family, Feature
+from clld_glottologfamily_plugin.datatables import MacroareaCol, FamilyLinkCol
+from clld_glottologfamily_plugin.models import Family
+
+from models import GrambankLanguage, Feature
 
 
 class FeatureIdCol(IdCol):
@@ -18,36 +21,32 @@ class FeatureIdCol(IdCol):
         return Feature.sortkey_str, Feature.sortkey_int
 
 
-class FamilyCol(Col):
-    def __init__(self, dt, name, **kw):
-        kw['choices'] = get_distinct_values(Family.name)
-        Col.__init__(self, dt, name, **kw)
-
-    def order(self):
-        return Family.name
-
-    def search(self, qs):
-        return icontains(Family.name, qs)
-
-    def format(self, item):
-        return HTML.div(map_marker_img(self.dt.req, item), ' ', item.family.name)
+class LanguageIdCol(LinkCol):
+    def get_attrs(self, item):
+        return dict(label=item.id)
 
 
 class GrambankLanguages(Languages):
     def base_query(self, query):
-        return query.join(Family)
+        return query.outerjoin(Family)
 
     def col_defs(self):
-        res = Languages.col_defs(self)
-        res.append(Col(self, 'macroarea', model_col=GrambankLanguage.macroarea))
-        res.append(FamilyCol(self, 'family'))
-        return res
+        return [
+            LanguageIdCol(self, 'id'),
+            LinkCol(self, 'name'),
+            LinkToMapCol(self, 'm'),
+            Col(self,
+                'latitude',
+                sDescription='<small>The geographic latitude</small>'),
+            Col(self,
+                'longitude',
+                sDescription='<small>The geographic longitude</small>'),
+            MacroareaCol(self, 'macroarea', GrambankLanguage),
+            FamilyLinkCol(self, 'family', GrambankLanguage),
+        ]
+
 
 class Features(Parameters):
-    #def base_query(self, query):
-    #    return query\
-    #        .join(FeatureDomain).options(joinedload_all(Feature.featuredomain))
-
     def col_defs(self):
         return [
             FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
@@ -60,7 +59,6 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
-    
 
 def includeme(config):
     config.register_datatable('languages', GrambankLanguages)

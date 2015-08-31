@@ -18,20 +18,13 @@ from clld.db.versioned import Versioned
 from clld.db.models.common import (
     Parameter, IdNameDescriptionMixin, Language
 )
+from clld_glottologfamily_plugin.models import HasFamilyMixin
 
-
-class Family(Base, IdNameDescriptionMixin):
-    icon = Column(String, default='cff6600')
-
-class FeatureDomain(Base, Versioned):
-    name = Column(Unicode, unique=True)
 
 @implementer(interfaces.ILanguage)
-class GrambankLanguage(CustomModelMixin, Language):
+class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
-    family_pk = Column(Integer, ForeignKey('family.pk'))
-    family = relationship(Family, backref='languages')
-    macroarea = Column(Unicode)
+
 
 @implementer(interfaces.IParameter)
 class Feature(CustomModelMixin, Parameter, Versioned):
@@ -47,8 +40,6 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     clarification = Column(String)
     alternative_id = Column(String)
     representation = Column(Integer)
-    featuredomain_pk = Column(Integer, ForeignKey('featuredomain.pk'))
-    featuredomain = relationship(FeatureDomain, lazy='joined')
     designer = Column(String)
     abbreviation = Column(String)
     sortkey_str = Column(String)
@@ -65,25 +56,3 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
-    
-#\* Feature number
-#Feature question in English
-#Value set
-#suggested standardised comments
-#progress on new description
-#Feature question in French
-#Relevant unit(s)
-#Function
-#Formal means
-#Legacy status
-#GramBank-status
-#Draft of clarifying comments to outsiders (from the proposal by Jeremy, Hannah and Hedvig
-#Work in progress comment
-#NTS or GramBank?
-#Very hard to deny
-#Prone to misunderstandings among researchers
-#Requires extensive data on the language
-#Last edited
-#Is there a typological survey that already covers this feature somehow?
-
-

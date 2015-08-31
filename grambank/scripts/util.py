@@ -2,38 +2,24 @@ from __future__ import unicode_literals
 import os
 import re
 from collections import OrderedDict
-import json
 from itertools import cycle
 
-import requests
+from nameparser import HumanName
 
-from clld.util import jsondump, jsonload
+from clld.util import jsonload, slug
+from clld.db.meta import DBSession
 from clld.db.models.common import (
     ValueSet, Value, Contribution, DomainElement, Source, ValueSetReference,
+    ContributionContributor, Contributor,
 )
-#Parameter
 from clld.lib.dsv import reader
 from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
-from clld.scripts.util import bibtex2source, add_language_codes
+from clld.scripts.util import bibtex2source
 
-from grambank.models import GrambankLanguage, Family, Feature
+from clldclient.glottolog import Glottolog
 
-
-GLOTTOLOG_CACHE = os.path.join(os.path.expanduser("~"), '.glottolog-cache.json')
-
-
-def glottolog_md(glottocode):
-    cache = jsonload(GLOTTOLOG_CACHE) if os.path.exists(GLOTTOLOG_CACHE) else {}
-    if glottocode not in cache:
-        print('cache miss: %s' % glottocode)
-        cache[glottocode] = requests.get(
-        'http://glottolog.org/resource/languoid/id/{0}.json'.format(glottocode)).json()
-    jsondump(cache, GLOTTOLOG_CACHE, indent=4)
-    md = cache[glottocode]
-    md['family'] = md['classification'][0] if md.get('classification') else None
-    md['macroarea'] = list(md['macroareas'].items())[0]
-    return md
+from grambank.models import GrambankLanguage, Feature
 
 
 def import_dataset(path, data, icons):
@@ -42,14 +28,24 @@ def import_dataset(path, data, icons):
     # then loop over values
     dirpath, fname = os.path.split(path)
     basename, ext = os.path.splitext(fname)
+    glottolog = Glottolog()
 
     contrib = Contribution(id=basename, name=basename)
 
     md = {}
     mdpath = path + '-metadata.json'
     if os.path.exists(mdpath):
-        with open(mdpath, 'rb') as fp:
-            md = json.load(fp)
+        md = jsonload(mdpath)
+    contributor_name = HumanName(md.get('contributed_datapoint', 'Team NTS'))
+    contributor_id = slug(contributor_name.last + contributor_name.first)
+    contributor = data['Contributor'].get(contributor_id)
+    if not contributor:
+        contributor = data.add(
+            Contributor,
+            contributor_id,
+            id=contributor_id,
+            name='%s' % contributor_name)
+    DBSession.add(ContributionContributor(contribution=contrib, contributor=contributor))
 
     bibpath = os.path.join(dirpath, basename + '.bib')
     if os.path.exists(bibpath):
@@ -60,14 +56,18 @@ def import_dataset(path, data, icons):
     languages = {f['properties']['glottocode']: f for f in md.get('features', [])}
 
     for i, row in enumerate(reader(path, dicts=True, delimiter=',' if 'c' in ext else '\t')):
-        if not row['Value']:
+        if not row['Value'] or not row['Feature_ID']:
             continue
         vsid = '%s-%s-%s' % (basename, row['Language_ID'], row['Feature_ID'])
         vid = row.get('ID', '%s-%s' % (basename, i + 1))
         language = data['GrambankLanguage'].get(row['Language_ID'])
         if language is None:
             # query glottolog!
-            gl_md = glottolog_md(row['Language_ID'])
+            languoid = glottolog.languoid(row['Language_ID'])
+            gl_md = {
+                'name': languoid.name,
+                'longitude': languoid.longitude,
+                'latitude': languoid.latitude}
             lmd = languages.get(row['Language_ID'])
             if lmd:
                 if lmd.get('properties', {}).get('name'):
@@ -75,35 +75,12 @@ def import_dataset(path, data, icons):
                 if lmd.get('geometry', {}).get('coordinates'):
                     gl_md['longitude'], gl_md['latitude'] = lmd['geometry']['coordinates']
 
-            if gl_md['family']:
-                family = data['Family'].get(gl_md['family']['id'])
-                if not family:
-                    family = data.add(
-                        Family, gl_md['family']['id'],
-                        id=gl_md['family']['id'],
-                        name=gl_md['family']['name'],
-                        description=gl_md['family']['url'],
-                        icon=icons.next().name)
-            else:
-                family = data['Family'].get('isolates')
-                if not family:
-                    family = data.add(
-                        Family, 'isolates',
-                        id='isolates',
-                        name='Isolates',
-                        description='Isolated languages',
-                        icon=icons.next().name)
-
             language = data.add(
                 GrambankLanguage, row['Language_ID'],
                 id=row['Language_ID'],
                 name=gl_md['name'],
-                family=family,
                 latitude=gl_md.get('latitude'),
-                longitude=gl_md.get('longitude'),
-                macroarea=gl_md['macroarea'][1])
-            add_language_codes(
-                data, language, gl_md.get('iso639-3'), glottocode=row['Language_ID'])
+                longitude=gl_md.get('longitude'))
 
         parameter = data['Feature'].get(row['Feature_ID'])
         if parameter is None:
@@ -149,8 +126,9 @@ def import_cldf(srcdir, data):
             if os.path.splitext(fname)[1] in ['.tsv', '.csv']:
                 try:
                     import_dataset(os.path.join(dirpath, fname), data, icons)
-                except:
                     print os.path.join(dirpath, fname)
+                except:
+                    print 'ERROR'
                     raise
                 #break
 
@@ -196,20 +174,6 @@ class FeatureSpec(object):
     def format_domain(self):
         return '; '.join('%s: %s' % item for item in self.domain.items() if item[0] != '?')
 
-
-def import_features(datadir, data):
-    for feature in reader(os.path.join(datadir, 'features.csv'), dicts=True):
-        feature = FeatureSpec(feature)
-        f = data.add(Parameter, feature.id, id=feature.id, name=feature.name)
-        for i, (deid, desc) in enumerate(feature.domain.items()):
-            DomainElement(
-                id='%s-%s' % (f.id, deid),
-                parameter=f,
-                abbr=deid,
-                name='%s - %s' % (deid, desc),
-                number=int(deid) if deid != '?' else 999,
-                description=desc,
-                jsondata=dict(icon=ORDERED_ICONS[i].name))
 
 def import_features_collaborative_sheet(datadir, data):
     for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), dicts=True):

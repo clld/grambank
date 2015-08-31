@@ -8,9 +8,9 @@ from clld.db.meta import DBSession
 from clld.db.models import common
 
 import grambank
-from grambank import models
-from grambank.scripts.util import import_features, import_features_collaborative_sheet, import_cldf
-from clld.scripts.util import glottocodes_by_isocode, add_language_codes
+from grambank.scripts.util import import_features_collaborative_sheet, import_cldf
+
+from clld_glottologfamily_plugin.util import load_families
 
 
 def main(args):
@@ -39,12 +39,14 @@ def main(args):
     #print data['Parameter'].keys()
     #parameter = data['Parameter'].get(row['Feature_ID'])
 
+    load_families(data, data['GrambankLanguage'].values(), isolates_icon='tcccccc')
+
+
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
-
 
 if __name__ == '__main__':
     initializedb(create=main, prime_cache=prime_cache)
