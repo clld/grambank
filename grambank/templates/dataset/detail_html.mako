@@ -37,7 +37,7 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
 <ul>Example sheets:
 <ulist>
 <ul>Empty GB coder sheet, i.e., the most recent version of GramBank sheet with feature categories and standardised comments:
-<a href="https://docs.google.com/spreadsheets/d/1PcYvGJ3dg2m0p_1_AO1IXA5uiNbrpT-0ydd2G7Y96II/edit?usp=sharing">google doc</a>
+<a href="https://github.com/glottobank/Grambank/blob/master/For_coders/GramBank_most_updated_sheet_20150910.xlsx">.xlsx</a> (requires github login)
 </ul>
 <ul>Example filled-in sheet (by Harald)
 <a href="http://haraldhammarstrom.ruhosting.nl/Harald Hammarstrom_Nyam [nmi].tsv">.tsv</a>
