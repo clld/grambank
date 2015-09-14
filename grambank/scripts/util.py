@@ -61,6 +61,14 @@ def import_dataset(path, data, icons):
             continue
         vsid = '%s-%s-%s' % (basename, row['Language_ID'], row['Feature_ID'])
         vid = row.get('ID', '%s-%s' % (basename, i + 1))
+
+        parameter = data['Feature'].get(row['Feature_ID'])
+        if parameter is None:
+            print('skip value for invalid feature %s' % row['Feature_ID'])
+            continue
+            #parameter = data.add(
+            #    Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
+
         language = data['GrambankLanguage'].get(row['Language_ID'])
         if language is None:
             # query glottolog!
@@ -82,11 +90,6 @@ def import_dataset(path, data, icons):
                 name=gl_md['name'],
                 latitude=gl_md.get('latitude'),
                 longitude=gl_md.get('longitude'))
-
-        parameter = data['Feature'].get(row['Feature_ID'])
-        if parameter is None:
-            parameter = data.add(
-                Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
 
         vs = data['ValueSet'].get(vsid)
         if vs is None:
