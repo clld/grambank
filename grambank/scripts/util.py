@@ -3,6 +3,7 @@ import os
 import re
 from collections import OrderedDict
 from itertools import cycle
+import csv
 
 from nameparser import HumanName
 
@@ -55,7 +56,7 @@ def import_dataset(path, data, icons):
 
     languages = {f['properties']['glottocode']: f for f in md.get('features', [])}
 
-    for i, row in enumerate(reader(path, dicts=True, delimiter=',' if 'c' in ext else '\t')):
+    for i, row in enumerate(reader(path, dicts=True, quoting=csv.QUOTE_NONE, delimiter=',' if 'c' in ext else '\t')):
         if not row['Value'] or not row['Feature_ID']:
             continue
         vsid = '%s-%s-%s' % (basename, row['Language_ID'], row['Feature_ID'])
