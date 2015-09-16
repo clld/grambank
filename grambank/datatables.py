@@ -1,8 +1,11 @@
+from sqlalchemy.orm import joinedload, joinedload_all
 from clld.db.util import get_distinct_values, icontains
 from clld.web.util.helpers import map_marker_img
 from clld.web.util.htmllib import HTML
 
+from clld.db.models import common
 from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
+from clld.web.datatables.value import Values, ValueNameCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
 
@@ -59,7 +62,62 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
+class Datapoints(Values):
+    def base_query(self, query):
+        query = Values.base_query(self, query)
+        if self.language:
+            query = query.options(
+                joinedload_all(common.Value.valueset, common.ValueSet.parameter),
+                joinedload(common.Value.domainelement),
+            )
+        return query
+
+    def col_defs(self):
+        name_col = ValueNameCol(self, 'value')
+        if self.parameter and self.parameter.domain:
+            name_col.choices = [(de.name, de.description) for de in self.parameter.domain]
+
+        cols = []
+        if self.parameter:
+            cols = [
+                LinkCol(
+                    self, 'Name',
+                    model_col=common.Language.name,
+                    get_object=lambda i: i.valueset.language),
+                Col(
+                    self, 'ISO-639-3',
+                    model_col=common.Language.id,
+                    get_object=lambda i: i.valueset.language)]
+        elif self.language:
+            cols = [
+                FeatureIdCol(
+                    self, 'Feature Id',
+                    sClass='left', model_col=common.Parameter.id,
+                    get_object=lambda i: i.valueset.parameter),
+                LinkCol(
+                    self, 'Feature',
+                    model_col=common.Parameter.name,
+                    get_object=lambda i: i.valueset.parameter)
+            ]
+
+        cols = cols + [
+            name_col,
+            Col(self, 'Source',
+                model_col=common.ValueSet.source,
+                get_object=lambda i: i.valueset),
+            Col(self, 'Comment', model_col=common.Value.description)
+        ]
+        return cols
+
+    def get_options(self):
+        if self.language or self.parameter:
+            # if the table is restricted to the values for one language, the number of
+            # features is an upper bound for the number of values; thus, we do not
+            # paginate.
+            return {'bLengthChange': False, 'bPaginate': False}
+
 
 def includeme(config):
+    config.register_datatable('values', Datapoints)
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
