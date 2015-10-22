@@ -1,4 +1,5 @@
+from grambank.maps import IsoGlossMap
 
 
 def about(req):
-    return {'data': 'goes here'}
+    return {'data': 'goes here', 'map': IsoGlossMap(None, req)}
