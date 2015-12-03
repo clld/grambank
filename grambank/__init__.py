@@ -6,6 +6,7 @@ from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 
 # we must make sure custom models are known at database initialization!
 from grambank import models
+from grambank import views
 
 
 class MyMapMarker(LanguageByFamilyMapMarker):
@@ -25,5 +26,8 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('clldmpg')
     config.include('clld_glottologfamily_plugin')
+    config.registry.settings['home_comp'].append('coverage')
+    config.add_route('coverage', pattern='/coverage')
+    config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
     return config.make_wsgi_app()
