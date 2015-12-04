@@ -5,35 +5,29 @@ This module is also used to lookup custom template context providers, i.e. funct
 following a special naming convention which are called to update the template context
 before rendering resource's detail or index views.
 """
-from __future__ import division
+from __future__ import division, unicode_literals
 
 from sqlalchemy import func, desc, text
 
 from clld import RESOURCES
 from clld.web.util.helpers import get_referents
+from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import Contributor, ValueSet, Contribution, ContributionContributor
 
 
-def coverage_badge(gl, gb):
-    if gb == 0:
-        percent = 0
+def td_coverage(glottolog=0, grambank=0):
+    if glottolog == 0:
+        if grambank == 0:
+            percentage = 0
+        else:
+            percentage = 1
     else:
-        percent = int(round((gb / gl) * 100))
-
-    if percent > 99:
-        color = 'brightgreen'
-    elif percent >= 80:
-        color = 'green'
-    elif percent >= 60:
-        color = 'yellowgreen'
-    elif percent >= 40:
-        color = 'yellow'
-    elif percent >= 20:
-        color = 'orange'
-    else:
-        color = 'red'
-    return "https://img.shields.io/badge/coverage-{0}%25-{1}.png".format(percent, color)
+        percentage = grambank / glottolog
+    return HTML.td(
+        '\xa0%s%%\xa0' % int(round(percentage * 100)),
+        class_='center',
+        style='background-color: hsl({0},100%,50%)'.format((percentage) * 120))
 
 
 def source_detail_html(context=None, request=None, **kw):
