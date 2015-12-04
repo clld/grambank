@@ -35,3 +35,4 @@ def dataset_detail_html(context=None, request=None, **kw):
         stats=context.get_stats(
             [rsc for rsc in RESOURCES if rsc.name in ['language', 'parameter', 'value']]),
     )
+
