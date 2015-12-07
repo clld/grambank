@@ -16,8 +16,10 @@ from clld.db.meta import DBSession
 from clld.db.models.common import Contributor, ValueSet, Contribution, ContributionContributor
 
 
-def td_coverage(glottolog=0, grambank=0):
+def td_coverage(glottolog=0, grambank=0, label=None):
+    style = ''
     if glottolog == 0:
+        style = 'background-color: hsl(120,100%,50%)'
         if grambank == 0:
             percentage = 0
         else:
@@ -25,9 +27,9 @@ def td_coverage(glottolog=0, grambank=0):
     else:
         percentage = grambank / glottolog
     return HTML.td(
-        '\xa0%s%%\xa0' % int(round(percentage * 100)),
-        class_='center',
-        style='background-color: hsl({0},100%,50%)'.format((percentage) * 120))
+        label if label else '\xa0%s%%\xa0' % int(round(percentage * 100)),
+        class_='left' if label else 'center',
+        style=style or 'background-color: hsl({0},100%,50%)'.format((percentage) * 120))
 
 
 def source_detail_html(context=None, request=None, **kw):
