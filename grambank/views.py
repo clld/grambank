@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, Counter, OrderedDict
 
 from sqlalchemy import select
 from pyramid.asset import abspath_from_asset_spec
@@ -25,7 +25,7 @@ def introduction(req):
     return {'data': [len(data)] + data, 'map': IsoGlossMap(None, req)}
 
 def coverage(req):
-    gl = jsonload(abspath_from_asset_spec('grambank:static/stats_glottolog.json'))
+    gl = jsonload(abspath_from_asset_spec('grambank:static/stats_by_macroarea.json'))
 
     stats = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
     for ma in gl:
@@ -43,4 +43,53 @@ def coverage(req):
         for src in ['glottolog', 'grambank']:
             stats[ma]['total'][src] = \
                 stats[ma]['grammar'][src] + stats[ma]['grammarsketch'][src]
-    return dict(stats=stats)
+
+    gl = jsonload(abspath_from_asset_spec('grambank:static/stats_by_classification.json'))
+    gb_langs = set([r[0] for r in DBSession.query(Language.id)])
+
+    cstats = OrderedDict()
+    for fid, spec in sorted(gl.items(), key=lambda k: k[1]['name']):
+        if not spec['doctype']:
+            continue
+        d = dict(
+            macroareas=spec['macroareas'],
+            grammar=Counter(),
+            grammarsketch=Counter(),
+            total=Counter(),
+            covered=gb_langs.intersection(set(spec['extension'])),
+            isolate=spec.get('subgroups'),
+            subgroups={})
+        if not spec.get('subgroups'):
+            # an isolate!
+            d[spec['doctype']].update(['glottolog'])
+            d['total'].update(['glottolog'])
+            if gb_langs.intersection(set(spec['extension'])):
+                d[spec['doctype']].update(['grambank'])
+                d['total'].update(['grambank'])
+        for sfid, sub in spec.get('subgroups', {}).items():
+            if sub['doctype']:
+                d[sub['doctype']].update(['glottolog'])
+                d['total'].update(['glottolog'])
+                if gb_langs.intersection(set(sub['extension'])):
+                    d[sub['doctype']].update(['grambank'])
+                    d['total'].update(['grambank'])
+                d['subgroups'][(sfid, sub['name'])] = dict(
+                    macroareas=spec['macroareas'],
+                    covered=gb_langs.intersection(set(sub['extension'])),
+                    grammar=Counter(),
+                    grammarsketch=Counter(),
+                    total=Counter())
+                for ssfid, ssub in sub.get('subgroups', {}).items():
+                    if ssub['doctype']:
+                        d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['glottolog'])
+                        d['subgroups'][(sfid, sub['name'])]['total'].update(['glottolog'])
+                        if gb_langs.intersection(set(ssub['extension'])):
+                            d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['grambank'])
+                            d['subgroups'][(sfid, sub['name'])]['total'].update(['grambank'])
+        cstats[(fid, spec['name'])] = d
+
+    return dict(
+        stats=stats,
+        cstats=cstats,
+        macroareas=jsonload(
+            abspath_from_asset_spec('grambank:static/stats_macroareas.json')))
