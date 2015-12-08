@@ -49,15 +49,13 @@ def coverage(req):
 
     cstats = OrderedDict()
     for fid, spec in sorted(gl.items(), key=lambda k: k[1]['name']):
-        if not spec['doctype']:
-            continue
         d = dict(
             macroareas=spec['macroareas'],
             grammar=Counter(),
             grammarsketch=Counter(),
             total=Counter(),
             covered=gb_langs.intersection(set(spec['extension'])),
-            isolate=spec.get('subgroups'),
+            isolate=not bool(spec.get('subgroups')),
             subgroups={})
         if not spec.get('subgroups'):
             # an isolate!
@@ -67,25 +65,33 @@ def coverage(req):
                 d[spec['doctype']].update(['grambank'])
                 d['total'].update(['grambank'])
         for sfid, sub in spec.get('subgroups', {}).items():
-            if sub['doctype']:
-                d[sub['doctype']].update(['glottolog'])
-                d['total'].update(['glottolog'])
+            if not sub.get('subgroups'):
+                sub['name'] = '%s*' % sub['name']
+            d[sub['doctype']].update(['glottolog'])
+            d['total'].update(['glottolog'])
+            if gb_langs.intersection(set(sub['extension'])):
+                d[sub['doctype']].update(['grambank'])
+                d['total'].update(['grambank'])
+            d['subgroups'][(sfid, sub['name'])] = dict(
+                macroareas=spec['macroareas'],
+                covered=gb_langs.intersection(set(sub['extension'])),
+                grammar=Counter(),
+                grammarsketch=Counter(),
+                total=Counter())
+            if not sub.get('subgroups'):
+                # a language attached directly to the top-level family
+                d['subgroups'][(sfid, sub['name'])][sub['doctype']].update(['glottolog'])
+                d['subgroups'][(sfid, sub['name'])]['total'].update(['glottolog'])
                 if gb_langs.intersection(set(sub['extension'])):
-                    d[sub['doctype']].update(['grambank'])
-                    d['total'].update(['grambank'])
-                d['subgroups'][(sfid, sub['name'])] = dict(
-                    macroareas=spec['macroareas'],
-                    covered=gb_langs.intersection(set(sub['extension'])),
-                    grammar=Counter(),
-                    grammarsketch=Counter(),
-                    total=Counter())
-                for ssfid, ssub in sub.get('subgroups', {}).items():
-                    if ssub['doctype']:
-                        d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['glottolog'])
-                        d['subgroups'][(sfid, sub['name'])]['total'].update(['glottolog'])
-                        if gb_langs.intersection(set(ssub['extension'])):
-                            d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['grambank'])
-                            d['subgroups'][(sfid, sub['name'])]['total'].update(['grambank'])
+                    d['subgroups'][(sfid, sub['name'])][sub['doctype']].update(['grambank'])
+                    d['subgroups'][(sfid, sub['name'])]['total'].update(['grambank'])
+            for ssfid, ssub in sub.get('subgroups', {}).items():
+                if ssub['doctype']:
+                    d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['glottolog'])
+                    d['subgroups'][(sfid, sub['name'])]['total'].update(['glottolog'])
+                    if gb_langs.intersection(set(ssub['extension'])):
+                        d['subgroups'][(sfid, sub['name'])][ssub['doctype']].update(['grambank'])
+                        d['subgroups'][(sfid, sub['name'])]['total'].update(['grambank'])
         cstats[(fid, spec['name'])] = d
 
     return dict(
