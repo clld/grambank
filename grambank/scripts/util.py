@@ -105,6 +105,9 @@ def import_dataset(path, data, icons):
         name = row['Value']
         if name in domain:
             name = domain[name].name
+        else:
+            print '-->', row['Language_ID'], row['Feature_ID'], row['Value'].encode('utf8')
+            continue
 
         Value(
             id=vid,
