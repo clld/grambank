@@ -50,7 +50,28 @@ class GrambankLanguages(Languages):
 
 
 class Features(Parameters):
+    def __init__(self, req, *args, **kw):
+        self.stability = kw.pop('stability', req.params.get('stability'))
+        Parameters.__init__(self, req, *args, **kw)
+
+    def xhr_query(self):
+        res = Parameters.xhr_query(self)
+        if self.stability:
+            # make sure we can determine the stability table is requested also when called
+            # via XHR.
+            res['stability'] = '1'
+        return res
+
     def col_defs(self):
+        if self.stability:
+            return [
+                FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
+                LinkCol(self, 'Feature', model_col=Feature.name),
+                Col(self, 'Stability', model_col=Feature.parsimony_stability_value),
+                Col(self, 'Retentions', model_col=Feature.parsimony_retentions),
+                Col(self, 'Transitions', model_col=Feature.parsimony_transitions),
+            ]
+
         return [
             FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
             LinkCol(self, 'Feature', model_col=Feature.name),
@@ -62,16 +83,7 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
-class Stability(Parameters):
-    def col_defs(self):
-        return [
-            FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
-            LinkCol(self, 'Feature', model_col=Feature.name),
-            Col(self, 'Stability', model_col=Feature.parsimony_stability_value),
-            Col(self, 'Retentions', model_col=Feature.parsimony_retentions),
-            Col(self, 'Transitions', model_col=Feature.parsimony_transitions),
-        ]
-    
+
 class Datapoints(Values):
     def base_query(self, query):
         query = Values.base_query(self, query)
@@ -131,4 +143,3 @@ def includeme(config):
     config.register_datatable('values', Datapoints)
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
-    config.register_datatable('stability', Stability)

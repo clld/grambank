@@ -2,7 +2,7 @@
 
 <h3>Parsimony Stability Rankings</h3>
 
-${request.get_datatable('stability', h.models.Parameter).render()}
+${request.get_datatable('parameters', h.models.Parameter, stability=True).render()}
 
 <table class="table table-nonfluid table-striped">
     <thead>
