@@ -105,8 +105,9 @@ def import_dataset(path, data, icons):
         name = row['Value']
         if name in domain:
             name = domain[name].name
-
-        Value(
+            
+        data.add(Value,
+            vid,
             id=vid,
             valueset=vs,
             name=name,
@@ -192,3 +193,12 @@ def import_features_collaborative_sheet(datadir, data):
                 number=int(deid) if deid != '?' else 999,
                 description=desc,
                 jsondata=dict(icon=ORDERED_ICONS[i].name))
+
+def get_clf_paths(lgs):
+    def path(languoid):
+        if not languoid:
+            return ()
+        return path(languoid.parent) + (languoid.id,)
+    glottolog = Glottolog()
+    return [path(glottolog.languoid(lg)) for lg in lgs]
+    

@@ -4,6 +4,7 @@ from sqlalchemy import (
     String,
     Unicode,
     Integer,
+    Float,
     Boolean,
     ForeignKey,
     UniqueConstraint,
@@ -56,3 +57,16 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
+    parsimony_stability_value = Column(Float) 
+    parsimony_retentions = Column(Float)
+    parsimony_transitions = Column(Float)
+
+class Dependency(Base, CustomModelMixin):
+    pk = Column(Integer, primary_key=True)
+    id = Column(String)
+    feature1_pk = Column(Integer, ForeignKey('feature.pk'))
+    feature1 = relationship(Feature, lazy='joined', foreign_keys = feature1_pk)
+    feature2_pk = Column(Integer, ForeignKey('feature.pk'))
+    #feature2 = relationship(Feature, lazy='joined')
+    strength = Column(Float)
+

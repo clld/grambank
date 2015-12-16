@@ -1,0 +1,115 @@
+def stability_tp(lv, fp):
+    ftp = {}
+    for (fam, famt) in fp.iteritems():
+        if not leaves(famt).intersection(lv):
+            continue
+        (t, pr) = prr(fam, lv)
+        if not t:
+            continue
+        tr = transitions(t)
+        ftp[fam] = [((tf, tt), (pr[tf], pr[tt])) for (tf, tt) in tr]
+    return ftp        
+
+
+def prr(f, a):
+    dlgs = leaves(fp.get(f, dict.fromkeys(a))).intersection([lg for (lg, v) in a.iteritems() if not undefined.has_key(v)])
+    t = prune({f: fp.get(f, dict.fromkeys(a))}, dlgs)
+    done = parsimony_reconstruct(t, a)
+    r = restr(a, dlgs)
+    for (n, rd) in done.iteritems():
+        r[n] = '/'.join(allmax(rd, min).keys())
+    return (t, r)
+
+def transitions(t):
+    if not t:
+        return []
+    thislev = [(k, kp) for (k, v) in t.iteritems() if v for kp in v.keys()]
+    return thislev + [ti for (k, v) in t.iteritems() if v for ti in transitions(v)]
+
+def trcount(tp):
+    tpc = [[(tfi, tti) for tfi in tf.split("/") for tti in tt.split("/")] for (tf, tt) in tp]
+    return opv(grp2l([((tfi, tti), 1/float(len(tpci))) for tpci in tpc for (tfi, tti) in tpci]), sum)
+
+def stability_ftp(lv, fp):
+    return opv(stability_tp(lv, fp), lambda labeled_tr: trcount([(tf, tt) for (label, (tf, tt)) in labeled_tr]))
+
+def parsimony_stability(lv, fp):
+    ftp = stability_ftp(lv, fp)
+    u = sumds(ftp.values())    
+    stability = sum([v for ((a, b), v) in u.iteritems() if a == b])
+    total = float(sum(u.values()))
+    if total == 0.0:
+        return {"stability": None, "retentions": stability, "transitions": total}
+    return {"stability": stability/total, "retentions": stability, "transitions": total}
+
+def parsimony_reconstruct(fp, r):
+    done = {}
+    def rec(d):
+        if not d:
+            return None
+        t = {}
+        for (k, v) in d.iteritems():
+            if done.has_key(k):
+                t[k] = done[k]
+                continue
+            if v:
+                t[k] = rec(v)
+                done[k] = t[k]
+                continue
+            if r.has_key(k) and r[k] != "NODATA": #TODO
+                t[k] = {r[k]: 0}
+
+        tvals = [x for x in t.values() if x != None]
+        if not tvals:
+            return None
+        return dict([(k, sum([min(d.get(k, 1), 1+min(d.values())) for d in tvals])) for k in types])
+    types = set(r.values())
+    rd = rec(fp)
+    return done #allmax(rd, min)
+
+
+
+
+def lg(z):
+    if z == 0:
+        return 0.0
+    return math.log(z, 2)
+
+def ent(pij, pi, pj):
+    return pij*lg(pij/(pi*pj))
+
+def entp(pd):
+    return -sum([px * lg(px) for px in pd.itervalues()])
+
+def I(X, Y, XY):    
+    I = sum([ent(XY.get((x, y), 0), px, py) for (x, px) in X.iteritems() for (y, py) in Y.iteritems()])
+    return I
+
+#E.g. X = {L1: 'a', L2: 'a'} Y = {L1: 'a', L2: 'b'}
+def implies(X, Y):
+    (x, y, xy) = jnt(X, Y)
+    return pi(x, y, xy)
+
+def jnt(X, Y):
+    U = set(X.iterkeys()).intersection(Y)
+    XY = dict([(z, (X[z], Y[z])) for z in U])
+    x = norm(fd([X[z] for z in U]))
+    y = norm(fd([Y[z] for z in U]))
+    xy = norm(fd([XY[z] for z in U]))
+    return (x, y, xy)
+
+
+def pi(X, Y, XY):
+    i = I(X, Y, XY) 
+    iy = entp(Y)
+    if iy == 0.0:
+        return 0.0
+    return i/iy
+
+
+
+
+def deepfamilies():
+    #PRR
+    #Stability
+    #Sim = Ham * stab

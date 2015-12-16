@@ -26,8 +26,18 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('clldmpg')
     config.include('clld_glottologfamily_plugin')
+    
     config.registry.settings['home_comp'].append('coverage')
     config.add_route('coverage', pattern='/coverage')
     config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
+
+    config.registry.settings['home_comp'].append('stability')
+    config.add_route('stability', pattern='/stability')
+    config.add_view(views.stability, route_name='stability', renderer='stability.mako')
+
+    config.registry.settings['home_comp'].append('dependencies')
+    config.add_route('dependencies', pattern='/dependencies')
+    config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
+    
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
     return config.make_wsgi_app()

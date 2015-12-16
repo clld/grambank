@@ -2,6 +2,7 @@ from collections import defaultdict, Counter, OrderedDict
 
 from sqlalchemy import select
 from pyramid.asset import abspath_from_asset_spec
+from pyramid.view import view_config
 
 from clld.util import jsonload
 from clld.db.meta import DBSession
@@ -16,13 +17,35 @@ from clld.db.meta import DBSession
 from models import GrambankLanguage, Feature
 
 
-def about(req):
-    return {'data': req, 'map': IsoGlossMap(None, req)}
+#def about(req):
+#    return {'data': req, 'map': IsoGlossMap(None, req)}
 
-def introduction(req):
-    data = [k for k in DBSession.query(GrambankLanguage.id, Feature.id)]
-    #data = [rsc for rsc in RESOURCES if rsc.name in ['language']]
-    return {'data': [len(data)] + data, 'map': IsoGlossMap(None, req)}
+#@view_config(route_name='stability', renderer='stability.mako')
+def stability(req):
+    fs = jsonload(abspath_from_asset_spec('grambank:static/stability.json'))
+    #lfv = DBSession.query(Value).join(Value.valueset)\
+    #        .options(
+    #        joinedload(Value.valueset, ValueSet.language),
+    #        joinedload(Value.valueset, ValueSet.parameter)
+    #    )
+
+    #trp = [(v.id,) for v in lfv]
+    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
+    return {'data': fs}
+
+def dependencies(req):
+    deps = jsonload(abspath_from_asset_spec('grambank:static/dependencies.json'))
+    #lfv = DBSession.query(Value).join(Value.valueset)\
+    #        .options(
+    #        joinedload(Value.valueset, ValueSet.language),
+    #        joinedload(Value.valueset, ValueSet.parameter)
+    #    )
+
+    #trp = [(v.id,) for v in lfv]
+    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
+    return {'data': deps}
+
+
 
 def coverage(req):
     gl = jsonload(abspath_from_asset_spec('grambank:static/stats_by_macroarea.json'))
