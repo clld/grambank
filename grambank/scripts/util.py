@@ -105,7 +105,6 @@ def import_dataset(path, data, icons):
         name = row['Value']
         if name in domain:
             name = domain[name].name
-            
         data.add(Value,
             vid,
             id=vid,
