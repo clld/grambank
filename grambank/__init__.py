@@ -42,9 +42,7 @@ def main(global_config, **settings):
     #config.add_route('dependencies', pattern='/dependencies')
     #config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
     
-    config.register_resource('dependency', Dependency, IDependency)
-    config.register_adapter(adapter_factory('dependency/index_html.mako'), IDependency)
-    config.register_adapter(adapter_factory('dependency/detail_html.mako'), IDependency)
+    config.register_resource('dependency', Dependency, IDependency, with_index=True)
     
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
     return config.make_wsgi_app()
