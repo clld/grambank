@@ -83,6 +83,13 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
+class Dependencies(Parameters):
+    def col_defs(self):
+        return [
+            FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
+            LinkCol(self, 'Feature', model_col=Feature.name),
+        ]
+
 
 class Datapoints(Values):
     def base_query(self, query):
@@ -143,3 +150,4 @@ def includeme(config):
     config.register_datatable('values', Datapoints)
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
+    config.register_datatable('features', Dependencies)

@@ -21,6 +21,7 @@ from clld.db.models.common import (
 )
 from clld_glottologfamily_plugin.models import HasFamilyMixin
 
+from interfaces import IDependency
 
 @implementer(interfaces.ILanguage)
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
@@ -61,12 +62,13 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     parsimony_retentions = Column(Float)
     parsimony_transitions = Column(Float)
 
+@implementer(IDependency)
 class Dependency(Base, CustomModelMixin):
     pk = Column(Integer, primary_key=True)
     id = Column(String)
     feature1_pk = Column(Integer, ForeignKey('feature.pk'))
     feature1 = relationship(Feature, lazy='joined', foreign_keys = feature1_pk)
     feature2_pk = Column(Integer, ForeignKey('feature.pk'))
-    #feature2 = relationship(Feature, lazy='joined')
+    feature2 = relationship(Feature, lazy='joined', foreign_keys = feature2_pk)
     strength = Column(Float)
 

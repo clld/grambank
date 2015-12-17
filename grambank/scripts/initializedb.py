@@ -60,7 +60,7 @@ def main(args):
     #with open('grambank\\static\\dependencies.json', 'wb') as fp:
     #    json.dump(imps, fp)
     for (i, (v, f1, f2)) in enumerate(imps):
-        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1])#, feature2 = data['Feature'][f2]) #feature1_pk = f1, feature2_pk = f2) #
+        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2]) #feature1_pk = f1, feature2_pk = f2) #
     
 
     

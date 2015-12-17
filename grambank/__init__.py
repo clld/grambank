@@ -1,8 +1,11 @@
 from pyramid.config import Configurator
 
 from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet
+from interfaces import IDependency
+from models import Dependency
 
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
+from clld.web.adapters.base import adapter_factory
 
 # we must make sure custom models are known at database initialization!
 from grambank import models
@@ -35,9 +38,13 @@ def main(global_config, **settings):
     config.add_route('stability', pattern='/stability')
     config.add_view(views.stability, route_name='stability', renderer='stability.mako')
 
-    config.registry.settings['home_comp'].append('dependencies')
-    config.add_route('dependencies', pattern='/dependencies')
-    config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
+    #config.registry.settings['home_comp'].append('dependencies')
+    #config.add_route('dependencies', pattern='/dependencies')
+    #config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
+    
+    config.register_resource('dependency', Dependency, IDependency)
+    config.register_adapter(adapter_factory('dependency/index_html.mako'), IDependency)
+    config.register_adapter(adapter_factory('dependency/detail_html.mako'), IDependency)
     
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
     return config.make_wsgi_app()
