@@ -4,7 +4,7 @@ from clld.web.util.helpers import map_marker_img
 from clld.web.util.htmllib import HTML
 
 from clld.db.models import common
-from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
+from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol, DataTable
 from clld.web.datatables.value import Values, ValueNameCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
@@ -12,7 +12,7 @@ from clld.web.datatables.parameter import Parameters
 from clld_glottologfamily_plugin.datatables import MacroareaCol, FamilyLinkCol
 from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Feature
+from models import GrambankLanguage, Feature, Dependency
 
 
 class FeatureIdCol(IdCol):
@@ -83,14 +83,25 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
-class Dependencies(Parameters):
+class Dependencies(DataTable):
+    def base_query(self, query):
+        return query.join(Feature, Feature.pk == Dependency.feature1_pk).options(joinedload(Dependency.feature1)).join(Feature, Feature.pk == Dependency.feature2_pk).options(joinedload(Dependency.feature2))
     def col_defs(self):
         return [
-            FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
-            LinkCol(self, 'Feature', model_col=Feature.name),
+            IdCol(self, 'Id', sClass='left', model_col=Dependency.id),
+            LinkCol(self, 'From Feature', sClass='left', model_col=Dependency.feature1.name),
+            LinkCol(self, 'To Feature', sClass='left', model_col=Dependency.feature2.name),
+            Col(self, 'Strength', model_col=Dependency.strength),
         ]
 
+class Families(DataTable):
+    def col_defs(self):
+        return [
+            LinkCol(self, 'name'),
+            GlottologUrlCol(self, 'description', sTitle='Glottolog'),
+        ]
 
+    
 class Datapoints(Values):
     def base_query(self, query):
         query = Values.base_query(self, query)
@@ -150,4 +161,5 @@ def includeme(config):
     config.register_datatable('values', Datapoints)
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
-    config.register_datatable('features', Dependencies)
+    config.register_datatable('dependencys', Dependencies)
+    config.register_datatable('familys', Families)

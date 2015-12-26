@@ -12,6 +12,14 @@ from grambank import models
 from grambank import views
 
 
+_ = lambda s: s
+_('Parameters')
+_('Parameter')
+_('Familys')
+_('Dependencys')
+
+
+
 class MyMapMarker(LanguageByFamilyMapMarker):
     def get_icon(self, ctx, req):
         if IValue.providedBy(ctx):
