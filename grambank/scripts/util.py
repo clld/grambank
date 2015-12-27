@@ -10,7 +10,7 @@ from nameparser import HumanName
 from clld.util import jsonload, slug
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    ValueSet, Value, Contribution, DomainElement, Source, ValueSetReference,
+    ValueSet, Value, DomainElement, Source, ValueSetReference,
     ContributionContributor, Contributor,
 )
 from clld.lib.dsv import reader
@@ -20,7 +20,7 @@ from clld.scripts.util import bibtex2source
 
 from clldclient.glottolog import Glottolog
 
-from grambank.models import GrambankLanguage, Feature
+from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
 
 def import_dataset(path, data, icons):
@@ -31,7 +31,7 @@ def import_dataset(path, data, icons):
     basename, ext = os.path.splitext(fname)
     glottolog = Glottolog()
 
-    contrib = Contribution(id=basename, name=basename)
+    contrib = GrambankContribution(id=basename, name=basename, desc=glottolog.languoid(basename).name)
 
     md = {}
     mdpath = path + '-metadata.json'

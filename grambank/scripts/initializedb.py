@@ -4,9 +4,11 @@ import os
 import getpass
 import json
 
-from clld.scripts.util import initializedb, Data
+import transaction
+from clld.scripts.util import initializedb, Data, gbs_func
 from clld.db.meta import DBSession
 from clld.db.models import common
+from clld.db.util import compute_language_sources
 
 import grambank
 from grambank.scripts.util import import_features_collaborative_sheet, import_cldf, get_clf_paths
@@ -16,6 +18,7 @@ from clld_glottologfamily_plugin.util import load_families
 from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph
 
 from grambank.models import Dependency
+
 
 def main(args):
     user = getpass.getuser()
@@ -73,6 +76,12 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+
+    compute_language_sources()
+    transaction.commit()
+    transaction.begin()
+
+    gbs_func('update', args)
 
 if __name__ == '__main__':
     initializedb(create=main, prime_cache=prime_cache)

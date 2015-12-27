@@ -17,7 +17,7 @@ from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.versioned import Versioned
 from clld.db.models.common import (
-    Parameter, IdNameDescriptionMixin, Language
+    Contribution, Parameter, IdNameDescriptionMixin, Language
 )
 from clld_glottologfamily_plugin.models import HasFamilyMixin
 
@@ -72,3 +72,7 @@ class Dependency(Base, CustomModelMixin):
     feature2 = relationship(Feature, lazy='joined', foreign_keys = feature2_pk)
     strength = Column(Float)
 
+@implementer(interfaces.IContribution)
+class GrambankContribution(CustomModelMixin, Contribution):
+    pk = Column(Integer, ForeignKey('contribution.pk'), primary_key=True)
+    desc = Column(String)

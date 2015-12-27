@@ -1,4 +1,4 @@
-from sqlalchemy.orm import joinedload, joinedload_all
+from sqlalchemy.orm import aliased, joinedload, joinedload_all
 from clld.db.util import get_distinct_values, icontains
 from clld.web.util.helpers import map_marker_img
 from clld.web.util.htmllib import HTML
@@ -8,12 +8,13 @@ from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, Lin
 from clld.web.datatables.value import Values, ValueNameCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
+from clld.web.datatables.contributor import Contributors, NameCol
 
-from clld_glottologfamily_plugin.datatables import MacroareaCol, FamilyLinkCol
+from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
 from models import GrambankLanguage, Feature, Dependency
-
+from clld.web.util.helpers import link
 
 class FeatureIdCol(IdCol):
     def search(self, qs):
@@ -54,6 +55,9 @@ class Features(Parameters):
         self.stability = kw.pop('stability', req.params.get('stability'))
         Parameters.__init__(self, req, *args, **kw)
 
+#    def default_order(self):
+#        return Feature.parsimony_stability_value descending TODO
+
     def xhr_query(self):
         res = Parameters.xhr_query(self)
         if self.stability:
@@ -84,21 +88,56 @@ class Features(Parameters):
         ]
 
 class Dependencies(DataTable):
-    def base_query(self, query):
-        return query.join(Feature, Feature.pk == Dependency.feature1_pk).options(joinedload(Dependency.feature1)).join(Feature, Feature.pk == Dependency.feature2_pk).options(joinedload(Dependency.feature2))
+    def default_order(self):
+        return Dependency.strength
+
     def col_defs(self):
         return [
             IdCol(self, 'Id', sClass='left', model_col=Dependency.id),
-            LinkCol(self, 'From Feature', sClass='left', model_col=Dependency.feature1.name),
-            LinkCol(self, 'To Feature', sClass='left', model_col=Dependency.feature2.name),
+            #LinkCol(self, 'From Feature', sClass='left', model_col=Dependency.f1),
+            #LinkCol(self, 'To Feature', sClass='left', model_col=Dependency.f2),
+            LinkCol(self, 'From Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature1),
+            LinkCol(self, 'To Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature2),
             Col(self, 'Strength', model_col=Dependency.strength),
         ]
 
-class Families(DataTable):
+
+class LanguageCountCol(Col):
+    __kw__ = {'bSearchable': False, 'bSortable': False}
+
+    def format(self, item):
+        return int(len(item.languages))
+
+class FamilyMacroareaCol(Col):
+    __kw__ = {'bSearchable': False, 'bSortable': False}
+
+    def format(self, item):
+        return ", ".join(set([lg.macroarea for lg in item.languages]))
+
+    
+class Families(Familys):    
     def col_defs(self):
         return [
             LinkCol(self, 'name'),
             GlottologUrlCol(self, 'description', sTitle='Glottolog'),
+            FamilyMacroareaCol(self, 'macroarea'),
+            LanguageCountCol(self, 'number of languages in GramBank'),
+        ]
+
+class GrambankContributionsCol(Col):
+    __kw__ = {'bSearchable': False, 'bSortable': False}
+
+    def format(self, item):
+        return HTML.ul(
+            *[HTML.li(link(
+                self.dt.req, c.contribution, label="%s [%s]" % (c.contribution.desc, c.contribution.id))) for c in item.contribution_assocs])
+
+
+class GrambankContributors(Contributors):
+    def col_defs(self):
+        return [
+            NameCol(self, 'name'),
+            GrambankContributionsCol(self, 'Contributions')
         ]
 
     
@@ -162,4 +201,4 @@ def includeme(config):
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
     config.register_datatable('dependencys', Dependencies)
-    config.register_datatable('familys', Families)
+    config.register_datatable('contributors', GrambankContributors)

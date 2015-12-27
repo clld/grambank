@@ -11,6 +11,7 @@ from clld.web.adapters.base import adapter_factory
 from grambank import models
 from grambank import views
 
+from datatables import Families
 
 _ = lambda s: s
 _('Parameters')
@@ -53,4 +54,6 @@ def main(global_config, **settings):
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
     
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
+
+    config.register_datatable('familys', Families)
     return config.make_wsgi_app()
