@@ -91,6 +91,11 @@ def import_dataset(path, data, icons):
                 latitude=gl_md.get('latitude'),
                 longitude=gl_md.get('longitude'))
 
+        domain = {de.abbr: de for de in parameter.domain}    
+	if not domain.get(row['Value']):
+            #print "skipped", row, "not in", domain
+            continue
+        
         vs = data['ValueSet'].get(vsid)
         if vs is None:
             vs = data.add(
@@ -101,10 +106,10 @@ def import_dataset(path, data, icons):
                 contribution=contrib,
                 source=row['Source'])
 
-        domain = {de.abbr: de for de in parameter.domain}
         name = row['Value']
         if name in domain:
             name = domain[name].name
+
         data.add(Value,
             vid,
             id=vid,

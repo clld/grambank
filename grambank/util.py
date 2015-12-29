@@ -14,7 +14,7 @@ from clld.web.util.helpers import get_referents
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import Contributor, ValueSet, Contribution, ContributionContributor
-
+from models import Dependency
 
 def td_coverage(glottolog=0, grambank=0, label=None):
     style = ''
@@ -55,3 +55,13 @@ def dataset_detail_html(context=None, request=None, **kw):
             [rsc for rsc in RESOURCES if rsc.name in ['language', 'parameter', 'value']]),
     )
 
+def combination_detail_html(context=None, request=None, **kw):
+    [f1, f2] = context.parameters[:2]
+    [dependency] = list(DBSession.query(Dependency).filter(Dependency.feature1_pk == f1.pk, Dependency.feature2_pk == f2.pk))
+    r = dependency.jsondata
+    r["f1id"] = f1.id
+    r["f2id"] = f2.id
+    r["f1f2id"] = dependency.id
+    r["strength"] = dependency.strength if r["f2h"] > 0.0 else "-"
+    r["combinatory_status"] = dependency.combinatory_status
+    return {'dependency': r}

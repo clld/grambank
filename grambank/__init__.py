@@ -1,8 +1,8 @@
 from pyramid.config import Configurator
 
-from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet
-from interfaces import IDependency
-from models import Dependency
+from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs
+from interfaces import IDependency, ITransition
+from models import Dependency, Transition
 
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.web.adapters.base import adapter_factory
@@ -31,6 +31,12 @@ class MyMapMarker(LanguageByFamilyMapMarker):
             return ctx.jsondata['icon']
         return LanguageByFamilyMapMarker.get_icon(self, ctx, req)
 
+def link_attrs(req, obj, **kw):
+    if IDependency.providedBy(obj):
+        # we are about to link to a dependency details page: redirect to combination page!
+        id_ = obj.id.replace("->", "_")
+        kw['href'] = req.route_url('combination', id=id_, **kw.pop('url_kw', {}))
+    return kw
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -52,8 +58,10 @@ def main(global_config, **settings):
     #config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
     
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
+    config.register_resource('transition', Transition, ITransition, with_index=True)
     
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
 
+    config.registry.registerUtility(link_attrs, ILinkAttrs)
     config.register_datatable('familys', Families)
     return config.make_wsgi_app()

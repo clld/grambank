@@ -19,9 +19,9 @@ from clld.db.versioned import Versioned
 from clld.db.models.common import (
     Contribution, Parameter, IdNameDescriptionMixin, Language
 )
-from clld_glottologfamily_plugin.models import HasFamilyMixin
+from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
 
-from interfaces import IDependency
+from interfaces import IDependency, ITransition
 
 @implementer(interfaces.ILanguage)
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
@@ -71,7 +71,23 @@ class Dependency(Base, CustomModelMixin):
     feature2_pk = Column(Integer, ForeignKey('feature.pk'))
     feature2 = relationship(Feature, lazy='joined', foreign_keys = feature2_pk)
     strength = Column(Float)
+    representation = Column(Integer)
+    combinatory_status = Column(String)
 
+@implementer(ITransition)
+class Transition(Base, CustomModelMixin):
+    pk = Column(Integer, primary_key=True)
+    id = Column(String)
+    fromnode = Column(String)
+    fromvalue = Column(String)
+    tonode = Column(String)
+    tovalue = Column(String)
+    feature_pk = Column(Integer, ForeignKey('feature.pk'))
+    feature = relationship(Feature, lazy='joined', foreign_keys = feature_pk)
+    family_pk = Column(Integer, ForeignKey('family.pk'))
+    family = relationship(Family, backref='transitions')
+    retention_innovation = Column(String)
+    
 @implementer(interfaces.IContribution)
 class GrambankContribution(CustomModelMixin, Contribution):
     pk = Column(Integer, ForeignKey('contribution.pk'), primary_key=True)

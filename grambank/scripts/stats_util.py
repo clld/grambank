@@ -136,23 +136,26 @@ def trcount(tp):
         s[k] = s.get(k, 0) + v
     return s
 
+#def stability_ftp(lv, fp):
+#    return dict([(l, trcount([(tf, tt) for (label, (tf, tt)) in labeled_tr])) for (l, labeled_tr) in stability_tp(lv, fp).iteritems()])
+
 def stability_ftp(lv, fp):
-    return dict([(l, trcount([(tf, tt) for (label, (tf, tt)) in labeled_tr])) for (l, labeled_tr) in stability_tp(lv, fp).iteritems()])
+    return [(l, label, tft) for (l, labeled_tr) in stability_tp(lv, fp).iteritems() for (label, tft) in labeled_tr]
 
 
 def feature_stability(datatriples, clfps):
     clf = paths_to_d(clfps)
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
-    return list(sorted([(f, parsimony_stability(lv, clf)) for (f, lv) in flv.iteritems()], key = lambda (f, v): (v, f), reverse = True))
+    return [(f, parsimony_stability(lv, clf)) for (f, lv) in flv.iteritems()]
 
 def parsimony_stability(lv, fp):
-    ftp = stability_ftp(lv, fp)
-    u = sumds(ftp.values())    
+    transitions = stability_ftp(lv, fp)
+    u = trcount([tft for (f, label, tft) in transitions])    
     stability = sum([v for ((a, b), v) in u.iteritems() if a == b])
     total = float(sum(u.values()))
-    if total == 0.0:
-        return {"stability": None, "retentions": stability, "transitions": total}
-    return {"stability": stability/total, "retentions": stability, "transitions": total}
+    r = {"retentions": stability, "transitions": total}
+    r["stability"] = stability/total if total > 0 else None
+    return (r, transitions)
 
 def parsimony_reconstruct(fp, r):
     done = {}
@@ -196,23 +199,35 @@ def I(X, Y, XY):
 
 #E.g. X = {L1: 'a', L2: 'a'} Y = {L1: 'a', L2: 'b'}
 def implies((X, Y)):
-    (x, y, xy) = jnt(X, Y)
-    return pi(x, y, xy)
+    ((x, y, xy), dstats) = jnt(X, Y)
+    (strength, istats) = pi(x, y, xy)
+    return (strength, dict(dstats.items() + istats.items()))
+    
+def percent(k, n):
+    return "%.1f" % (100*(k/float(n))) + "%"
 
+def vtable(f):
+    n = sum(f.itervalues())
+    return [k + (f[k], percent(f[k], n)) if type(k) == type(()) else (k, f[k], percent(f[k], n)) for k in sorted(f.iterkeys())] + [("Total",) + tuple(["" for i in range(1, max([len(k) if type(k) == type(()) else 1 for k in f.iterkeys()] + [0]))]) + (n, "")]
+    
 def jnt(X, Y):
     U = set(X.iterkeys()).intersection(Y)
     XY = dict([(z, (X[z], Y[z])) for z in U])
-    x = norm(fd([X[z] for z in U]))
-    y = norm(fd([Y[z] for z in U]))
-    xy = norm(fd([XY[z] for z in U]))
-    return (x, y, xy)
+    fx = fd([X[z] for z in U])
+    fy = fd([Y[z] for z in U])
+    fxy = fd([XY[z] for z in U])
+    x = norm(fx)
+    y = norm(fy)
+    xy = norm(fxy)
+    dstats = {"f1stats": vtable(fx), "f2stats": vtable(fy), "f1f2stats": vtable(fxy), "representation": len(U)}
+    return ((x, y, xy), dstats)
 
 def pi(X, Y, XY):
     i = I(X, Y, XY) 
     iy = entp(Y)
-    if iy == 0.0:
-        return 0.0
-    return i/iy
+    strength = i/iy if iy != 0.0 else 0.0
+    istats = {"f1h": entp(X), "f2h": iy, "f1f2h": entp(XY), "f1f2mi": i}
+    return (strength, istats)
 
 def has_cycle(G):
     def find_cycle_to_ancestor(node, ancestor):
@@ -350,7 +365,7 @@ def both_defined(lv1, lv2):
 def feature_dependencies(datatriples):
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
     imps = [(implies(both_defined(lv1, lv2)), f1, f2) for (f1, lv1) in flv.iteritems() for (f2, lv2) in flv.iteritems() if f1 != f2]
-    return list(sorted(imps, reverse=True))
+    return imps
 
 def dependencies_graph(imps):
     deps = dict([((f1, f2), v) for (v, f1, f2) in imps if v > 0.0])
@@ -360,7 +375,7 @@ def dependencies_graph(imps):
     (mv, H) = max([(sum(H.values()), H) for H in MSTs])
     #W = dict([(y, 1.0-v) for ((x, y), v) in H.iteritems()])
     #sav(dot(H, V), 'grambank_mst.gv')
-    return dot(H, V)
+    return (H, V) #dot(H, V)
 
 
 def deepfamilies():

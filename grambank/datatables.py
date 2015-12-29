@@ -13,7 +13,7 @@ from clld.web.datatables.contributor import Contributors, NameCol
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Feature, Dependency
+from models import GrambankLanguage, Feature, Dependency, Transition
 from clld.web.util.helpers import link
 
 class FeatureIdCol(IdCol):
@@ -49,14 +49,16 @@ class GrambankLanguages(Languages):
             FamilyLinkCol(self, 'family', GrambankLanguage),
         ]
 
-
 class Features(Parameters):
     def __init__(self, req, *args, **kw):
         self.stability = kw.pop('stability', req.params.get('stability'))
         Parameters.__init__(self, req, *args, **kw)
 
-#    def default_order(self):
-#        return Feature.parsimony_stability_value descending TODO
+    def get_options(self):
+        opts = super(Features, self).get_options()
+        if self.stability:
+            opts['aaSorting'] = [[2, 'desc']]
+        return opts
 
     def xhr_query(self):
         res = Parameters.xhr_query(self)
@@ -88,8 +90,10 @@ class Features(Parameters):
         ]
 
 class Dependencies(DataTable):
-    def default_order(self):
-        return Dependency.strength
+    def get_options(self):
+        opts = super(Dependencies, self).get_options()
+        opts['aaSorting'] = [[3, 'desc'], [4, 'desc']]
+        return opts
 
     def col_defs(self):
         return [
@@ -99,9 +103,39 @@ class Dependencies(DataTable):
             LinkCol(self, 'From Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature1),
             LinkCol(self, 'To Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature2),
             Col(self, 'Strength', model_col=Dependency.strength),
+            Col(self, 'Representation', model_col=Dependency.representation),
+            StatusCol(self, 'Status', Dependency),
         ]
 
+class Transitions(DataTable):
+    def col_defs(self):
+        return [
+            IdCol(self, 'Id', sClass='left', model_col=Transition.id),
+            LinkCol(self, 'Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature),
+            FamilyLinkCol(self, 'Family', Transition),
+            Col(self, 'From Node', model_col=Transition.fromnode),
+            Col(self, 'From Value', model_col=Transition.fromvalue),
+            Col(self, 'To Node', model_col=Transition.tonode),
+            Col(self, 'To Value', model_col=Transition.tovalue),
+        ]
 
+class StatusCol(Col):
+    def __init__(self, dt, name, dependency, **kw):
+        self._col = getattr(dependency, 'combinatory_status')
+        kw['choices'] = get_distinct_values(self._col)
+        Col.__init__(self, dt, name, **kw)
+
+    def order(self):
+        return self._col
+
+    def search(self, qs):
+        return icontains(self._col, qs)
+
+    def format(self, item):
+        return self.get_obj(item).combinatory_status
+
+
+    
 class LanguageCountCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
 
@@ -202,3 +236,4 @@ def includeme(config):
     config.register_datatable('parameters', Features)
     config.register_datatable('dependencys', Dependencies)
     config.register_datatable('contributors', GrambankContributors)
+    config.register_datatable('transitions', Transitions)

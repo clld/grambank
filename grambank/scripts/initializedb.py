@@ -13,11 +13,12 @@ from clld.db.util import compute_language_sources
 import grambank
 from grambank.scripts.util import import_features_collaborative_sheet, import_cldf, get_clf_paths
 
+
+
 from clld_glottologfamily_plugin.util import load_families
-
+from clldclient.glottolog import Glottolog
 from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph
-
-from grambank.models import Dependency
+from grambank.models import Dependency, Transition
 
 
 def main(args):
@@ -52,25 +53,31 @@ def main(args):
         data['Feature'][f].representation = len(lv)
         
     fs = feature_stability(datatriples, clfps)
-    #with open('grambank\\static\\stability.json', 'wb') as fp:
-    #    json.dump(fs, fp)
-    for (f, s) in fs:
+    for (f, (s, _)) in fs:
         data['Feature'][f].parsimony_stability_value = s["stability"]
         data['Feature'][f].parsimony_retentions = s["retentions"]
         data['Feature'][f].parsimony_transitions = s["transitions"]
-    
-    imps = feature_dependencies(datatriples)
-    #with open('grambank\\static\\dependencies.json', 'wb') as fp:
-    #    json.dump(imps, fp)
-    for (i, (v, f1, f2)) in enumerate(imps):
-        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2]) #feature1_pk = f1, feature2_pk = f2) #
-    
+
+    glottolog = Glottolog()
+    alltransitions = [(f,) + tr for (f, (s, transitions)) in fs for tr in transitions]
+    for (i, (f, fam, (fromnode, tonode), (ft, tt))) in enumerate(alltransitions):
+        data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), feature = data['Feature'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
+
 
     
-    #dot = dependencies_graph(imps)        
-    #with open('grambank\\static\\dependencies.gv', 'w') as fp:
-    #    fp.write(dot)
+
         
+    imps = feature_dependencies(datatriples)
+    H = {}
+    #(H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
+    #with open('grambank\\static\\dependencies.gv', 'w') as fp:
+    #    fp.write(dot(H, V))
+    
+    for (i, ((v, dstats), f1, f2)) in enumerate(imps):
+        combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
+        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
+    
+    
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
