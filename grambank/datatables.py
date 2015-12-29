@@ -90,6 +90,12 @@ class Features(Parameters):
         ]
 
 class Dependencies(DataTable):
+    def base_query(self, query):
+        f1 = aliased(Feature, name="f1")
+        f2 = aliased(Feature, name="f2")
+        query = query.join(f1, f1.pk==Dependency.feature1_pk).options(joinedload(Dependency.feature1)).join(f2, f2.pk==Dependency.feature2_pk).options(joinedload(Dependency.feature2))
+        return query
+
     def get_options(self):
         opts = super(Dependencies, self).get_options()
         opts['aaSorting'] = [[3, 'desc'], [4, 'desc']]
@@ -108,6 +114,9 @@ class Dependencies(DataTable):
         ]
 
 class Transitions(DataTable):
+    def base_query(self, query):
+        return query.outerjoin(Feature).outerjoin(Family)
+    
     def col_defs(self):
         return [
             IdCol(self, 'Id', sClass='left', model_col=Transition.id),
