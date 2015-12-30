@@ -5,3 +5,6 @@ class IDependency(Interface):
 
 class ITransition(Interface):
     """marker"""
+
+class ITransition(IStability):
+    """marker"""

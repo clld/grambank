@@ -21,7 +21,7 @@ from clld.db.models.common import (
 )
 from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
 
-from interfaces import IDependency, ITransition
+from interfaces import IDependency, ITransition, IStability
 
 @implementer(interfaces.ILanguage)
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
@@ -58,9 +58,17 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
+    stability_pk = Column(Integer, ForeignKey('stability.pk'))
+    stability = relationship(Stability, lazy='joined', foreign_keys = stability_pk, backref = "feature")
+
+@implementer(interfaces.IStability)
+class Stability(Base, CustomModelMixin):
+    pk = Column(Integer, primary_key=True)
+    id = Column(String)
     parsimony_stability_value = Column(Float) 
     parsimony_retentions = Column(Float)
     parsimony_transitions = Column(Float)
+    
 
 @implementer(IDependency)
 class Dependency(Base, CustomModelMixin):
