@@ -90,10 +90,17 @@ class Features(Parameters):
         ]
 
 class Dependencies(DataTable):
+    def __init__(self, req, model, **kw):
+        DataTable.__init__(self, req, model, **kw)
+        self.f1 = aliased(Feature, name="f1")
+        self.f2 = aliased(Feature, name="f2")
+
     def base_query(self, query):
-        f1 = aliased(Feature, name="f1")
-        f2 = aliased(Feature, name="f2")
-        query = query.join(f1, f1.pk==Dependency.feature1_pk).options(joinedload(Dependency.feature1)).join(f2, f2.pk==Dependency.feature2_pk).options(joinedload(Dependency.feature2))
+        query = query\
+            .join(self.f1, self.f1.pk == Dependency.feature1_pk)\
+            .options(joinedload(Dependency.feature1))\
+            .join(self.f2, self.f2.pk == Dependency.feature2_pk)\
+            .options(joinedload(Dependency.feature2))
         return query
 
     def get_options(self):
@@ -106,8 +113,8 @@ class Dependencies(DataTable):
             IdCol(self, 'Id', sClass='left', model_col=Dependency.id),
             #LinkCol(self, 'From Feature', sClass='left', model_col=Dependency.f1),
             #LinkCol(self, 'To Feature', sClass='left', model_col=Dependency.f2),
-            LinkCol(self, 'From Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature1),
-            LinkCol(self, 'To Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature2),
+            LinkCol(self, 'From Feature', sClass='left', model_col=self.f1.name, get_object=lambda i: i.feature1),
+            LinkCol(self, 'To Feature', sClass='left', model_col=self.f2.name, get_object=lambda i: i.feature2),
             Col(self, 'Strength', model_col=Dependency.strength),
             Col(self, 'Representation', model_col=Dependency.representation),
             StatusCol(self, 'Status', Dependency),
