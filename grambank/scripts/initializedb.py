@@ -18,7 +18,7 @@ from grambank.scripts.util import import_features_collaborative_sheet, import_cl
 from clld_glottologfamily_plugin.util import load_families
 from clldclient.glottolog import Glottolog
 from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph
-from grambank.models import Dependency, Transition
+from grambank.models import Dependency, Transition, Stability
 
 
 def main(args):
@@ -44,6 +44,8 @@ def main(args):
     import_features_collaborative_sheet(datadir, data)
     import_cldf(os.path.join(datadir, 'datasets'), data)
     load_families(data, data['GrambankLanguage'].values(), isolates_icon='tcccccc')
+
+
     
     datatriples = [(v.valueset.language.id, v.valueset.parameter.id, v.name) for v in data["Value"].itervalues()]
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
@@ -51,17 +53,13 @@ def main(args):
 
     for (f, lv) in flv.iteritems():
         data['Feature'][f].representation = len(lv)
-        
-    fs = feature_stability(datatriples, clfps)
-    for (f, (s, _)) in fs:
-        data['Feature'][f].parsimony_stability_value = s["stability"]
-        data['Feature'][f].parsimony_retentions = s["retentions"]
-        data['Feature'][f].parsimony_transitions = s["transitions"]
 
     glottolog = Glottolog()
-    alltransitions = [(f,) + tr for (f, (s, transitions)) in fs for tr in transitions]
-    for (i, (f, fam, (fromnode, tonode), (ft, tt))) in enumerate(alltransitions):
-        data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), feature = data['Feature'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
+    fs = feature_stability(datatriples, clfps)
+    for (f, (s, transitions)) in fs:
+        data.add(Stability, f, id = f.replace("GB", "S"), feature = data['Feature'][f], parsimony_stability_value = s["stability"], parsimony_retentions = s["retentions"], parsimony_transitions = s["transitions"])
+        for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
+            data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
 
 
     

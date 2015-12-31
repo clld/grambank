@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grambank 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-12-25 00:32+0100\n"
-"PO-Revision-Date: 2015-12-25 00:26+0100\n"
+"POT-Creation-Date: 2015-12-30 20:54+0100\n"
+"PO-Revision-Date: 2015-12-30 20:52+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -18,19 +18,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.1.1\n"
 
-#: grambank/__init__.py:16
+#: grambank/__init__.py:17
 msgid "Parameters"
 msgstr "Features"
 
-#: grambank/__init__.py:17
+#: grambank/__init__.py:18
 msgid "Parameter"
 msgstr "Feature"
 
-#: grambank/__init__.py:18
+#: grambank/__init__.py:19
 msgid "Familys"
 msgstr "Families"
 
-#: grambank/__init__.py:19
+#: grambank/__init__.py:20
 msgid "Dependencys"
-msgstr "F-Dependencies"
+msgstr "Dependencies"
+
+#: grambank/__init__.py:21
+msgid "Stabilitys"
+msgstr "Stability"
 

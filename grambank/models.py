@@ -58,16 +58,16 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
-    stability_pk = Column(Integer, ForeignKey('stability.pk'))
-    stability = relationship(Stability, lazy='joined', foreign_keys = stability_pk, backref = "feature")
 
-@implementer(interfaces.IStability)
+@implementer(IStability)
 class Stability(Base, CustomModelMixin):
     pk = Column(Integer, primary_key=True)
     id = Column(String)
     parsimony_stability_value = Column(Float) 
     parsimony_retentions = Column(Float)
     parsimony_transitions = Column(Float)
+    feature_pk = Column(Integer, ForeignKey('feature.pk'))
+    feature = relationship(Feature, lazy='joined', foreign_keys = feature_pk, backref = "stability")
     
 
 @implementer(IDependency)
@@ -90,8 +90,8 @@ class Transition(Base, CustomModelMixin):
     fromvalue = Column(String)
     tonode = Column(String)
     tovalue = Column(String)
-    feature_pk = Column(Integer, ForeignKey('feature.pk'))
-    feature = relationship(Feature, lazy='joined', foreign_keys = feature_pk)
+    stability_pk = Column(Integer, ForeignKey('stability.pk'))
+    stability = relationship(Stability, lazy='joined', foreign_keys = stability_pk)
     family_pk = Column(Integer, ForeignKey('family.pk'))
     family = relationship(Family, backref='transitions')
     retention_innovation = Column(String)

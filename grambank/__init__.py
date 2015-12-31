@@ -1,8 +1,8 @@
 from pyramid.config import Configurator
 
 from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs
-from interfaces import IDependency, ITransition
-from models import Dependency, Transition
+from interfaces import IDependency, ITransition, IStability
+from models import Dependency, Transition, Stability
 
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.web.adapters.base import adapter_factory
@@ -18,7 +18,7 @@ _('Parameters')
 _('Parameter')
 _('Familys')
 _('Dependencys')
-
+_('Stabilitys')
 
 
 class MyMapMarker(LanguageByFamilyMapMarker):
@@ -49,9 +49,9 @@ def main(global_config, **settings):
     config.add_route('coverage', pattern='/coverage')
     config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
 
-    config.registry.settings['home_comp'].append('stability')
-    config.add_route('stability', pattern='/stability')
-    config.add_view(views.stability, route_name='stability', renderer='stability.mako')
+    #config.registry.settings['home_comp'].append('stability')
+    #config.add_route('stability', pattern='/stability')
+    #config.add_view(views.stability, route_name='stability', renderer='stability.mako')
 
     #config.registry.settings['home_comp'].append('dependencies')
     #config.add_route('dependencies', pattern='/dependencies')
@@ -59,7 +59,7 @@ def main(global_config, **settings):
     
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
     config.register_resource('transition', Transition, ITransition, with_index=True)
-    
+    config.register_resource('stability', Stability, IStability, with_index=True)
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
 
     config.registry.registerUtility(link_attrs, ILinkAttrs)

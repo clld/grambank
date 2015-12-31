@@ -13,7 +13,7 @@ from clld.web.datatables.contributor import Contributors, NameCol
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Feature, Dependency, Transition
+from models import GrambankLanguage, Feature, Dependency, Transition, Stability
 from clld.web.util.helpers import link
 
 class FeatureIdCol(IdCol):
@@ -23,7 +23,6 @@ class FeatureIdCol(IdCol):
 
     def order(self):
         return Feature.sortkey_str, Feature.sortkey_int
-
 
 class LanguageIdCol(LinkCol):
     def get_attrs(self, item):
@@ -49,34 +48,46 @@ class GrambankLanguages(Languages):
             FamilyLinkCol(self, 'family', GrambankLanguage),
         ]
 
-class Features(Parameters):
-    def __init__(self, req, *args, **kw):
-        self.stability = kw.pop('stability', req.params.get('stability'))
-        Parameters.__init__(self, req, *args, **kw)
-
+class Stabilities(DataTable):
     def get_options(self):
-        opts = super(Features, self).get_options()
-        if self.stability:
-            opts['aaSorting'] = [[2, 'desc']]
+        opts = super(Stabilities, self).get_options()
+        opts['aaSorting'] = [[2, 'desc']]
         return opts
-
-    def xhr_query(self):
-        res = Parameters.xhr_query(self)
-        if self.stability:
-            # make sure we can determine the stability table is requested also when called
-            # via XHR.
-            res['stability'] = '1'
-        return res
+    
+    def base_query(self, query):
+        return query.outerjoin(Feature)
 
     def col_defs(self):
-        if self.stability:
-            return [
-                FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
-                LinkCol(self, 'Feature', model_col=Feature.name),
-                Col(self, 'Stability', model_col=Feature.parsimony_stability_value),
-                Col(self, 'Retentions', model_col=Feature.parsimony_retentions),
-                Col(self, 'Transitions', model_col=Feature.parsimony_transitions),
-            ]
+        return [
+            FeatureIdCol(self, 'Id', sClass='left', model_col=Stability.id),
+            LinkCol(self, 'Feature', model_col=Feature.name, get_object=lambda i: i.feature),
+            Col(self, 'Stability', model_col=Stability.parsimony_stability_value),
+            Col(self, 'Retentions', model_col=Stability.parsimony_retentions),
+            Col(self, 'Transitions', model_col=Stability.parsimony_transitions),
+        ]
+    
+class Features(Parameters):
+    #def __init__(self, req, *args, **kw):
+    #    self.stability = kw.pop('stability', req.params.get('stability'))
+    #    Parameters.__init__(self, req, *args, **kw)
+
+    #def xhr_query(self):
+    #    res = Parameters.xhr_query(self)
+    #    if self.stability:
+    #        # make sure we can determine the stability table is requested also when called
+    #        # via XHR.
+    #        res['stability'] = '1'
+    #    return res
+
+    def col_defs(self):
+        #if self.stability:
+        #    return [
+        #        FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
+        #        LinkCol(self, 'Feature', model_col=Feature.name),
+        #        Col(self, 'Stability', model_col=Feature.parsimony_stability_value),
+        #        Col(self, 'Retentions', model_col=Feature.parsimony_retentions),
+        #        Col(self, 'Transitions', model_col=Feature.parsimony_transitions),
+        #    ]
 
         return [
             FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
@@ -119,10 +130,15 @@ class Dependencies(DataTable):
             Col(self, 'Representation', model_col=Dependency.representation),
             StatusCol(self, 'Status', Dependency),
         ]
-
+    
 class Transitions(DataTable):
+    __constraints__ = [Stability]
+
     def base_query(self, query):
-        return query.outerjoin(Feature).outerjoin(Family)
+        query = query.outerjoin(StabilityFeature).outerjoin(Family)
+        if self.stability:
+            query = query.filter(Transition.stability_pk == self.stability.pk)
+        return query
     
     def col_defs(self):
         return [
@@ -253,3 +269,4 @@ def includeme(config):
     config.register_datatable('dependencys', Dependencies)
     config.register_datatable('contributors', GrambankContributors)
     config.register_datatable('transitions', Transitions)
+    config.register_datatable('stabilitys', Stabilities)
