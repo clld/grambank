@@ -25,6 +25,26 @@ def dot(H, V = []):
     return dottemplate % ''.join(['   %s -> %s [label="%.2f"];\n' % (f1, f2, v) for ((f1, f2), v) in H.iteritems()] + ['   %s;\n' % f for f in V])
 
 
+
+def haversine((lon1, lat1), (lon2, lat2)):
+    R = 6371 # km
+
+    dlat = math.radians(lat2-lat1)
+    dlon = math.radians(lon2-lon1)
+    a = (math.sin(dlat/2)**2) + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * (math.sin(dlon/2)**2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = R * c
+
+    return d
+
+def havdist(c1, c2):
+    if None in (c1, c2):
+        return None
+    return haversine(c1, c2)
+
+def avg(xs):
+    return sum(xs)/float(len(xs))
+
 def argm(d, f = max):
     if len(d) == 0:
         return None
@@ -50,6 +70,10 @@ def allmax(d, f=max):
         return {}
     mv = f(d.itervalues())
     return dict([(k, v) for (k, v) in d.iteritems() if v == mv])
+
+
+def pairs(xs):
+    return [(x, y) for x in xs for y in xs if x < y]
 
 def grp(l):
     def sdl(d, k, v):
@@ -87,6 +111,18 @@ def paths_to_d(pths):
     if pths == [()] or pths == [[]]:
         return None
     return dict([(p, paths_to_d(tails)) for (p, tails) in grp(pths).iteritems()])
+
+
+def levpairs(pths):
+    def lev(p1, p2):
+        r = {node: i for (i, node) in enumerate(reversed(p1))}
+        for (i, node) in enumerate(reversed(p2)):
+            if r.has_key(node):
+                return max(i, r[node])
+        return None
+    lgp = {p[-1]: p[:-1] for p in pths}
+    return {(l1, l2): lev(lgp[l1], lgp[l2]) for (l1, l2) in pairs(lgp.keys())}
+
 
 def sumds(ds):
     r = {}
@@ -142,7 +178,35 @@ def trcount(tp):
 def stability_ftp(lv, fp):
     return [(l, label, tft) for (l, labeled_tr) in stability_tp(lv, fp).iteritems() for (label, tft) in labeled_tr]
 
+def transition_counts_to_matrix(u):
+    kall = set([k for ks in u.iterkeys() for k in ks])
+    ks = dict([(k1, norm(dict([(k2, u.get((k1, k2), 0)) for k2 in kall]))) for k1 in kall])
+    return ks
+    
+def mmul(u1, u2):
+    kall = u1.keys()
+    return dict([(k1, dict([(k2, sum([u1[k1][m]*u2[m][k2] for m in kall])) for k2 in kall])) for k1 in kall])
 
+def mrow_diff(r1vs, r2vs):
+    u = set(r1vs.keys() + r2vs.keys())
+    return sum([(r1vs.get(x, 0.0)-r2vs.get(x, 0.0))**2 for x in u])
+    
+def stationary(m, epsilon = 0.0001):
+    def stationary_diff(mtx):
+        return sum([mrow_diff(mtx[r1], mtx[r2]) for (r1, r2) in pairs(mtx.iterkeys())])
+        
+    ms = m
+    while stationary_diff(ms) >= epsilon:
+        ms = mmul(ms, m)
+    return ms.values()[0]
+
+def synchronic(lv, d):
+    if not lv:
+        return {}
+    leaves = [{lv[k]: 1.0} for (k, v) in d.iteritems() if (not v) and lv.has_key(k)]
+    branches = [vp for vp in [synchronic(lv, v) for (k, v) in d.iteritems() if v] if vp]
+    return {k: v/len(leaves+branches) for (k, v) in sumds(leaves + branches).iteritems()}
+    
 def feature_stability(datatriples, clfps):
     clf = paths_to_d(clfps)
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
@@ -155,7 +219,9 @@ def parsimony_stability(lv, fp):
     total = float(sum(u.values()))
     r = {"retentions": stability, "transitions": total}
     r["stability"] = stability/total if total > 0 else None
-    return (r, transitions)
+    stationarity_p = stationary(transition_counts_to_matrix(u))
+    synchronic_p = synchronic(lv, fp)
+    return (r, transitions, stationarity_p, synchronic_p)
 
 def parsimony_reconstruct(fp, r):
     done = {}
@@ -181,6 +247,33 @@ def parsimony_reconstruct(fp, r):
     types = set(r.values())
     rd = rec(fp)
     return done #allmax(rd, min)
+
+def location_reconstruct(fp, r):
+    done = {}
+    def rec(d):
+        if not d:
+            return None
+        t = {}
+        for (k, v) in d.iteritems():
+            if done.has_key(k):
+                t[k] = done[k]
+                continue
+            if v:
+                t[k] = rec(v)
+                done[k] = t[k]
+                continue
+            if r.has_key(k):
+                t[k] = r[k]
+                done[k] = t[k]
+                continue
+
+        tvals = [x for x in t.values() if x != None]
+        if not tvals:
+            return None
+        return (avg([x for (x, y) in tvals]), avg([y for (x, y) in tvals])) #Replace by point of minimum distance or sthng like that
+    rd = rec(fp)
+    return rd
+
 
 def lg(z):
     if z == 0:
@@ -378,17 +471,57 @@ def dependencies_graph(imps):
     return (H, V) #dot(H, V)
 
 
-def deepfamilies():
-    a = 1
-    #PRR
-    #Stability
-    #Sim = Ham * stab
+def sscmp(fv1, fv2, fsynp, fstab):
+    def overlap(vs1, vs2):
+        a = set(vs1.split("/"))
+        b = set(vs2.split("/"))
+        return len(a.intersection(b))/float(len(a.union(b)))
+    
+    (lv1, lv2) = both_defined(fv1, fv2)
+    fs = set(lv1.keys() + lv2.keys())
+    ss = [(f, lv1[f], lv2[f], fstab[f], max(sum([fsynp[f].get(v, 0.0) for v in lv1[f].split("/")]), sum([fsynp[f].get(v, 0.0) for v in lv1[f].split("/")]))) for f in fs]
+    supports = [(f, v1, v2, historical_score, independent_score, (historical_score-independent_score)*overlap(v1, v2)) for (f, v1, v2, historical_score, independent_score) in ss]
+    pts = sum([pt for (f, v1, v2, historical_score, independent_score, pt) in supports])
+    return (float(pts)/len(ss) if len(ss) > 0 else 0.0, supports)
 
+def deep_families(datatriples, clfps, coordinates = {}):
+    fstability = feature_stability(datatriples, clfps)
+    fstab = {f: s["stability"] for (f, (s, transitions, stationarity_p, synchronic_p)) in fstability}
+    fsynp = {f: synchronic_p for (f, (s, transitions, stationarity_p, synchronic_p)) in fstability}
+    
+    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
+    lfv = dict([(l, dict(fs)) for (l, fs) in grp([(l, f, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
 
-#    \item Automatically discovered feature dependencies
-#\item Automatically drawn isogloss-lines on the map
-#\item Automatically reconstructed historical trees
-#\item \ldots{}
+    clf = paths_to_d(clfps)
+    clfc = {pth[-1]: pth[:-1] for pth in clfps}
+    
+    famlgs = grp2([(clfc[lg][0] if clfc[lg] else lg, lg) for lg in lfv.iterkeys()])
+    famts = dict([(fam, {fam: prune(clf.get(fam, dict.fromkeys(lgs)), lgs)}) for (fam, lgs) in famlgs.items()])
+    protolfv = dict([(fam, protofs(t, lfv, flv.keys(), famlgs[fam])) for (fam, t) in famts.iteritems()])
 
+    l1l2s = [((l1, l2), sscmp(lfv[l1], lfv[l2], fsynp, fstab)[0]) for ((l1, l2), lev) in levpairs(clfps).iteritems() if lev == 0]
+    dfs = dict([((l1, l2), sscmp(protolfv[l1], protolfv[l2], fsynp, fstab)) for (l1, l2) in pairs(protolfv.keys())])
+    t = float(len(l1l2s))
+    
+    dfsig = {pair: len([1 for (_, ssl) in l1l2s if ssv > ssl])/t for (pair, (ssv, supports)) in dfs.iteritems()}
 
+    return [((l1, l2), ssv, dfsig[(l1, l2)], supports, location_reconstruct(famts[l1], coordinates), location_reconstruct(famts[l2], coordinates)) for ((l1, l2), (ssv, supports)) in dfs.iteritems()]
+    
+def proto(t, lv):
+    [root] = t.keys()
+    done = parsimony_reconstruct(t, lv)
+    if done.has_key(root) and done[root]:
+        return "/".join(allmax(done[root], min).keys())
+    return None
 
+def protofs(t, lfs, fs, lgs):
+    r = {}
+    for f in fs:
+        a = dict([(lg, lfs[lg][f]) for lg in lgs if lfs[lg].has_key(f)])
+        p = proto(t, a)
+        if p:
+            r[f] = p
+    return r
+
+def deslashcount(r):
+    return {k: sum(vs) for (k, vs) in grp2([(x, 1.0/len(xs.split("/"))) for xs in r.values() for x in xs.split("/")]).iteritems()}

@@ -1,8 +1,8 @@
 from pyramid.config import Configurator
 
 from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs
-from interfaces import IDependency, ITransition, IStability
-from models import Dependency, Transition, Stability
+from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport
+from models import Dependency, Transition, Stability, DeepFamily, Support
 
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.web.adapters.base import adapter_factory
@@ -19,6 +19,7 @@ _('Parameter')
 _('Familys')
 _('Dependencys')
 _('Stabilitys')
+_('Deepfamilys')
 
 
 class MyMapMarker(LanguageByFamilyMapMarker):
@@ -60,6 +61,9 @@ def main(global_config, **settings):
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
     config.register_resource('transition', Transition, ITransition, with_index=True)
     config.register_resource('stability', Stability, IStability, with_index=True)
+    config.register_resource('deepfamily', DeepFamily, IDeepFamily, with_index=True)
+    config.register_resource('support', Support, ISupport, with_index=True)
+
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
 
     config.registry.registerUtility(link_attrs, ILinkAttrs)

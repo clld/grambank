@@ -14,7 +14,20 @@ from clld.web.util.helpers import get_referents
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import Contributor, ValueSet, Contribution, ContributionContributor
-from models import Dependency
+from models import Dependency, Transition
+
+from clld.web.icon import SHAPES
+from clld.interfaces import IIcon
+
+from grambank.maps import LanguoidMap
+
+COLORS = [
+    #            red     yellow
+    "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
+]
+
+
+
 
 def td_coverage(glottolog=0, grambank=0, label=None):
     style = ''
@@ -65,3 +78,53 @@ def combination_detail_html(context=None, request=None, **kw):
     r["strength"] = dependency.strength if r["f2h"] > 0.0 else "-"
     r["combinatory_status"] = dependency.combinatory_status
     return {'dependency': r}
+
+def stability_detail_html(context=None, request=None, **kw):
+    def norm(d):
+        z = float(sum(d.values()))
+        if z == 0.0:
+            return dict([(k, v) for (k, v) in d.iteritems()])
+        return dict([(k, v/z) for (k, v) in d.iteritems()])
+    
+    def transition_counts_to_matrix(u):
+        kall = set([k for ks in u.iterkeys() for k in ks])
+        ks = dict([(k1, norm(dict([(k2, u.get((k1, k2), 0)) for k2 in kall]))) for k1 in kall])
+        return ks
+    
+    def sumk(l):
+        r = {}
+        for (k, v) in l:
+            r[k] = r.get(k, 0.0) + v
+        return r
+
+    def trcount(transitions):
+        tpc = [[(tfi, tti) for tfi in tf.split("/") for tti in tt.split("/")] for (tf, tt) in transitions]
+        return sumk([(t, 1/float(len(tpci))) for tpci in tpc for t in tpci])
+    
+    transitions = DBSession.query(Transition.fromvalue, Transition.tovalue).filter(Transition.stability_pk == context.pk)
+    u = trcount(transitions)
+    m = transition_counts_to_matrix(u)
+    vtotal = sumk([(k1, v) for ((k1, k2), v) in u.iteritems()])
+    retentions = dict([(k1, v) for ((k1, k2), v) in u.iteritems() if k1 == k2])
+    scounts = [(k, v, vtotal.get(k, 0)) for (k, v) in sorted(retentions.iteritems())] + [("Total", sum(retentions.values()), sum(u.values()))]
+    s = [(k, v, t, ("%.5f" % (float(v)/t)) if t > 0 else "-") for (k, v, t) in scounts]
+    return {'transition_counts': u, 'transition_matrix': m, 'stability_table': s, 'state_total': vtotal}
+
+def deepfamily_detail_html(request=None, context=None, **kw):
+    #family1_pk = Column(Integer, ForeignKey('family.pk'))
+    #family1_latitude = Column(
+    #family1_longitude = Column(
+    #family2_pk = Column(Integer, ForeignKey('family.pk'))
+    #family2_longitude = Column(
+    #family2_latitude = Column(
+    #[context.pk] +
+    print "HEJ"
+    
+    icon_map = dict(zip([context.family1_pk, context.family2_pk], [s + c for s in SHAPES for c in COLORS]))
+    for key in icon_map:
+        icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
+    return dict(icon_map=icon_map, lmap=DeepFamilyMap(context, request, icon_map=icon_map))
+
+
+
+

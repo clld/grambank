@@ -23,7 +23,7 @@ from clldclient.glottolog import Glottolog
 from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
 
-def import_dataset(path, data, icons):
+def import_dataset(path, data, icons, add_missing_features = False):
     # look for metadata
     # look for sources
     # then loop over values
@@ -64,15 +64,21 @@ def import_dataset(path, data, icons):
 
         parameter = data['Feature'].get(row['Feature_ID'])
         if parameter is None:
-            print('skip value for invalid feature %s' % row['Feature_ID'])
-            continue
-            #parameter = data.add(
-            #    Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
+            if add_missing_features:
+                parameter = data.add(Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
+            else: 
+                print('skip value for invalid feature %s' % row['Feature_ID'])
+                continue
 
         language = data['GrambankLanguage'].get(row['Language_ID'])
         if language is None:
             # query glottolog!
-            languoid = glottolog.languoid(row['Language_ID'])
+            try:
+                languoid = glottolog.languoid(row['Language_ID'])
+	    except AttributeError: 
+                print('Skipping, no Glottocode found for %s' % row['Language_ID'])
+                continue
+            
             gl_md = {
                 'name': languoid.name,
                 'longitude': languoid.longitude,
@@ -123,18 +129,17 @@ def import_dataset(path, data, icons):
                 ValueSetReference(valueset=vs, source=src, key=key)
 
 
-def import_cldf(srcdir, data):
+def import_cldf(srcdir, data, add_missing_features = False):
     # loop over values
     # check if language needs to be inserted
     # check if feature needs to be inserted
     # add value if in domain
     icons = cycle(ORDERED_ICONS)
-
     for dirpath, dnames, fnames in os.walk(srcdir):
         for fname in fnames:
             if os.path.splitext(fname)[1] in ['.tsv', '.csv']:
                 try:
-                    import_dataset(os.path.join(dirpath, fname), data, icons)
+                    import_dataset(os.path.join(dirpath, fname), data, icons, add_missing_features = add_missing_features)
                     print os.path.join(dirpath, fname)
                 except:
                     print 'ERROR'

@@ -8,3 +8,12 @@ class ITransition(Interface):
 
 class IStability(Interface):
     """marker"""
+
+class IDeepFamily(Interface):
+    """marker"""
+
+class ISupport(Interface):
+    """marker"""
+
+class IHasSupport(Interface):
+    """marker"""

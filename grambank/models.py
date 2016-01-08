@@ -7,6 +7,7 @@ from sqlalchemy import (
     Float,
     Boolean,
     ForeignKey,
+    CheckConstraint,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship, backref
@@ -21,7 +22,7 @@ from clld.db.models.common import (
 )
 from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
 
-from interfaces import IDependency, ITransition, IStability
+from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport, IHasSupport
 
 @implementer(interfaces.ILanguage)
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
@@ -100,3 +101,53 @@ class Transition(Base, CustomModelMixin):
 class GrambankContribution(CustomModelMixin, Contribution):
     pk = Column(Integer, ForeignKey('contribution.pk'), primary_key=True)
     desc = Column(String)
+
+@implementer(IDeepFamily)
+class DeepFamily(Base, CustomModelMixin):
+    pk = Column(Integer, primary_key=True)
+    id = Column(String)
+    family1_pk = Column(Integer, ForeignKey('family.pk'))
+    family1 = relationship(Family, lazy='joined', foreign_keys = family1_pk)
+    family1_longitude = Column(
+        Float(),
+        CheckConstraint('-180 <= family1_longitude and family1_longitude <= 180 '),
+        doc='geographical longitude in WGS84')
+    family1_latitude = Column(
+        Float(),
+        CheckConstraint('-90 <= family1_latitude and family1_latitude <= 90'),
+        doc='geographical latitude in WGS84')
+    family2_pk = Column(Integer, ForeignKey('family.pk'))
+    family2 = relationship(Family, lazy='joined', foreign_keys = family2_pk)
+    family2_longitude = Column(
+        Float(),
+        CheckConstraint('-180 <= family2_longitude and family2_longitude <= 180 '),
+        doc='geographical longitude in WGS84')
+    family2_latitude = Column(
+        Float(),
+        CheckConstraint('-90 <= family2_latitude and family2_latitude <= 90'),
+        doc='geographical latitude in WGS84')
+    support_value = Column(Float)
+    significance = Column(Float)
+    geographic_plausibility = Column(Float)
+    
+@implementer(ISupport)
+class Support(Base, CustomModelMixin):
+    pk = Column(Integer, primary_key=True)
+    id = Column(String)
+    value1 = Column(String)
+    value2 = Column(String)
+    historical_score = Column(Float)
+    independent_score = Column(Float)
+    support_score = Column(Float)
+    feature_pk = Column(Integer, ForeignKey('feature.pk'))
+    feature = relationship(Feature, lazy='joined', foreign_keys = feature_pk)
+
+@implementer(IHasSupport)
+class HasSupport(Base, CustomModelMixin):
+    id = Column(String)
+    deepfamily_pk = Column(Integer, ForeignKey('deepfamily.pk'), primary_key=True)
+    deepfamily = relationship(DeepFamily, lazy='joined', foreign_keys = deepfamily_pk)
+    support_pk = Column(Integer, ForeignKey('support.pk'), primary_key=True)
+    support = relationship(Support, lazy='joined', foreign_keys = support_pk)
+    
+    

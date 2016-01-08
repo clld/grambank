@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grambank 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2015-12-30 20:54+0100\n"
-"PO-Revision-Date: 2015-12-30 20:52+0100\n"
+"POT-Creation-Date: 2016-01-06 20:04+0100\n"
+"PO-Revision-Date: 2016-01-06 20:03+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
@@ -36,5 +36,9 @@ msgstr "Dependencies"
 
 #: grambank/__init__.py:21
 msgid "Stabilitys"
-msgstr "Stability"
+msgstr "Stabilities"
+
+#: grambank/__init__.py:22
+msgid "Deepfamilys"
+msgstr "Deep-Family Suggestions"
 

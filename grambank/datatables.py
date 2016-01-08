@@ -13,7 +13,7 @@ from clld.web.datatables.contributor import Contributors, NameCol
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Feature, Dependency, Transition, Stability
+from models import GrambankLanguage, Feature, Dependency, Transition, Stability, DeepFamily, Support, HasSupport
 from clld.web.util.helpers import link
 
 class FeatureIdCol(IdCol):
@@ -128,14 +128,14 @@ class Dependencies(DataTable):
             LinkCol(self, 'To Feature', sClass='left', model_col=self.f2.name, get_object=lambda i: i.feature2),
             Col(self, 'Strength', model_col=Dependency.strength),
             Col(self, 'Representation', model_col=Dependency.representation),
-            StatusCol(self, 'Status', Dependency),
+            StatusCol(self, 'Status', Dependency, attribute = "combinatory_status"),
         ]
     
 class Transitions(DataTable):
     __constraints__ = [Stability]
 
     def base_query(self, query):
-        query = query.outerjoin(StabilityFeature).outerjoin(Family)
+        query = query.outerjoin(Stability).outerjoin(Family)
         if self.stability:
             query = query.filter(Transition.stability_pk == self.stability.pk)
         return query
@@ -143,17 +143,76 @@ class Transitions(DataTable):
     def col_defs(self):
         return [
             IdCol(self, 'Id', sClass='left', model_col=Transition.id),
-            LinkCol(self, 'Feature', sClass='left', model_col=Feature.name, get_object=lambda i: i.feature),
+            LinkCol(self, 'Feature', sClass='left', model_col=Stability.id, get_object=lambda i: i.stability),
             FamilyLinkCol(self, 'Family', Transition),
             Col(self, 'From Node', model_col=Transition.fromnode),
             Col(self, 'From Value', model_col=Transition.fromvalue),
             Col(self, 'To Node', model_col=Transition.tonode),
             Col(self, 'To Value', model_col=Transition.tovalue),
+            StatusCol(self, 'Retention/Innovation', Transition, attribute = "retention_innovation"),
         ]
 
+class Supports(DataTable):
+    __constraints__ = [HasSupport, DeepFamily]
+
+    def base_query(self, query):
+        query = query.outerjoin(HasSupport).outerjoin(DeepFamily).outerjoin(Feature)
+        if self.deepfamily:
+            query = query.filter(HasSupport.deepfamily_pk == self.deepfamily.pk)
+        return query
+
+    def get_options(self):
+        opts = super(Supports, self).get_options()
+        opts['aaSorting'] = [[3, 'desc'], [4, 'desc'], [5, 'desc']]
+        return opts
+
+    def col_defs(self):
+        return [
+            #IdCol(self, 'Id', sClass='left', model_col=Support.id),
+            LinkCol(self, 'Feature', model_col=Feature.name, get_object=lambda i: i.feature),
+            Col(self, 'Value 1', model_col=Support.value1),
+            Col(self, 'Value 2', model_col=Support.value2),
+            Col(self, 'Support Score', model_col=Support.support_score),
+            Col(self, 'Historical Score', model_col=Support.historical_score),
+            Col(self, 'Independent Score', model_col=Support.independent_score),
+        ]
+
+
+    
+class DeepFamilies(DataTable):
+    def __init__(self, req, model, **kw):
+        DataTable.__init__(self, req, model, **kw)
+        self.fam1 = aliased(Family, name="fam1")
+        self.fam2 = aliased(Family, name="fam2")
+
+    def base_query(self, query):
+        query = query\
+            .join(self.fam1, self.fam1.pk == DeepFamily.family1_pk)\
+            .options(joinedload(DeepFamily.family1))\
+            .join(self.fam2, self.fam2.pk == DeepFamily.family2_pk)\
+            .options(joinedload(DeepFamily.family2))
+        return query
+
+    def get_options(self):
+        opts = super(DeepFamilies, self).get_options()
+        opts['aaSorting'] = [[3, 'desc'], [4, 'desc']]
+        return opts
+
+    def col_defs(self):
+        return [
+            IdCol(self, 'Id', sClass='left', model_col=DeepFamily.id),
+            LinkCol(self, 'Family 1', sClass='left', model_col=self.fam1.name, get_object=lambda i: i.family1),
+            LinkCol(self, 'Family 2', sClass='left', model_col=self.fam2.name, get_object=lambda i: i.family2),
+            Col(self, 'Support Value', model_col=DeepFamily.support_value),
+            Col(self, 'Significance', model_col=DeepFamily.significance),
+            Col(self, 'Distance (km)', model_col=DeepFamily.geographic_plausibility),
+        ]
+
+    
 class StatusCol(Col):
-    def __init__(self, dt, name, dependency, **kw):
-        self._col = getattr(dependency, 'combinatory_status')
+    def __init__(self, dt, name, cls, attribute = 'combinatory_status', **kw):
+        self._col = getattr(cls, attribute)
+        self.attribute = attribute
         kw['choices'] = get_distinct_values(self._col)
         Col.__init__(self, dt, name, **kw)
 
@@ -164,9 +223,7 @@ class StatusCol(Col):
         return icontains(self._col, qs)
 
     def format(self, item):
-        return self.get_obj(item).combinatory_status
-
-
+        return getattr(self.get_obj(item), self.attribute)
     
 class LanguageCountCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
@@ -270,3 +327,5 @@ def includeme(config):
     config.register_datatable('contributors', GrambankContributors)
     config.register_datatable('transitions', Transitions)
     config.register_datatable('stabilitys', Stabilities)
+    config.register_datatable('deepfamilys', DeepFamilies)
+    config.register_datatable('supports', Supports)
