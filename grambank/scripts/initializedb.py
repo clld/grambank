@@ -63,8 +63,8 @@ def main(args):
     fs = feature_stability(datatriples, clfps)
     for (f, (s, transitions, stationarity_p, synchronic_p)) in fs:
         data.add(Stability, f, id = f.replace("GB", "S"), feature = data['Feature'][f], parsimony_stability_value = s["stability"], parsimony_retentions = s["retentions"], parsimony_transitions = s["transitions"], jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
-        ###for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
-        ###    data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
+        for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
+            data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
 
 
     
@@ -78,17 +78,17 @@ def main(args):
     
     for (i, ((v, dstats), f1, f2)) in enumerate(imps):
         combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
-        ###data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
+        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
 
     coordinates = {lg.id: (lg.longitude, lg.latitude) for lg in data['GrambankLanguage'].values() if lg.longitude != None and lg.latitude != None}
     deepfams = deep_families(datatriples, clfps, coordinates = coordinates)
     
     for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
-        dname = "proto-%s x proto-%s " % (glottolog.languoid(l1).name, glottolog.languoid(l2).name)
+        dname = "proto-%s x proto-%s" % (glottolog.languoid(l1).name, glottolog.languoid(l2).name)
         kmdistance = havdist(f1c, f2c)
         (f1lon, f1lat) = f1c if f1c else (None, None)
         (f2lon, f2lat) = f2c if f2c else (None, None)
-        data.add(DeepFamily, dname, id = dname, support_value = support_value, significance = significance, family1 = data["Family"][l1], family2 = data["Family"][l2], family1_latitude = f1lat, family1_longitude = f1lon, family2_latitude = f1lat, family2_longitude = f2lon, geographic_plausibility = kmdistance)
+        data.add(DeepFamily, dname, id = dname, support_value = support_value, significance = significance, family1 = data["Family"][l1], family2 = data["Family"][l2], family1_latitude = f1lat, family1_longitude = f1lon, family2_latitude = f2lat, family2_longitude = f2lon, geographic_plausibility = kmdistance)
         for (f, v1, v2, historical_score, independent_score, support_score) in supports:
             vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
             #vname = ("%s|%s" % (v1, v2)).replace(".", "")

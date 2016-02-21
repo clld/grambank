@@ -19,7 +19,7 @@ from models import Dependency, Transition
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
-from grambank.maps import LanguoidMap
+from grambank.maps import DeepFamilyMap
 
 COLORS = [
     #            red     yellow
@@ -118,8 +118,6 @@ def deepfamily_detail_html(request=None, context=None, **kw):
     #family2_longitude = Column(
     #family2_latitude = Column(
     #[context.pk] +
-    print "HEJ"
-    
     icon_map = dict(zip([context.family1_pk, context.family2_pk], [s + c for s in SHAPES for c in COLORS]))
     for key in icon_map:
         icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
