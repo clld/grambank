@@ -1,6 +1,5 @@
 from sqlalchemy.orm import aliased, joinedload, joinedload_all
 from clld.db.util import get_distinct_values, icontains
-from clld.web.util.helpers import map_marker_img
 from clld.web.util.htmllib import HTML
 
 from clld.db.models import common

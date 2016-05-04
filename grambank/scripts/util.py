@@ -4,23 +4,38 @@ import re
 from collections import OrderedDict
 from itertools import cycle
 import csv
+import getpass
 
 from nameparser import HumanName
 
-from clld.util import jsonload, slug
+from clldutils.jsonlib import load as jsonload
+from clldutils.misc import slug
+from clldutils.dsv import reader
+from clldutils.path import Path
+from pyglottolog.api import Glottolog
+
 from clld.db.meta import DBSession
 from clld.db.models.common import (
     ValueSet, Value, DomainElement, Source, ValueSetReference,
     ContributionContributor, Contributor,
 )
-from clld.lib.dsv import reader
 from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
 from clld.scripts.util import bibtex2source
 
 from localglottolog import LocalGlottolog
 
+import grambank
 from grambank.models import GrambankLanguage, Feature, GrambankContribution
+
+
+GRAMBANK_REPOS = 'C:\\Python27\\glottobank\\Grambank\\' \
+    if getpass.getuser() not in ['robert', 'shh\\forkel'] \
+    else '/home/shh.mpg.de/forkel/venvs/grambank/Grambank'
+GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
+    'glottolog3', 'glottolog') \
+    if getpass.getuser() in ['robert', 'shh\\forkel'] \
+    else Path('C:\\')  # add your path to the glottolog repos clone here!
 
 
 def import_dataset(path, data, icons, add_missing_features = False):
@@ -32,7 +47,10 @@ def import_dataset(path, data, icons, add_missing_features = False):
     basename, ext = os.path.splitext(fname)
     glottolog = LocalGlottolog()
 
-    contrib = GrambankContribution(id=basename, name=basename, desc=glottolog.languoid(basename).name)
+    try:
+        contrib = GrambankContribution(id=basename, name=basename, desc=glottolog.languoid(basename).name)
+    except:
+        return
 
     md = {}
     mdpath = path + '-metadata.json'
@@ -191,7 +209,7 @@ class FeatureSpec(object):
 
 
 def import_features_collaborative_sheet(datadir, data):
-    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), dicts=True):
+    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True):
         feature = FeatureSpec(feature)
         f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
         for i, (deid, desc) in enumerate(feature.domain.items()):
@@ -204,11 +222,12 @@ def import_features_collaborative_sheet(datadir, data):
                 description=desc,
                 jsondata=dict(icon=ORDERED_ICONS[i].name))
 
+
 def get_clf_paths(lgs):
-    def path(languoid):
-        if not languoid:
-            return ()
-        return path(languoid.parent) + (languoid.id,)
-    glottolog = LocalGlottolog()
-    return [path(glottolog.languoid(lg)) for lg in lgs]
-    
+    glottolog = Glottolog(GLOTTOLOG_REPOS)
+    return [
+        tuple([ll.id for ll in l.ancestors] + [l.id]) for l in glottolog.languoids(lgs)]
+
+
+def get_names():
+    return {l.id: l.name for l in Glottolog(GLOTTOLOG_REPOS).languoids()}

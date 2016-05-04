@@ -1,12 +1,11 @@
-from path import path
-
+from clldutils.path import Path
 from clld.tests.util import TestWithApp
 
 import grambank
 
 
 class Tests(TestWithApp):
-    __cfg__ = path(grambank.__file__).dirname().joinpath('..', 'development.ini').abspath()
+    __cfg__ = Path(grambank.__file__).parent.joinpath('..', 'development.ini').resolve()
     __setup_db__ = False
 
     def test_home(self):

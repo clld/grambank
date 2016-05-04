@@ -1,6 +1,11 @@
 from itertools import chain
 import math
 
+from clldutils.path import Path
+
+import grambank
+
+
 uchar = '?'
 undefined = {}
 undefined['?'] = uchar
@@ -468,7 +473,8 @@ def dependencies_graph(imps):
     (mv, H) = max([(sum(H.values()), H) for H in MSTs])
     #W = dict([(y, 1.0-v) for ((x, y), v) in H.iteritems()])
     #sav(dot(H, V), 'grambank_mst.gv')
-    with open('grambank\\static\\dependencies.gv', 'w') as fp:
+    path = Path(grambank.__file__).parent.joinpath('static', 'dependencies.gv')
+    with open(path.as_posix(), 'w') as fp:
         fp.write(dot(H, V))
 
     return (H, V) #dot(H, V)
@@ -502,7 +508,7 @@ def deep_families(datatriples, clfps, coordinates = {}):
     famts = dict([(fam, {fam: prune(clf.get(fam, dict.fromkeys(lgs)), lgs)}) for (fam, lgs) in famlgs.items()])
     protolfv = dict([(fam, protofs(t, lfv, flv.keys(), famlgs[fam])) for (fam, t) in famts.iteritems()])
 
-    l1l2s = [((l1, l2), sscmp(lfv[l1], lfv[l2], fsynp, fstab)[0]) for ((l1, l2), lev) in levpairs(clfps).iteritems() if lev == 0]
+    l1l2s = [((l1, l2), sscmp(lfv[l1], lfv[l2], fsynp, fstab)[0]) for ((l1, l2), lev) in levpairs(clfps).iteritems() if lev == 0 and l1 in lfv and l2 in lfv]
     dfs = dict([((l1, l2), sscmp(protolfv[l1], protolfv[l2], fsynp, fstab)) for (l1, l2) in pairs(protolfv.keys())])
     t = float(len(l1l2s))
     

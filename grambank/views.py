@@ -2,19 +2,11 @@ from collections import defaultdict, Counter, OrderedDict
 
 from sqlalchemy import select
 from pyramid.asset import abspath_from_asset_spec
-from pyramid.view import view_config
 
-from clld.util import jsonload
-from clld.db.meta import DBSession
+from clldutils.jsonlib import load as jsonload
 from clld.db.models.common import Language
 from clld_glottologfamily_plugin.models import Family
-
-from grambank.maps import IsoGlossMap
-#from stats_util import parsimony_stability
-
-from clld import RESOURCES
 from clld.db.meta import DBSession
-from models import GrambankLanguage, Feature
 
 
 #def about(req):

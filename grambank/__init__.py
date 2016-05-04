@@ -1,17 +1,15 @@
 from pyramid.config import Configurator
 
 from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs
-from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport
-from models import Dependency, Transition, Stability, DeepFamily, Support
-
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
-from clld.web.adapters.base import adapter_factory
 
 # we must make sure custom models are known at database initialization!
 from grambank import models
 from grambank import views
+from grambank.interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport
+from grambank.models import Dependency, Transition, Stability, DeepFamily, Support
+from grambank.datatables import Families
 
-from datatables import Families
 
 _ = lambda s: s
 _('Parameters')

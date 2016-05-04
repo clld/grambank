@@ -2,14 +2,15 @@ from setuptools import setup, find_packages
 
 
 requires = [
-    'clld>=1.2.1',
-    'clldmpg>=1.0.0',
-    'clld-glottologfamily-plugin>=1.0',
+    'clld>=2.1.1',
+    'clldmpg>=2.0.0',
+    'clld-glottologfamily-plugin>=1.2',
+    'pyglottolog>=0.1',
 ]
 
 tests_require = [
     'WebTest >= 1.3.1',  # py3 compat
-    'mock',
+    'mock==1.0',
 ]
 
 

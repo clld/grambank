@@ -1,30 +1,27 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import sys
 import os
-import getpass
-import json
 
-import transaction
-from clld.scripts.util import initializedb, Data, gbs_func
+from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
+from clld_glottologfamily_plugin.models import Family
+from clld_glottologfamily_plugin.util import load_families
+from pyglottolog.api import Glottolog
 
 import grambank
-from grambank.scripts.util import import_features_collaborative_sheet, import_cldf, get_clf_paths
+from grambank.scripts.util import (
+    import_features_collaborative_sheet, import_cldf, get_clf_paths, get_names,
+    GLOTTOLOG_REPOS, GRAMBANK_REPOS,
+)
 
-#from clld_glottologfamily_plugin.util import Family
-from localglottolog import load_families, LocalGlottolog
 from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph, deep_families, havdist
-from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport
+from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature
 
 
 def main(args):
-    user = getpass.getuser()
     data = Data()
-    datadir = 'C:\\Python27\\glottobank\\Grambank\\' if user != 'robert' \
-        else '/home/robert/venvs/glottobank/Grambank'
-
     dataset = common.Dataset(
         id=grambank.__name__,
         name="GramBank",
@@ -39,72 +36,158 @@ def main(args):
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     DBSession.add(dataset)
 
-    import_features_collaborative_sheet(datadir, data)
-    import_cldf(os.path.join(datadir, 'datasets'), data)
+    import_features_collaborative_sheet(GRAMBANK_REPOS, data)
+    import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data)
     ##import_cldf("C:\\python27\\dbs\\bwohh\\", data, add_missing_features = True)
-    load_families(data, data['GrambankLanguage'].values(), isolates_icon='tcccccc')
-    glottolog = LocalGlottolog()
+    load_families(
+        data,
+        data['GrambankLanguage'].values(),
+        glottolog=Glottolog(GLOTTOLOG_REPOS),
+        isolates_icon='tcccccc')
+    return
+
     #for lg in data['GrambankLanguage'].values():
     #    gl_language = glottolog.languoid(lg.id)
     #    if not gl_language.family:
     #        family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
     #        lg.family = family
-    
-    datatriples = [(v.valueset.language.id, v.valueset.parameter.id, v.name) for v in data["Value"].itervalues()]
-    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
-    clfps = get_clf_paths([lg.id for lg in data['GrambankLanguage'].values()])
-
-    for (f, lv) in flv.iteritems():
-        data['Feature'][f].representation = len(lv)
-
-    
-    fs = feature_stability(datatriples, clfps)
-    for (f, (s, transitions, stationarity_p, synchronic_p)) in fs:
-        data.add(Stability, f, id = f.replace("GB", "S"), feature = data['Feature'][f], parsimony_stability_value = s["stability"], parsimony_retentions = s["retentions"], parsimony_transitions = s["transitions"], jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
-        for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
-            DBSession.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
 
 
-    
-
-        
-    imps = feature_dependencies(datatriples)
-    H = {}
-    (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
-    
-    for (i, ((v, dstats), f1, f2)) in enumerate(imps):
-        combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
-        DBSession.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
-
-    coordinates = {lg.id: (lg.longitude, lg.latitude) for lg in data['GrambankLanguage'].values() if lg.longitude != None and lg.latitude != None}
-    deepfams = deep_families(datatriples, clfps, coordinates = coordinates)
-    
-    for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
-        dname = "proto-%s x proto-%s" % (glottolog.languoid(l1).name, glottolog.languoid(l2).name)
-        kmdistance = havdist(f1c, f2c)
-        (f1lon, f1lat) = f1c if f1c else (None, None)
-        (f2lon, f2lat) = f2c if f2c else (None, None)
-        data.add(DeepFamily, dname, id = dname, support_value = support_value, significance = significance, family1 = data["Family"][l1], family2 = data["Family"][l2], family1_latitude = f1lat, family1_longitude = f1lon, family2_latitude = f2lat, family2_longitude = f2lon, geographic_plausibility = kmdistance)
-        for (f, v1, v2, historical_score, independent_score, support_score) in supports:
-            vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
-            #vname = ("%s|%s" % (v1, v2)).replace(".", "")
-            #print vid, vname
-            if not data["Support"].get(vid):
-                data.add(Support, vid, id = vid, historical_score = historical_score, independent_score = independent_score, support_score = support_score, value1= v1, value2 = v2, feature = data['Feature'][f])
-            hsvid = dname + " has " + vid
-            DBSession.add(HasSupport, hsvid, deepfamily = data["DeepFamily"][dname], support = data["Support"][vid])
-                
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    from time import time
+    _s = time()
+
+    def checkpoint(s, msg=None):
+        n = time()
+        print(n - s, msg or '')
+        return n
+
+    sql = """
+select l.id, p.id, v.name from value as v, valueset as vs, language as l, parameter as p
+where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
+    """
+    datatriples = [(v[0], v[1], v[2]) for v in DBSession.execute(sql)]
+    _s = checkpoint(_s, '%s values loaded' % len(datatriples))
+
+    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
+    _s = checkpoint(_s, 'triples grouped')
+
+    clfps = get_clf_paths([row[0] for row in DBSession.execute("select id from language")])
+    _s = checkpoint(_s, '%s clfps loaded' % len(clfps))
+
+    features = {f.id: f for f in DBSession.query(Feature)}
+    for (f, lv) in flv.iteritems():
+        features[f].representation = len(lv)
+    DBSession.flush()
+    _s = checkpoint(_s, 'representation assigned')
+
+    fs = feature_stability(datatriples, clfps)
+    _s = checkpoint(_s, 'feature_stability computed')
+
+    glottolog_names = get_names()
+    families = {f.id: f for f in DBSession.query(Family)}
+    for (f, (s, transitions, stationarity_p, synchronic_p)) in fs:
+        stability = Stability(
+            id=f.replace("GB", "S"),
+            feature=features[f],
+            parsimony_stability_value=s["stability"],
+            parsimony_retentions=s["retentions"],
+            parsimony_transitions=s["transitions"],
+            jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
+        DBSession.add(stability)
+        for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
+            DBSession.add(Transition(
+                id="%s: %s->%s" % (f, fromnode, tonode),
+                stability=stability,
+                fromnode=glottolog_names[fromnode],
+                tonode=glottolog_names[tonode],
+                fromvalue=ft,
+                tovalue=tt,
+                family=families[fam],
+                retention_innovation="Retention" if ft == tt else "Innovation"))
+    DBSession.flush()
+    _s = checkpoint(_s, 'stability and transitions loaded')
+
+    imps = feature_dependencies(datatriples)
+    _s = checkpoint(_s, 'feature_dependencies computed')
+    if 1:
+        (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
+        _s = checkpoint(_s, 'dependencies_graph written')
+
+        for (i, ((v, dstats), f1, f2)) in enumerate(imps):
+            combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
+            DBSession.add(Dependency(
+                id="%s->%s" % (f1, f2),
+                strength=v,
+                feature1=features[f1],
+                feature2=features[f2],
+                representation=dstats["representation"],
+                combinatory_status=combinatory_status,
+                jsondata=dstats))
+        DBSession.flush()
+        _s = checkpoint(_s, 'dependencies loaded')
+
+    coordinates = {
+        lg.id: (lg.longitude, lg.latitude)
+        for lg in DBSession.query(common.Language)
+        .filter(common.Language.longitude != None)
+        .filter(common.Language.latitude != None)}
+    deepfams = deep_families(datatriples, clfps, coordinates=coordinates)
+    _s = checkpoint(_s, '%s deep_families computed' % len(deepfams))
+
+    missing_families = set()
+    data = Data()
+    for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
+        dname = "proto-%s x proto-%s" % (glottolog_names[l1], glottolog_names[l2])
+        kmdistance = havdist(f1c, f2c)
+        (f1lon, f1lat) = f1c if f1c else (None, None)
+        (f2lon, f2lat) = f2c if f2c else (None, None)
+
+        for li in [l1, l2]:
+            if li not in families:
+                missing_families.add(li)
+
+        deepfam = DeepFamily(
+            id=dname,
+            support_value=support_value,
+            significance=significance,
+            family1=families.get(l1),
+            family2=families.get(l2),
+            family1_latitude = f1lat,
+            family1_longitude = f1lon,
+            family2_latitude = f2lat,
+            family2_longitude = f2lon,
+            geographic_plausibility = kmdistance)
+        DBSession.add(deepfam)
+        for (f, v1, v2, historical_score, independent_score, support_score) in supports:
+            vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
+            #vname = ("%s|%s" % (v1, v2)).replace(".", "")
+            #print vid, vname
+            if vid not in data["Support"]:
+                data.add(
+                    Support, vid,
+                    id = vid,
+                    historical_score = historical_score,
+                    independent_score = independent_score,
+                    support_score = support_score,
+                    value1= v1,
+                    value2 = v2,
+                    feature=features[f])
+            HasSupport(
+                id=dname + "-" + vid,
+                deepfamily =deepfam,
+                support = data["Support"][vid])
+    print('missing_families:')
+    print(missing_families)
+    DBSession.flush()
+    _s = checkpoint(_s, 'deep_families loaded')
 
     compute_language_sources()
-    transaction.commit()
-    transaction.begin()
 
-    #gbs_func('update', args)
 
 if __name__ == '__main__':
     initializedb(create=main, prime_cache=prime_cache)
