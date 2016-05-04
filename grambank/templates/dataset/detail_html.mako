@@ -4,9 +4,11 @@
 <h2>Welcome to GramBank</h2>
 
 <p class="lead">
-GramBank is a large database of grammatical
-properties of languages gathered from descriptive materials (such as
-reference grammars) by a team directed by Russell Gray and Quentin
+GramBank is a database of structural (typological) features of language. It consists of 200 logically independent features (most of them binary) spanning all subdomains of morphosyntax. The GramBank feature questionnaire has been filled in, based on reference grammars, for over 500 languages. The aim to eventually reach as many as 3,500 languages. The database can be used to investigate deep language prehistory, the geographical-distribution of features, language universals and the functional interaction of structural features.
+</p>
+
+<p>
+GramBank produced by a team directed by Russell Gray and Quentin
 Atkinson. The original questionnaire was designed by Ger Reesink and
 Michael Dunn, subsequent extensions and clarifications were done by
 Hedvig Skirg&aring;rd, Suzanne van der Meer, Harald Hammarstr&ouml;m,
@@ -101,6 +103,7 @@ ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural
 <h3>How to cite GramBank Online</h3>
 <p>
 TODO
+Harald Hammarstr\"om, Hedvig Skirg&aring;rd, Jeremy Collins, Hannah Haynie, Michael Dunn, Stephen Levinson, Quentin Atkinson and Russell Gray 2016. Grambank: A world-wide Typological Database. Electronic Database under Development.
 </p>
 
 <h3>Terms of use</h3>

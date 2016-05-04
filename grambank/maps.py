@@ -29,7 +29,7 @@ class IsoGlossMap(Map):
 class DeepFamilyMap(Map):
     def __init__(self, ctx, req, eid='map', icon_map=None):
         super(DeepFamilyMap, self).__init__(ctx, req, eid=eid)
-        self.icon_map = icon_map or {}
+        self.icon_map = icon_map or {} #TODO make this point to a URL with a .png
         self.deepfamid = ctx.id
         self.deepfamname = ctx.id
         self.protolanguages = ([(ctx.family1_pk, ctx.family1.name, ctx.family1_longitude, ctx.family1_latitude, ctx.family1.name)] if ctx.family1_latitude else []) + ([(ctx.family2_pk, ctx.family2.name, ctx.family2_longitude, ctx.family2_latitude, ctx.family2.name)] if ctx.family2_latitude else [])

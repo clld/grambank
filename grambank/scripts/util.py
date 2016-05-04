@@ -18,7 +18,7 @@ from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
 from clld.scripts.util import bibtex2source
 
-from clldclient.glottolog import Glottolog
+from localglottolog import LocalGlottolog
 
 from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
@@ -27,9 +27,10 @@ def import_dataset(path, data, icons, add_missing_features = False):
     # look for metadata
     # look for sources
     # then loop over values
+    
     dirpath, fname = os.path.split(path)
     basename, ext = os.path.splitext(fname)
-    glottolog = Glottolog()
+    glottolog = LocalGlottolog()
 
     contrib = GrambankContribution(id=basename, name=basename, desc=glottolog.languoid(basename).name)
 
@@ -208,6 +209,6 @@ def get_clf_paths(lgs):
         if not languoid:
             return ()
         return path(languoid.parent) + (languoid.id,)
-    glottolog = Glottolog()
+    glottolog = LocalGlottolog()
     return [path(glottolog.languoid(lg)) for lg in lgs]
     

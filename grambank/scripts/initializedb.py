@@ -13,10 +13,8 @@ from clld.db.util import compute_language_sources
 import grambank
 from grambank.scripts.util import import_features_collaborative_sheet, import_cldf, get_clf_paths
 
-
-
-from clld_glottologfamily_plugin.util import load_families, Family
-from clldclient.glottolog import Glottolog
+#from clld_glottologfamily_plugin.util import Family
+from localglottolog import load_families, LocalGlottolog
 from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph, deep_families, havdist
 from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport
 
@@ -45,12 +43,12 @@ def main(args):
     import_cldf(os.path.join(datadir, 'datasets'), data)
     ##import_cldf("C:\\python27\\dbs\\bwohh\\", data, add_missing_features = True)
     load_families(data, data['GrambankLanguage'].values(), isolates_icon='tcccccc')
-    glottolog = Glottolog()
-    for lg in data['GrambankLanguage'].values():
-        gl_language = glottolog.languoid(lg.id)
-        if not gl_language.family:
-            family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
-            lg.family = family
+    glottolog = LocalGlottolog()
+    #for lg in data['GrambankLanguage'].values():
+    #    gl_language = glottolog.languoid(lg.id)
+    #    if not gl_language.family:
+    #        family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
+    #        lg.family = family
     
     datatriples = [(v.valueset.language.id, v.valueset.parameter.id, v.name) for v in data["Value"].itervalues()]
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
@@ -64,7 +62,7 @@ def main(args):
     for (f, (s, transitions, stationarity_p, synchronic_p)) in fs:
         data.add(Stability, f, id = f.replace("GB", "S"), feature = data['Feature'][f], parsimony_stability_value = s["stability"], parsimony_retentions = s["retentions"], parsimony_transitions = s["transitions"], jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
         for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
-            data.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
+            DBSession.add(Transition, i, id = "%s: %s->%s" % (f, fromnode, tonode), stability = data['Stability'][f], fromnode=glottolog.languoid(fromnode).name, tonode=glottolog.languoid(tonode).name, fromvalue=ft, tovalue=tt, family = data['Family'][fam], retention_innovation = "Retention" if ft == tt else "Innovation")
 
 
     
@@ -72,13 +70,11 @@ def main(args):
         
     imps = feature_dependencies(datatriples)
     H = {}
-    #(H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
-    #with open('grambank\\static\\dependencies.gv', 'w') as fp:
-    #    fp.write(dot(H, V))
+    (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
     
     for (i, ((v, dstats), f1, f2)) in enumerate(imps):
         combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
-        data.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
+        DBSession.add(Dependency, i, id = "%s->%s" % (f1, f2), strength = v, feature1 = data['Feature'][f1], feature2 = data['Feature'][f2], representation = dstats["representation"], combinatory_status = combinatory_status, jsondata = dstats)
 
     coordinates = {lg.id: (lg.longitude, lg.latitude) for lg in data['GrambankLanguage'].values() if lg.longitude != None and lg.latitude != None}
     deepfams = deep_families(datatriples, clfps, coordinates = coordinates)
@@ -96,7 +92,7 @@ def main(args):
             if not data["Support"].get(vid):
                 data.add(Support, vid, id = vid, historical_score = historical_score, independent_score = independent_score, support_score = support_score, value1= v1, value2 = v2, feature = data['Feature'][f])
             hsvid = dname + " has " + vid
-            data.add(HasSupport, hsvid, deepfamily = data["DeepFamily"][dname], support = data["Support"][vid])
+            DBSession.add(HasSupport, hsvid, deepfamily = data["DeepFamily"][dname], support = data["Support"][vid])
                 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.

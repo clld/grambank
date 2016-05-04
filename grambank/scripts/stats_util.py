@@ -468,6 +468,9 @@ def dependencies_graph(imps):
     (mv, H) = max([(sum(H.values()), H) for H in MSTs])
     #W = dict([(y, 1.0-v) for ((x, y), v) in H.iteritems()])
     #sav(dot(H, V), 'grambank_mst.gv')
+    with open('grambank\\static\\dependencies.gv', 'w') as fp:
+        fp.write(dot(H, V))
+
     return (H, V) #dot(H, V)
 
 
