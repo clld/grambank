@@ -44,14 +44,15 @@ def main(args):
         data['GrambankLanguage'].values(),
         glottolog=Glottolog(GLOTTOLOG_REPOS),
         isolates_icon='tcccccc')
-    return
 
-    #for lg in data['GrambankLanguage'].values():
-    #    gl_language = glottolog.languoid(lg.id)
-    #    if not gl_language.family:
-    #        family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
-    #        lg.family = family
-
+    #Add isolates
+    glottolog=Glottolog(GLOTTOLOG_REPOS)
+    for lg in data['GrambankLanguage'].values():
+        gl_language = glottolog.languoid(lg.id)
+        if not gl_language.family:
+            family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
+            lg.family = family
+    return 
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
@@ -177,10 +178,10 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
                     value1= v1,
                     value2 = v2,
                     feature=features[f])
-            HasSupport(
+            DBSession.add(HasSupport(
                 id=dname + "-" + vid,
-                deepfamily =deepfam,
-                support = data["Support"][vid])
+                deepfamily = deepfam,
+                support = data["Support"][vid]))
     print('missing_families:')
     print(missing_families)
     DBSession.flush()

@@ -35,7 +35,7 @@ GRAMBANK_REPOS = 'C:\\Python27\\glottobank\\Grambank\\' \
 GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
     'glottolog3', 'glottolog') \
     if getpass.getuser() in ['robert', 'shh\\forkel'] \
-    else Path('C:\\')  # add your path to the glottolog repos clone here!
+    else Path('C:\\Python27\\glottolog\\')  # add your path to the glottolog repos clone here!
 
 
 def import_dataset(path, data, icons, add_missing_features = False):

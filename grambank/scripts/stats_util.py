@@ -506,7 +506,10 @@ def deep_families(datatriples, clfps, coordinates = {}):
     
     famlgs = grp2([(clfc[lg][0] if clfc[lg] else lg, lg) for lg in lfv.iterkeys()])
     famts = dict([(fam, {fam: prune(clf.get(fam, dict.fromkeys(lgs)), lgs)}) for (fam, lgs) in famlgs.items()])
+    #print famts["bilu1245"], famlgs["bilu1245"], clf["bilu1245"]
     protolfv = dict([(fam, protofs(t, lfv, flv.keys(), famlgs[fam])) for (fam, t) in famts.iteritems()])
+    #print protolfv["bilu1245"]
+    #print lfv["bilu1245"]
 
     l1l2s = [((l1, l2), sscmp(lfv[l1], lfv[l2], fsynp, fstab)[0]) for ((l1, l2), lev) in levpairs(clfps).iteritems() if lev == 0 and l1 in lfv and l2 in lfv]
     dfs = dict([((l1, l2), sscmp(protolfv[l1], protolfv[l2], fsynp, fstab)) for (l1, l2) in pairs(protolfv.keys())])
@@ -518,6 +521,8 @@ def deep_families(datatriples, clfps, coordinates = {}):
     
 def proto(t, lv):
     [root] = t.keys()
+    if lv.has_key(root):
+        return lv[root]
     done = parsimony_reconstruct(t, lv)
     if done.has_key(root) and done[root]:
         return "/".join(allmax(done[root], min).keys())
