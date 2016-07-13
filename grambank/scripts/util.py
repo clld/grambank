@@ -209,7 +209,7 @@ class FeatureSpec(object):
 
 
 def import_features_collaborative_sheet(datadir, data):
-    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True):
+    for feature in reader(os.path.join(datadir, 'obsolete_sheets', 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True, encoding='latin1'):
         feature = FeatureSpec(feature)
         f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
         for i, (deid, desc) in enumerate(feature.domain.items()):

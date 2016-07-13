@@ -24,7 +24,7 @@ def main(args):
     data = Data()
     dataset = common.Dataset(
         id=grambank.__name__,
-        name="GramBank",
+        name="grambank",
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="http://shh.mpg.de",
