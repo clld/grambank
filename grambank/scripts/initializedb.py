@@ -35,24 +35,32 @@ def main(args):
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     DBSession.add(dataset)
+    glottolog = Glottolog(GLOTTOLOG_REPOS)
+    languoids = {l.id: l for l in glottolog.languoids()}
 
     import_features_collaborative_sheet(GRAMBANK_REPOS, data)
-    import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data)
-    ##import_cldf("C:\\python27\\dbs\\bwohh\\", data, add_missing_features = True)
+    import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data, languoids)
     load_families(
         data,
         data['GrambankLanguage'].values(),
-        glottolog=Glottolog(GLOTTOLOG_REPOS),
+        glottolog=languoids,
         isolates_icon='tcccccc')
 
-    #Add isolates
-    glottolog=Glottolog(GLOTTOLOG_REPOS)
+    # Add isolates
     for lg in data['GrambankLanguage'].values():
-        gl_language = glottolog.languoid(lg.id)
+        gl_language = languoids.get(lg.id)
         if not gl_language.family:
-            family = data.add(Family, gl_language.id, id = gl_language.id, name = gl_language.name, description=common.Identifier(name=gl_language.id, type=common.IdentifierType.glottolog.value).url(), jsondata={"icon": 'tcccccc'})
+            family = data.add(
+                Family, gl_language.id,
+                id=gl_language.id,
+                name=gl_language.name,
+                description=common.Identifier(
+                    name=gl_language.id,
+                    type=common.IdentifierType.glottolog.value).url(),
+                jsondata={"icon": 'tcccccc'})
             lg.family = family
     return 
+
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.

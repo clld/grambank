@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import os
 import re
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 from itertools import cycle
 import csv
 import getpass
@@ -23,8 +23,6 @@ from clld.lib.bibtex import Database
 from clld.web.icon import ORDERED_ICONS
 from clld.scripts.util import bibtex2source
 
-from localglottolog import LocalGlottolog
-
 import grambank
 from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
@@ -38,19 +36,15 @@ GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
     else Path('C:\\Python27\\glottolog\\')  # add your path to the glottolog repos clone here!
 
 
-def import_dataset(path, data, icons, add_missing_features = False):
+def import_dataset(path, data, languoids, invalid_features, add_missing_features=False):
     # look for metadata
     # look for sources
     # then loop over values
-    
+
     dirpath, fname = os.path.split(path)
     basename, ext = os.path.splitext(fname)
-    glottolog = LocalGlottolog()
 
-    try:
-        contrib = GrambankContribution(id=basename, name=basename, desc=glottolog.languoid(basename).name)
-    except:
-        return
+    contrib = GrambankContribution(id=basename, name=basename, desc=languoids[basename].name)
 
     md = {}
     mdpath = path + '-metadata.json'
@@ -85,19 +79,17 @@ def import_dataset(path, data, icons, add_missing_features = False):
         if parameter is None:
             if add_missing_features:
                 parameter = data.add(Feature, row['Feature_ID'], id=row['Feature_ID'], name=row.get('Feature', row['Feature_ID']))
-            else: 
-                print('skip value for invalid feature %s' % row['Feature_ID'])
+            else:
+                invalid_features.update([row['Feature_ID']])
                 continue
 
         language = data['GrambankLanguage'].get(row['Language_ID'])
         if language is None:
-            # query glottolog!
-            try:
-                languoid = glottolog.languoid(row['Language_ID'])
-	    except AttributeError: 
+            languoid = languoids.get(row['Language_ID'])
+            if languoid is None:
                 print('Skipping, no Glottocode found for %s' % row['Language_ID'])
                 continue
-            
+
             gl_md = {
                 'name': languoid.name,
                 'longitude': languoid.longitude,
@@ -117,10 +109,10 @@ def import_dataset(path, data, icons, add_missing_features = False):
                 longitude=gl_md.get('longitude'))
 
         domain = {de.abbr: de for de in parameter.domain}    
-	if not domain.get(row['Value']):
+        if not domain.get(row['Value']):
             #print "skipped", row, "not in", domain
             continue
-        
+
         vs = data['ValueSet'].get(vsid)
         if vs is None:
             vs = data.add(
@@ -135,7 +127,8 @@ def import_dataset(path, data, icons, add_missing_features = False):
         if name in domain:
             name = domain[name].name
 
-        data.add(Value,
+        data.add(
+            Value,
             vid,
             id=vid,
             valueset=vs,
@@ -148,24 +141,22 @@ def import_dataset(path, data, icons, add_missing_features = False):
                 ValueSetReference(valueset=vs, source=src, key=key)
 
 
-def import_cldf(srcdir, data, add_missing_features = False):
+def import_cldf(srcdir, data, languoids, add_missing_features=False):
     # loop over values
     # check if language needs to be inserted
     # check if feature needs to be inserted
     # add value if in domain
-    icons = cycle(ORDERED_ICONS)
+    invalid_features = Counter()
     for dirpath, dnames, fnames in os.walk(srcdir):
         for fname in fnames:
             if os.path.splitext(fname)[1] in ['.tsv', '.csv']:
-                try:
-                    import_dataset(os.path.join(dirpath, fname), data, icons, add_missing_features = add_missing_features)
-                    print os.path.join(dirpath, fname)
-                except:
-                    print 'ERROR'
-                    raise
-                #break
-
-    pass
+                import_dataset(
+                    os.path.join(dirpath, fname),
+                    data,
+                    languoids,
+                    invalid_features,
+                    add_missing_features=add_missing_features)
+    print(len(invalid_features), sum(invalid_features.values()))
 
 
 class FeatureSpec(object):
@@ -209,7 +200,9 @@ class FeatureSpec(object):
 
 
 def import_features_collaborative_sheet(datadir, data):
-    for feature in reader(os.path.join(datadir, 'obsolete_sheets', 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True, encoding='latin1'):
+    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True,
+                          #encoding='latin1'
+                          ):
         feature = FeatureSpec(feature)
         f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
         for i, (deid, desc) in enumerate(feature.domain.items()):
