@@ -66,7 +66,7 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
 
 <ul><a href="https://github.com/glottobank/Grambank/wiki/Template-for-feature-description">Template</a> for feature description</ul>
 
-<ul><a href="https://docs.google.com/document/d/1L5W61zI1_xSTzHC8okqc-0g0o27dGbl6hnEoBJczqqY/edit?usp=sharing">Procedures and examples</a>by Jeremy Collins</ul>
+<ul><a href="https://docs.google.com/document/d/1L5W61zI1_xSTzHC8okqc-0g0o27dGbl6hnEoBJczqqY/edit?usp=sharing">Procedures and examples</a> by Jeremy Collins</ul>
 
 <ul><a href="https://drive.google.com/folderview?id=0B-lVFHmduY1Wb3FURnhTVkJvakE&usp=sharing&tid=0B-lVFHmduY1WQ1UxZXhmZWo5SUU">Meeting notes</a></ul>
 

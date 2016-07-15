@@ -4,7 +4,7 @@ from clld.web.util.htmllib import HTML
 
 from clld.db.models import common
 from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol, DataTable
-from clld.web.datatables.value import Values, ValueNameCol
+from clld.web.datatables.value import Values, ValueNameCol, RefsCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol
@@ -303,7 +303,7 @@ class Datapoints(Values):
 
         cols = cols + [
             name_col,
-            Col(self, 'Source',
+            RefsCol(self, 'Source',
                 model_col=common.ValueSet.source,
                 get_object=lambda i: i.valueset),
             Col(self, 'Comment', model_col=common.Value.description)
