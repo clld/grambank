@@ -256,6 +256,11 @@ class GrambankContributionsCol(Col):
 
 
 class GrambankContributors(Contributors):
+    def base_query(self, query):
+        return query.options(joinedload_all(
+            common.Contributor.contribution_assocs,
+            common.ContributionContributor.contribution))
+
     def col_defs(self):
         return [
             NameCol(self, 'name'),
@@ -271,6 +276,9 @@ class Datapoints(Values):
                 joinedload_all(common.Value.valueset, common.ValueSet.parameter),
                 joinedload(common.Value.domainelement),
             )
+        if self.parameter:
+            query = query.options(
+                joinedload(common.Value.valueset, common.ValueSet.language))
         return query
 
     def col_defs(self):

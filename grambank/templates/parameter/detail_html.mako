@@ -33,11 +33,14 @@ ${h.map_marker_img(req, de)}
 <dd>${ctx.doc}</dd>
 <dt>French:</dt>
 <dd>${ctx.name_french}</dd>
-<dt>Clarification:</dt>
-<dd>${ctx.clarification}</dd>
-<dt>Alternative Id:</dt>
-<dd>${ctx.alternative_id}</dd>
-
+    % if ctx.clarification:
+        <dt>Clarification:</dt>
+        <dd>${ctx.clarification}</dd>
+    % endif
+    % if ctx.alternative_id:
+        <dt>Alternative Id:</dt>
+        <dd>${ctx.alternative_id}</dd>
+    % endif
 </dl>
 
 

@@ -30,12 +30,14 @@ class MyMapMarker(LanguageByFamilyMapMarker):
             return ctx.jsondata['icon']
         return LanguageByFamilyMapMarker.get_icon(self, ctx, req)
 
+
 def link_attrs(req, obj, **kw):
     if IDependency.providedBy(obj):
         # we are about to link to a dependency details page: redirect to combination page!
         id_ = obj.id.replace("->", "_")
         kw['href'] = req.route_url('combination', id=id_, **kw.pop('url_kw', {}))
     return kw
+
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.

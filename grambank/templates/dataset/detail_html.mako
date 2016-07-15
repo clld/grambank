@@ -1,20 +1,27 @@
 <%inherit file="../home_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
 
-<h2>Welcome to GramBank</h2>
+<%def name="sidebar()">
+    <img src="${request.static_url('grambank:static/glottobank_all.jpg')}"/>
+    <div class="well">
+       <h3>grambank</h3>
+        <p>
+            produced by a team directed by Russell Gray and Quentin
+            Atkinson. The original questionnaire was designed by Ger Reesink and
+            Michael Dunn, subsequent extensions and clarifications were done by
+            Hedvig Skirg&aring;rd, Suzanne van der Meer, Harald Hammarstr&ouml;m,
+            Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
+
+    </div>
+
+</%def>
+
+<h2>Welcome to grambank</h2>
 
 <p class="lead">
-GramBank is a database of structural (typological) features of language. It consists of 200 logically independent features (most of them binary) spanning all subdomains of morphosyntax. The GramBank feature questionnaire has been filled in, based on reference grammars, for over 500 languages. The aim to eventually reach as many as 3,500 languages. The database can be used to investigate deep language prehistory, the geographical-distribution of features, language universals and the functional interaction of structural features.
+grambank is a database of structural (typological) features of language. It consists of 200 logically independent features (most of them binary) spanning all subdomains of morphosyntax. The grambank feature questionnaire has been filled in, based on reference grammars, for over 500 languages. The aim to eventually reach as many as 3,500 languages. The database can be used to investigate deep language prehistory, the geographical-distribution of features, language universals and the functional interaction of structural features.
 </p>
 
-<p>
-GramBank produced by a team directed by Russell Gray and Quentin
-Atkinson. The original questionnaire was designed by Ger Reesink and
-Michael Dunn, subsequent extensions and clarifications were done by
-Hedvig Skirg&aring;rd, Suzanne van der Meer, Harald Hammarstr&ouml;m,
-Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
-
-<p>
 <table class="table table-condensed table-nonfluid">
     <thead>
     <tr>
@@ -22,36 +29,34 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
     </tr>
     </thead>
     <tbody>
-    <tr><td>Languages</td><td></td><td>${stats['language']}</td></tr>
-    <tr><td>Features</td><td></td><td>${stats['parameter']}</td></tr>
-    <tr><td>Datapoints</td><td></td><td></td></tr>
+    <tr><th>Languages</th><td></td><td class="right">${'{:,}'.format(stats['language'])}</td></tr>
+    <tr><th>Features</th><td></td><td class="right">${'{:,}'.format(stats['parameter'])}</td></tr>
+    <tr><th>Datapoints</th><th>total</th><td class="right">${'{:,}'.format(stats['value'])}</td></tr>
     % for name, count in contribs:
-        <tr><td></td><td>${name}</td><td>${count}</td></tr>
+        <tr><td></td><td>${name}</td><td class="right">${'{:,}'.format(count)}</td></tr>
     % endfor
-     <tr><td></td><td><b>total</b></td><td>${stats['value']}</td></tr>
     </tbody>
 </table>
-</p>
 
 <h3>For Coders</h3>
 <p>
 <ulist>
 <ul>Example sheets:
 <ulist>
-<ul>Empty GB coder sheet, i.e., the most recent version of GramBank sheet with feature categories and standardised comments:
-<a href="https://github.com/glottobank/Grambank/blob/master/For_coders/GramBank_most_updated_sheet.xlsx">.xlsx</a> (requires github login). Note: select the "Empty Sheet" from the workbook.
+<ul>Empty GB coder sheet, i.e., the most recent version of grambank sheet with feature categories and standardised comments:
+<a href="https://github.com/glottobank/Grambank/blob/master/For_coders/grambank_most_updated_sheet.xlsx">.xlsx</a> (requires github login). Note: select the "Empty Sheet" from the workbook.
 </ul>
-<ul>Example filled-in sheet (by Harald on a slightly earlier version of GramBank)
+<ul>Example filled-in sheet (by Harald on a slightly earlier version of grambank)
 <a href="http://haraldhammarstrom.ruhosting.nl/Harald Hammarstrom_Nyam [nmi].tsv">.tsv</a>
 </ul>
 
 </ulist>
 </ul>
 
-<ul><a href="http://haraldhammarstrom.ruhosting.nl/grambankcoding.pdf">GramBank coding manual</a> (presentation)</ul>
+<ul><a href="http://haraldhammarstrom.ruhosting.nl/grambankcoding.pdf">grambank coding manual</a> (presentation)</ul>
 
 
-<ul>The mailing list for all kinds of questions is <a href="https://groups.google.com/forum/#!forum/grambank-and-nts-coders-discussion">GramBank-and-NTS-coders-discussion@googlegroups.com</a>. Note:
+<ul>The mailing list for all kinds of questions is <a href="https://groups.google.com/forum/#!forum/grambank-and-nts-coders-discussion">grambank-and-NTS-coders-discussion@googlegroups.com</a>. Note:
 
 <ulist>
 <ul> There are (almost) no stupid questions</ul>
@@ -76,31 +81,31 @@ Stephen Levinson, Hannah Haynie, Jeremy Collins and Nicholas Evans.</p>
 
 <ul><a href="https://docs.google.com/document/d/1V5rVmCisUa1dP1zz-UdrmDfuA9JseC7KlUHLQWFDv5o/edit?usp=sharing">History of the questionnaire</a></ul>
 
-<ul><a href="http://haraldhammarstrom.ruhosting.nl/grambank_goals.txt">GramBank Statement of Goals</a></ul>
+<ul><a href="http://haraldhammarstrom.ruhosting.nl/grambank_goals.txt">grambank Statement of Goals</a></ul>
 
-<ul><a href="https://docs.google.com/spreadsheets/d/1xS6r8G2gdveEBB1kIHdR3eF1A_G-U7fe30hK0tJ2SC8/edit#gid=1504847426">NTS-Collaborative feature sheet</a> a large excel document with correspondences between GramBank and other databases (SAILS, WALS, NTS, etc), deprecated features as well as a lot of features metadata.</ul>
+<ul><a href="https://docs.google.com/spreadsheets/d/1xS6r8G2gdveEBB1kIHdR3eF1A_G-U7fe30hK0tJ2SC8/edit#gid=1504847426">NTS-Collaborative feature sheet</a> a large excel document with correspondences between grambank and other databases (SAILS, WALS, NTS, etc), deprecated features as well as a lot of features metadata.</ul>
 </ulist>
 
 </p>
 
 
 
-<h3>How to use GramBank</h3>
+<h3>How to use grambank</h3>
 <p>
-Using GramBank requires a browser with Javascript enabled.
+Using grambank requires a browser with Javascript enabled.
 </p>
 <p>
-You find the features or languages of GramBank through the items "Features" and "Languages" in the navigation bar.
+You find the features or languages of grambank through the items "Features" and "Languages" in the navigation bar.
 </p>
 
 
 <p>
-GramBank is a publication of the
+grambank is a publication of the
 ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')} at the Max Planck Institute for the Science of Human History, Jena.
 </p>
 
 
-<h3>How to cite GramBank Online</h3>
+<h3>How to cite grambank Online</h3>
 <p>
 TODO
 Harald Hammarstr\"om, Hedvig Skirg&aring;rd, Jeremy Collins, Hannah Haynie, Michael Dunn, Stephen Levinson, Quentin Atkinson and Russell Gray 2016. Grambank: A world-wide Typological Database. Electronic Database under Development.
