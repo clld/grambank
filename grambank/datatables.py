@@ -270,7 +270,7 @@ class GrambankContributors(Contributors):
             GrambankContributionsCol(self, 'Contributions')
         ]
 
-    
+
 class Datapoints(Values):
     def base_query(self, query):
         query = Values.base_query(self, query)
@@ -280,9 +280,18 @@ class Datapoints(Values):
                 joinedload(common.Value.domainelement),
             )
         if self.parameter:
-            query = query.options(
-                joinedload(common.Value.valueset, common.ValueSet.language))
-        return query #.outerjoin(common.Contribution).outerjoin(common.ContributionContributor).outerjoin(common.Contributor).options(joinedload(common.Contributor.name))
+            query = query\
+                .join(common.ValueSet.contribution)\
+                .join(common.Contribution.contributor_assocs)\
+                .join(common.ContributionContributor.contributor)\
+                .options(
+                joinedload(common.Value.valueset, common.ValueSet.language),
+                joinedload_all(
+                    common.Value.valueset,
+                    common.ValueSet.contribution,
+                    common.Contribution.contributor_assocs,
+                    common.ContributionContributor.contributor))
+        return query
 
     def col_defs(self):
         name_col = ValueNameCol(self, 'value')
@@ -299,7 +308,13 @@ class Datapoints(Values):
                 Col(
                     self, 'ISO-639-3',
                     model_col=common.Language.id,
-                    get_object=lambda i: i.valueset.language)]
+                    get_object=lambda i: i.valueset.language),
+                LinkCol(
+                    self, 'Contributor',
+                    model_col=common.Contributor.name,
+                    get_object=lambda i: i.valueset.contribution.contributor_assocs[0].contributor,
+                )
+            ]
         elif self.language:
             cols = [
                 FeatureIdCol(
