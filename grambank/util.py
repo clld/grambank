@@ -8,13 +8,17 @@ before rendering resource's detail or index views.
 from __future__ import division, unicode_literals
 
 from sqlalchemy import func, desc, text
+from sqlalchemy.orm import joinedload
 
 from clld import RESOURCES
 from clld.web.util.helpers import get_referents
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
-from clld.db.models.common import Contributor, ValueSet, Contribution, ContributionContributor
-from models import Dependency, Transition
+from clld.db.models.common import (
+    Contributor, ValueSet, Contribution, ContributionContributor, Language,
+)
+from clld_glottologfamily_plugin.models import Family
+from models import Dependency, Transition, GrambankLanguage
 
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
@@ -25,8 +29,6 @@ COLORS = [
     #            red     yellow
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
-
-
 
 
 def td_coverage(glottolog=0, grambank=0, label=None):
@@ -52,6 +54,27 @@ def source_detail_html(context=None, request=None, **kw):
         'contribution',
         #'valueset',
     ]))
+
+
+def contributor_detail_html(context=None, request=None, **kw):
+    counts = {
+        r[0]: r[1] for r in DBSession.query(Language.pk, func.count(ValueSet.pk))
+        .join(ValueSet)
+        .join(Contribution)
+        .join(ContributionContributor)
+        .filter(ContributionContributor.contributor_pk == context.pk)
+        .group_by(Language.pk)}
+    languages = []
+    for lang in DBSession.query(Language) \
+            .join(Family) \
+            .join(ValueSet) \
+            .join(Contribution) \
+            .join(ContributionContributor) \
+            .filter(ContributionContributor.contributor_pk == context.pk) \
+            .order_by(Family.name, Language.name) \
+            .options(joinedload(GrambankLanguage.family)):
+        languages.append((lang, counts[lang.pk]))
+    return {'languages': languages}
 
 
 def dataset_detail_html(context=None, request=None, **kw):
@@ -122,7 +145,3 @@ def deepfamily_detail_html(request=None, context=None, **kw):
     for key in icon_map:
         icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
     return dict(icon_map=icon_map, lmap=DeepFamilyMap(context, request, icon_map=icon_map))
-
-
-
-

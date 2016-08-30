@@ -10,7 +10,7 @@ digraph G {
    GB421 -> GB302 [label="0.26"];
    GB170 -> GB321 [label="0.28"];
    GB192 -> GB171 [label="0.17"];
-   GB160 -> GB159 [label="0.08"];
+   GB431 -> GB049 [label="0.27"];
    GB070 -> GB071 [label="0.30"];
    GB401 -> GB285 [label="0.28"];
    GB068 -> GB069 [label="0.29"];
@@ -38,10 +38,10 @@ digraph G {
    GB422 -> GB139 [label="0.17"];
    GB039 -> GB044 [label="0.20"];
    GB402 -> GB037 [label="0.41"];
-   GB044 -> GB042 [label="0.17"];
+   GB256 -> GB519 [label="0.23"];
    GB422 -> GB296 [label="0.21"];
    GB096 -> GB177 [label="0.29"];
-   GB198 -> GB039 [label="0.20"];
+   GB431 -> GB301 [label="0.14"];
    GB095 -> GB098 [label="0.08"];
    GB171 -> GB030 [label="0.40"];
    GB070 -> GB408 [label="0.32"];
@@ -59,7 +59,7 @@ digraph G {
    GB433 -> GB059 [label="0.11"];
    GB323 -> GB322 [label="0.59"];
    GB136 -> GB430 [label="0.38"];
-   GB256 -> GB519 [label="0.23"];
+   GB044 -> GB042 [label="0.17"];
    GB256 -> GB291 [label="0.20"];
    GB431 -> GB130 [label="0.37"];
    GB170 -> GB184 [label="0.28"];
@@ -108,7 +108,6 @@ digraph G {
    GB433 -> GB135 [label="0.18"];
    GB400 -> GB166 [label="0.60"];
    GB401 -> GB313 [label="0.14"];
-   GB431 -> GB049 [label="0.27"];
    GB137 -> GB431 [label="0.16"];
    GB431 -> GB253 [label="0.21"];
    GB422 -> GB024 [label="0.18"];
@@ -128,7 +127,7 @@ digraph G {
    GB432 -> GB192 [label="0.38"];
    GB431 -> GB038 [label="0.27"];
    GB317 -> GB320 [label="0.63"];
-   GB431 -> GB301 [label="0.14"];
+   GB198 -> GB039 [label="0.20"];
    GB421 -> GB107 [label="0.19"];
    GB136 -> GB264 [label="0.11"];
    GB410 -> GB092 [label="0.17"];
@@ -154,7 +153,7 @@ digraph G {
    GB318 -> GB336 [label="0.38"];
    GB171 -> GB170 [label="0.51"];
    GB421 -> GB022 [label="0.21"];
-   GB421 -> GB137 [label="0.15"];
+   GB170 -> GB433 [label="0.15"];
    GB401 -> GB021 [label="0.21"];
    GB030 -> GB051 [label="0.29"];
    GB431 -> GB105 [label="0.07"];
@@ -180,8 +179,9 @@ digraph G {
    GB410 -> GB070 [label="0.29"];
    GB421 -> GB057 [label="0.27"];
    GB120 -> GB325 [label="0.27"];
-   GB170 -> GB433 [label="0.15"];
+   GB421 -> GB137 [label="0.15"];
    GB296 -> GB099 [label="0.20"];
+   GB160 -> GB159 [label="0.08"];
    GB401 -> GB422 [label="0.34"];
    GB092 -> GB090 [label="0.71"];
    GB022 -> GB020 [label="0.18"];

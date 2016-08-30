@@ -12,9 +12,7 @@ from sqlalchemy.orm import relationship, backref
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.versioned import Versioned
-from clld.db.models.common import (
-    Contribution, Parameter, IdNameDescriptionMixin, Language
-)
+from clld.db.models.common import Contribution, Parameter, Contributor, Language
 from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
 
 from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport, IHasSupport
