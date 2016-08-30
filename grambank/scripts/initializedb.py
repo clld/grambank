@@ -12,19 +12,22 @@ from pyglottolog.api import Glottolog
 
 import grambank
 from grambank.scripts.util import (
-    import_features_collaborative_sheet, import_cldf, get_clf_paths, get_names,
+    import_features_collaborative_sheet, import_gb20_features, import_cldf, get_clf_paths, get_names,
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
 
-from stats_util import grp, feature_stability, feature_dependencies, dependencies_graph, deep_families, havdist
+from stats_util import grp, grp2, feature_stability, feature_dependencies, feature_diachronic_dependencies, dependencies_graph, deep_families, havdist
 from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature
 
 
 def main(args):
+    #TODO explain etc diachronic_strength
+    #sigtests of dependencies
+    #isogloss-maps
     data = Data()
     dataset = common.Dataset(
         id=grambank.__name__,
-        name="grambank",
+        name="Grambank",
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="http://shh.mpg.de",
@@ -38,7 +41,8 @@ def main(args):
     glottolog = Glottolog(GLOTTOLOG_REPOS)
     languoids = {l.id: l for l in glottolog.languoids()}
 
-    import_features_collaborative_sheet(GRAMBANK_REPOS, data)
+    #import_features_collaborative_sheet(GRAMBANK_REPOS, data)
+    import_gb20_features(GRAMBANK_REPOS, data)
     import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data, languoids)
     load_families(
         data,
@@ -61,6 +65,26 @@ def main(args):
             lg.family = family
     return 
 
+def dump(fn = "gbdump.tsv"):
+    import io
+#    dumpsql = """
+#select l.id, p.id, v.name, v.description, s.name
+#from value as v, language as l, parameter as p, valueset as vs LEFT OUTER JOIN valuesetreference as vsref ON vsref.valueset_pk = vs.pk LEFT OUTER JOIN source as s ON vsref.source_pk = s.pk
+#where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
+#    """
+    #datatriples = grp2([((v[0], v[1], v[2], v[3] or ""), v[4] or "") for v in DBSession.execute(dumpsql)])
+    #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.iteritems()]
+    dumpsql = """
+select l.id, p.id, v.name, v.description, vs.source
+from value as v, language as l, parameter as p, valueset as vs
+where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
+    """
+    dump = [v for v in DBSession.execute(dumpsql)]
+    tab = lambda rows: u''.join([u'\t'.join(row) + u"\n" for row in rows])
+    txt = tab([("Language_ID", "Feature", "Value", "Comment", "Source")] + dump)
+    with io.open(fn, 'w', encoding="utf-8") as fp:
+        fp.write(txt)
+
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
@@ -75,6 +99,9 @@ def prime_cache(args):
         print(n - s, msg or '')
         return n
 
+
+    #dump()
+    
     sql = """
 select l.id, p.id, v.name from value as v, valueset as vs, language as l, parameter as p
 where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
@@ -104,6 +131,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
             id=f.replace("GB", "S"),
             feature=features[f],
             parsimony_stability_value=s["stability"],
+            parsimony_stability_rank=s["rank"],
             parsimony_retentions=s["retentions"],
             parsimony_transitions=s["transitions"],
             jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
@@ -121,17 +149,23 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     DBSession.flush()
     _s = checkpoint(_s, 'stability and transitions loaded')
 
+    diachronic_imps = feature_diachronic_dependencies(datatriples, clfps)
+    diachronic_imp_strength = {(f1, f2): v for (((v, ccalltrd), lalltr, ccdtr, ldtr, cccdtr, lcdtr), rnk, f1, f2) in diachronic_imps}
+    _s = checkpoint(_s, 'feature_diachronic_dependencies computed')
+    
     imps = feature_dependencies(datatriples)
     _s = checkpoint(_s, 'feature_dependencies computed')
     if 1:
-        (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), f1, f2) in imps])
+        (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), rnk, f1, f2) in imps])
         _s = checkpoint(_s, 'dependencies_graph written')
 
-        for (i, ((v, dstats), f1, f2)) in enumerate(imps):
+        for ((v, dstats), rnk, f1, f2) in imps:
             combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
             DBSession.add(Dependency(
                 id="%s->%s" % (f1, f2),
                 strength=v,
+                diachronic_strength=diachronic_imp_strength.get((f1, f2)),
+                rank=rnk,
                 feature1=features[f1],
                 feature2=features[f2],
                 representation=dstats["representation"],

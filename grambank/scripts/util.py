@@ -141,14 +141,14 @@ def import_dataset(path, data, languoids, invalid_features, add_missing_features
                 ValueSetReference(valueset=vs, source=src, key=key)
 
 
-def import_cldf(srcdir, data, languoids, add_missing_features=False):
+def import_cldf(srcdir, data, languoids, add_missing_features=False, maxnsheets = None):
     # loop over values
     # check if language needs to be inserted
     # check if feature needs to be inserted
     # add value if in domain
     invalid_features = Counter()
     for dirpath, dnames, fnames in os.walk(srcdir):
-        for fname in fnames:
+        for fname in (fnames[:maxnsheets] if maxnsheets else fnames):
             if os.path.splitext(fname)[1] in ['.tsv', '.csv']:
                 import_dataset(
                     os.path.join(dirpath, fname),
@@ -176,9 +176,10 @@ class FeatureSpec(object):
             raise
 
     def __init__(self, d):
-        self.id = d['GramBank ID'].strip()
+        self.id = (d.get('GramBank ID') or d['Grambank ID']).strip()
         self.name = d['Feature']
         self.doc = d['Clarifying Comments']
+        self.vdoc = d['Possible Values']
         self.patron = d['Feature patron']
         self.std_comments = d['Suggested standardised comments']
         self.name_french = d['Feature question in French']
@@ -188,8 +189,17 @@ class FeatureSpec(object):
         self.hard_to_deny = d['Very hard to deny']
         self.prone_misunderstanding = d['Prone to misunderstandings among researchers']
         self.requires_extensive_data = d['Requires extensive data on the language']
-        self.last_edited = d['Last edited']
+        self.last_edited = "See the Grambank Wiki" #d['Last edited']
         self.other_survey = d['Is there a typological survey that already covers this feature somehow?']
+        self.designer = d['Design (just from Hedvigs memory)']
+        self.thematic_order = d['Hedvigs thematic order']
+        self.legacy_status = d['Legacy status']
+        self.grambank_status = d['GramBank-status'] 
+    	self.nts_grambank = d['NTS or GramBank?']
+        self.old_feature = d['Old feature']
+    #u'Wordhood issues', u'Old feature number', u'Dependencies'
+    #wip_comments = Column(String) alternative_id??
+    
         self.domain = OrderedDict()
         for n, desc in self.yield_domainelements(d['Possible Values']):
             self.domain[n] = desc
@@ -215,6 +225,24 @@ def import_features_collaborative_sheet(datadir, data):
                 description=desc,
                 jsondata=dict(icon=ORDERED_ICONS[i].name))
 
+
+def import_gb20_features(datadir, data):
+    for feature in reader(os.path.join(datadir, 'gb20features.tsv'), delimiter='\t', dicts=True,
+                          #encoding='latin1'
+                          ):
+        feature = FeatureSpec(feature)
+        f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
+        for i, (deid, desc) in enumerate(feature.domain.items()):
+            DomainElement(
+                id='%s-%s' % (f.id, deid),
+                parameter=f,
+                abbr=deid,
+                name='%s - %s' % (deid, desc),
+                number=int(deid) if deid != '?' else 999,
+                description=desc,
+                jsondata=dict(icon=ORDERED_ICONS[i].name))
+
+            
 
 def get_clf_paths(lgs):
     glottolog = Glottolog(GLOTTOLOG_REPOS)

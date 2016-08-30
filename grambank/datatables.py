@@ -61,6 +61,7 @@ class Stabilities(DataTable):
             FeatureIdCol(self, 'Id', sClass='left', model_col=Stability.id),
             LinkCol(self, 'Feature', model_col=Feature.name, get_object=lambda i: i.feature),
             Col(self, 'Stability', model_col=Stability.parsimony_stability_value),
+            Col(self, 'Stability Rank', model_col=Stability.parsimony_stability_rank),
             Col(self, 'Retentions', model_col=Stability.parsimony_retentions),
             Col(self, 'Transitions', model_col=Stability.parsimony_transitions),
         ]
@@ -126,8 +127,10 @@ class Dependencies(DataTable):
             LinkCol(self, 'From Feature', sClass='left', model_col=self.f1.name, get_object=lambda i: i.feature1),
             LinkCol(self, 'To Feature', sClass='left', model_col=self.f2.name, get_object=lambda i: i.feature2),
             Col(self, 'Strength', model_col=Dependency.strength),
+            Col(self, 'Rank', model_col=Dependency.rank),
             Col(self, 'Representation', model_col=Dependency.representation),
             StatusCol(self, 'Status', Dependency, attribute = "combinatory_status"),
+            Col(self, 'Diachronic Strength', model_col=Dependency.diachronic_strength),
         ]
     
 class Transitions(DataTable):
@@ -279,7 +282,7 @@ class Datapoints(Values):
         if self.parameter:
             query = query.options(
                 joinedload(common.Value.valueset, common.ValueSet.language))
-        return query
+        return query #.outerjoin(common.Contribution).outerjoin(common.ContributionContributor).outerjoin(common.Contributor).options(joinedload(common.Contributor.name))
 
     def col_defs(self):
         name_col = ValueNameCol(self, 'value')
@@ -314,7 +317,10 @@ class Datapoints(Values):
             RefsCol(self, 'Source',
                 model_col=common.ValueSet.source,
                 get_object=lambda i: i.valueset),
-            Col(self, 'Comment', model_col=common.Value.description)
+            Col(self, 'Comment', model_col=common.Value.description),
+            #Col(self, 'Contributed By', model_col=common.Contribution.name,
+            #        get_object=lambda i: i.valueset.contribution)
+ 
         ]
         return cols
 

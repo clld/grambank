@@ -102,6 +102,12 @@ def grp2(l):
         sdl(r, x, y)
     return dict([(k, vs.values()) for (k, vs) in r.iteritems()])    
 
+def grp2l(l):
+    r = {}
+    for (a, b) in l:
+        r[a] = r.get(a, [])
+        r[a].append(b)
+    return r
 
 #def grp(xs):
 #    return dict([(g, [tup[1:] for tup in tups]) for (g, tups) in groupby(xs, lambda x: x[0])])
@@ -211,11 +217,16 @@ def synchronic(lv, d):
     leaves = [{lv[k]: 1.0} for (k, v) in d.iteritems() if (not v) and lv.has_key(k)]
     branches = [vp for vp in [synchronic(lv, v) for (k, v) in d.iteritems() if v] if vp]
     return {k: v/len(leaves+branches) for (k, v) in sumds(leaves + branches).iteritems()}
+
+
+def ranks(fstab):
+    rnks = {f: i+1 for (i, (v, f)) in enumerate(sorted([(s["stability"], f) for (f, (s, transitions, stationarity_p, synchronic_p)) in fstab], reverse = True))}
+    return [(f, (dict([("rank", rnks[f])] + s.items()), transitions, stationarity_p, synchronic_p)) for (f, (s, transitions, stationarity_p, synchronic_p)) in fstab]
     
 def feature_stability(datatriples, clfps):
     clf = paths_to_d(clfps)
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
-    return [(f, parsimony_stability(lv, clf)) for (f, lv) in flv.iteritems()]
+    return ranks([(f, parsimony_stability(lv, clf)) for (f, lv) in flv.iteritems()])
 
 def parsimony_stability(lv, fp):
     transitions = stability_ftp(lv, fp)
@@ -463,7 +474,61 @@ def both_defined(lv1, lv2):
 def feature_dependencies(datatriples):
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
     imps = [(implies(both_defined(lv1, lv2)), f1, f2) for (f1, lv1) in flv.iteritems() for (f2, lv2) in flv.iteritems() if f1 != f2]
-    return imps
+    return [(v, i+1, f1, f2) for (i, (v, f1, f2)) in enumerate(sorted(imps, reverse = True))]
+
+def feature_diachronic_dependencies(datatriples, clfps):
+    clf = paths_to_d(clfps)
+    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
+    imps = [(diachronically_implies(both_defined(lv1, lv2), clf), f1, f2) for (f1, lv1) in flv.iteritems() for (f2, lv2) in flv.iteritems() if f1 != f2]
+    return [(v, i+1, f1, f2) for (i, (v, f1, f2)) in enumerate(sorted(imps, reverse = True))]
+
+def fdfrac(xs):
+    tpc = [[(tfi, tti) for tfi in tf.split("/") for tti in tt.split("/")] for (tf, tt) in xs]
+    return {x: sum(ys) for (x, ys) in grp2l([((tfi, tti), 1/float(len(tpci))) for tpci in tpc for (tfi, tti) in tpci]).iteritems()}
+
+def fdfrac2(xs):
+    tpc = [[((tfi1, tti1), (tfi2, tti2)) for tfi1 in tf1.split("/") for tti1 in tt1.split("/") for tfi2 in tf2.split("/") for tti2 in tt2.split("/")] for ((tf1, tt1), (tf2, tt2)) in xs]
+    return {x: sum(ys) for (x, ys) in grp2l([((tp1, tp2), 1/float(len(tpci))) for tpci in tpc for (tp1, tp2) in tpci]).iteritems()}
+
+def cochange(ltp):
+    x = norm(fdfrac([tp1 for (l, (tp1, tp2)) in ltp]))
+    y = norm(fdfrac([tp2 for (l, (tp1, tp2)) in ltp]))
+    xy = norm(fdfrac2([(tp1, tp2) for (l, (tp1, tp2)) in ltp]))
+    return pi(x, y, xy)
+
+def diachronically_implies((lv1, lv2), fp):
+    def mix(ltr1, ltr2):
+        dltr1 = dict(ltr1)
+        return [(l, (dltr1[l], tr2)) for (l, tr2) in ltr2]
+    
+    (l1, l2) = both_defined(lv1, lv2)
+    ftp1 = stability_tp(l1, fp)
+    ftp2 = stability_tp(l2, fp)
+
+    alltr = [ltr for f in ftp1.keys() for ltr in mix(ftp1[f], ftp2[f])]
+    dtr = [(l, (tr1, tr2)) for (l, (tr1, tr2)) in alltr if (str(tr1) + str(tr2)).find("/") == -1]
+    cdtr = [(l, ((tf1, tt1), (tf2, tt2))) for (l, ((tf1, tt1), (tf2, tt2))) in dtr if (tf1 != tt1) or (tf2 != tt2)]
+
+    ccalltr = cochange(alltr)
+    #palltr = len([1 for (va, vd, vcd) in sigcochange(l1, l2, 1000) if va > ccalltr])/1000.0
+    ccdtr = cochange(dtr)
+    #pdtr = len([1 for (va, vd, vcd) in sigcochange(l1, l2, 1000) if vd > ccdtr])/1000.0
+    cccdtr = cochange(cdtr)
+    #pcdtr = len([1 for (va, vd, vcd) in sigcochange(l1, l2, 1000) if vcd > cccdtr])/1000.0
+
+
+    #len(both), cc.implies(l1, l2), , palltr, pdtr, pcdtr 
+    return (ccalltr, len(alltr), ccdtr, len(dtr), cccdtr, len(cdtr))
+
+
+
+
+
+
+
+
+
+
 
 def dependencies_graph(imps):
     deps = dict([((f1, f2), v) for (v, f1, f2) in imps if v > 0.0])

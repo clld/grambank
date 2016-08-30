@@ -33,13 +33,29 @@ ${h.map_marker_img(req, de)}
 <dd>${ctx.doc}</dd>
 <dt>French:</dt>
 <dd>${ctx.name_french}</dd>
-    % if ctx.clarification:
-        <dt>Clarification:</dt>
-        <dd>${ctx.clarification}</dd>
+    % if ctx.patron:
+        <dt>Patron:</dt>
+        <dd>${ctx.patron}</dd>
     % endif
-    % if ctx.alternative_id:
-        <dt>Alternative Id:</dt>
-        <dd>${ctx.alternative_id}</dd>
+    % if ctx.designer:
+        <dt>Designer:</dt>
+        <dd>${ctx.designer}</dd>
+    % endif
+    % if ctx.legacy_status:
+        <dt>Legacy Status:</dt>
+        <dd>${ctx.legacy_status}</dd>
+    % endif
+    % if ctx.grambank_status:
+        <dt>Grambank Status:</dt>
+        <dd>${ctx.grambank_status}</dd>
+    % endif
+    % if ctx.old_feature:
+        <dt>Old Formulation (shown for historical purposes only):</dt>
+        <dd>${ctx.old_feature}</dd>
+    % endif
+    % if ctx.other_survey:
+        <dt>Is there another Typological survey covering approximately the same domain as this feature:</dt>
+        <dd>${ctx.other_survey}</dd>
     % endif
 </dl>
 

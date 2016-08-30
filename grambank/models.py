@@ -35,10 +35,10 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     vdoc = Column(String)
     std_comments = Column(String)
     name_french = Column(String)
-    clarification = Column(String)
     alternative_id = Column(String)
     representation = Column(Integer)
     designer = Column(String)
+    thematic_order = Column(String)
     abbreviation = Column(String)
     sortkey_str = Column(String)
     sortkey_int = Column(Integer)
@@ -54,12 +54,14 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     requires_extensive_data = Column(String)
     last_edited = Column(String)
     other_survey = Column(String)
-
+    old_feature = Column(String)
+    
 @implementer(IStability)
 class Stability(Base, CustomModelMixin):
     pk = Column(Integer, primary_key=True)
     id = Column(String)
-    parsimony_stability_value = Column(Float) 
+    parsimony_stability_value = Column(Float)
+    parsimony_stability_rank = Column(Integer)
     parsimony_retentions = Column(Float)
     parsimony_transitions = Column(Float)
     feature_pk = Column(Integer, ForeignKey('feature.pk'))
@@ -75,8 +77,10 @@ class Dependency(Base, CustomModelMixin):
     feature2_pk = Column(Integer, ForeignKey('feature.pk'))
     feature2 = relationship(Feature, lazy='joined', foreign_keys = feature2_pk)
     strength = Column(Float)
+    diachronic_strength = Column(Float)
     representation = Column(Integer)
     combinatory_status = Column(String)
+    rank = Column(Integer)
 
 @implementer(ITransition)
 class Transition(Base, CustomModelMixin):
