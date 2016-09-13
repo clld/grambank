@@ -17,7 +17,7 @@ from grambank.scripts.util import (
 )
 
 from stats_util import grp, grp2, feature_stability, feature_dependencies, feature_diachronic_dependencies, dependencies_graph, deep_families, havdist
-from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature
+from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature, GrambankLanguage
 
 
 def main(args):
@@ -75,16 +75,16 @@ def dump(fn = "gbdump.tsv"):
     #datatriples = grp2([((v[0], v[1], v[2], v[3] or ""), v[4] or "") for v in DBSession.execute(dumpsql)])
     #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.iteritems()]
     dumpsql = """
-select l.id, p.id, v.name, v.description, vs.source
+select l.name, l.id, p.id, v.name, v.description, vs.source
 from value as v, language as l, parameter as p, valueset as vs
 where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     """
     dump = [v for v in DBSession.execute(dumpsql)]
     tab = lambda rows: u''.join([u'\t'.join(row) + u"\n" for row in rows])
-    txt = tab([("Language_ID", "Feature", "Value", "Comment", "Source")] + dump)
+    txt = tab([("Language_Name", "Language_ID", "Feature", "Value", "Comment", "Source")] + dump)
     with io.open(fn, 'w', encoding="utf-8") as fp:
         fp.write(txt)
-
+    #copy C:\python27\gb\gbdump.tsv C:\python27\glottobank\grambank\
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
@@ -118,6 +118,10 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     features = {f.id: f for f in DBSession.query(Feature)}
     for (f, lv) in flv.iteritems():
         features[f].representation = len(lv)
+
+    languages = {l.id: l for l in DBSession.query(GrambankLanguage)}        
+    for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.iteritems() for (l, v) in lv.iteritems()]).iteritems():
+        languages[l].representation = len(fv)
     DBSession.flush()
     _s = checkpoint(_s, 'representation assigned')
 

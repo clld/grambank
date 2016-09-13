@@ -22,7 +22,7 @@ from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISuppo
 @implementer(interfaces.ILanguage)
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
-
+    representation = Column(Integer)
 
 @implementer(interfaces.IParameter)
 class Feature(CustomModelMixin, Parameter, Versioned):

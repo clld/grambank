@@ -45,6 +45,7 @@ class GrambankLanguages(Languages):
                 sDescription='<small>The geographic longitude</small>'),
             MacroareaCol(self, 'macroarea', GrambankLanguage),
             FamilyLinkCol(self, 'family', GrambankLanguage),
+            Col(self, 'Features', model_col=GrambankLanguage.representation),
         ]
 
 class Stabilities(DataTable):
