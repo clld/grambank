@@ -9,7 +9,7 @@ digraph G {
    GB521 -> GB520 [label="0.27"];
    GB410 -> GB318 [label="0.14"];
    GB192 -> GB171 [label="0.17"];
-   GB160 -> GB159 [label="0.08"];
+   GB431 -> GB049 [label="0.27"];
    GB070 -> GB071 [label="0.30"];
    GB401 -> GB285 [label="0.29"];
    GB068 -> GB069 [label="0.29"];

@@ -1,6 +1,8 @@
 from pyramid.config import Configurator
 
-from clld.interfaces import IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs
+from clld.interfaces import (
+    IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs, IContribution,
+)
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 
 # we must make sure custom models are known at database initialization!
@@ -36,6 +38,11 @@ def link_attrs(req, obj, **kw):
         # we are about to link to a dependency details page: redirect to combination page!
         id_ = obj.id.replace("->", "_")
         kw['href'] = req.route_url('combination', id=id_, **kw.pop('url_kw', {}))
+
+    if IContribution.providedBy(obj):
+        # we are about to link to a contribution details page: redirect to language page!
+        kw['href'] = req.route_url('language', id=obj.id, **kw.pop('url_kw', {}))
+
     return kw
 
 

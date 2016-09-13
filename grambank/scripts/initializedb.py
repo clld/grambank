@@ -12,7 +12,7 @@ from pyglottolog.api import Glottolog
 
 import grambank
 from grambank.scripts.util import (
-    import_features_collaborative_sheet, import_gb20_features, import_cldf, get_clf_paths, get_names,
+    import_gb20_features, import_cldf, get_clf_paths, get_names,
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
 
@@ -41,7 +41,6 @@ def main(args):
     glottolog = Glottolog(GLOTTOLOG_REPOS)
     languoids = {l.id: l for l in glottolog.languoids()}
 
-    #import_features_collaborative_sheet(GRAMBANK_REPOS, data)
     import_gb20_features(GRAMBANK_REPOS, data)
     import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data, languoids)
     load_families(
@@ -64,6 +63,7 @@ def main(args):
                 jsondata={"icon": 'tcccccc'})
             lg.family = family
     return 
+
 
 def dump(fn = "gbdump.tsv"):
     import io

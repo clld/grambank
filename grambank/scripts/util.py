@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 import os
 import re
 from collections import OrderedDict, Counter
-from itertools import cycle
 import csv
 import getpass
 
@@ -209,29 +208,27 @@ class FeatureSpec(object):
         return '; '.join('%s: %s' % item for item in self.domain.items() if item[0] != '?')
 
 
-def import_features_collaborative_sheet(datadir, data):
-    for feature in reader(os.path.join(datadir, 'features_collaborative_sheet.tsv'), delimiter='\t', dicts=True,
-                          #encoding='latin1'
-                          ):
-        feature = FeatureSpec(feature)
-        f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
-        for i, (deid, desc) in enumerate(feature.domain.items()):
-            DomainElement(
-                id='%s-%s' % (f.id, deid),
-                parameter=f,
-                abbr=deid,
-                name='%s - %s' % (deid, desc),
-                number=int(deid) if deid != '?' else 999,
-                description=desc,
-                jsondata=dict(icon=ORDERED_ICONS[i].name))
-
-
 def import_gb20_features(datadir, data):
-    for feature in reader(os.path.join(datadir, 'gb20features.tsv'), delimiter='\t', dicts=True,
-                          #encoding='latin1'
-                          ):
+    for feature in reader(
+            os.path.join(datadir, 'gb20features.tsv'), delimiter='\t', dicts=True):
         feature = FeatureSpec(feature)
-        f = data.add(Feature, feature.id, id=feature.id, name=feature.name, doc=feature.doc, patron=feature.patron, std_comments=feature.std_comments, name_french=feature.name_french, jl_relevant_unit=feature.jl_relevant_unit, jl_function=feature.jl_function, jl_formal_means=feature.jl_formal_means, hard_to_deny=feature.hard_to_deny, prone_misunderstanding=feature.prone_misunderstanding, requires_extensive_data=feature.requires_extensive_data, last_edited=feature.last_edited, other_survey=feature.other_survey)
+        f = data.add(
+            Feature,
+            feature.id,
+            id=feature.id,
+            name=feature.name,
+            doc=feature.doc,
+            patron=feature.patron,
+            std_comments=feature.std_comments,
+            name_french=feature.name_french,
+            jl_relevant_unit=feature.jl_relevant_unit,
+            jl_function=feature.jl_function,
+            jl_formal_means=feature.jl_formal_means,
+            hard_to_deny=feature.hard_to_deny,
+            prone_misunderstanding=feature.prone_misunderstanding,
+            requires_extensive_data=feature.requires_extensive_data,
+            last_edited=feature.last_edited,
+            other_survey=feature.other_survey)
         for i, (deid, desc) in enumerate(feature.domain.items()):
             DomainElement(
                 id='%s-%s' % (f.id, deid),
@@ -242,7 +239,6 @@ def import_gb20_features(datadir, data):
                 description=desc,
                 jsondata=dict(icon=ORDERED_ICONS[i].name))
 
-            
 
 def get_clf_paths(lgs):
     glottolog = Glottolog(GLOTTOLOG_REPOS)
