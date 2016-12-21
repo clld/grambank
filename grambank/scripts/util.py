@@ -184,7 +184,7 @@ class FeatureSpec(object):
         self.name_french = d['Feature question in French']
         self.jl_relevant_unit = d['Relevant unit(s)']
         self.jl_function = d['Function']
-        self.jl_formal_means = d['Formal means']
+        self.jl_form = d['Form']
         self.hard_to_deny = d['Very hard to deny']
         self.prone_misunderstanding = d['Prone to misunderstandings among researchers']
         self.requires_extensive_data = d['Requires extensive data on the language']
@@ -223,7 +223,7 @@ def import_gb20_features(datadir, data):
             name_french=feature.name_french,
             jl_relevant_unit=feature.jl_relevant_unit,
             jl_function=feature.jl_function,
-            jl_formal_means=feature.jl_formal_means,
+            jl_form=feature.jl_form,
             hard_to_deny=feature.hard_to_deny,
             prone_misunderstanding=feature.prone_misunderstanding,
             requires_extensive_data=feature.requires_extensive_data,

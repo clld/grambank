@@ -95,7 +95,7 @@ class Features(Parameters):
             LinkCol(self, 'Feature', model_col=Feature.name),
             #Col(self, 'Abbreviation', model_col=Feature.abbreviation),
             Col(self, 'Morphosynunit', model_col=Feature.jl_relevant_unit),
-            Col(self, 'Form', model_col=Feature.jl_formal_means),
+            Col(self, 'Form', model_col=Feature.jl_form),
             Col(self, 'Function', model_col=Feature.jl_function),
             Col(self, 'Languages', model_col=Feature.representation),
             DetailsRowLinkCol(self, 'd', button_text='Values'),
@@ -238,7 +238,7 @@ class FamilyMacroareaCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
 
     def format(self, item):
-        return ", ".join(set([lg.macroarea for lg in item.languages]))
+        return ", ".join(set([lg.macroarea or "" for lg in item.languages]))
 
     
 class Families(Familys):    

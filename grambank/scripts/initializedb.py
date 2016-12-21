@@ -75,11 +75,11 @@ def dump(fn = "gbdump.tsv"):
     #datatriples = grp2([((v[0], v[1], v[2], v[3] or ""), v[4] or "") for v in DBSession.execute(dumpsql)])
     #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.iteritems()]
     dumpsql = """
-select l.name, l.id, p.id, v.name, v.description, vs.source
+select l.name, l.id, p.id, p.name, v.name, v.description, vs.source
 from value as v, language as l, parameter as p, valueset as vs
 where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     """
-    dump = [v for v in DBSession.execute(dumpsql)]
+    dump = [(lgname, lgid, "%s. %s" % (fid, fname), v, com, src) for (lgname, lgid, fid, fname, v, com, src) in DBSession.execute(dumpsql)]
     tab = lambda rows: u''.join([u'\t'.join(row) + u"\n" for row in rows])
     txt = tab([("Language_Name", "Language_ID", "Feature", "Value", "Comment", "Source")] + dump)
     with io.open(fn, 'w', encoding="utf-8") as fp:
@@ -100,7 +100,7 @@ def prime_cache(args):
         return n
 
 
-    #dump()
+    dump()
     
     sql = """
 select l.id, p.id, v.name from value as v, valueset as vs, language as l, parameter as p

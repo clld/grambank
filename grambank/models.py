@@ -42,7 +42,7 @@ class Feature(CustomModelMixin, Parameter, Versioned):
     sortkey_int = Column(Integer)
     jl_relevant_unit = Column(String)
     jl_function = Column(String)
-    jl_formal_means = Column(String)
+    jl_form = Column(String)
     legacy_status = Column(String) 
     grambank_status = Column(String) 
     wip_comments = Column(String)
