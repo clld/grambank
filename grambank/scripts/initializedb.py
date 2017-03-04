@@ -46,7 +46,7 @@ def main(args):
     load_families(
         data,
         data['GrambankLanguage'].values(),
-        glottolog=languoids,
+        glottolog_repos=GLOTTOLOG_REPOS,
         isolates_icon='tcccccc')
 
     # Add isolates
