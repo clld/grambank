@@ -53,7 +53,7 @@ Grambank is a database of structural (typological) features of language. It cons
 </ulist>
 </ul>
 
-<ul><a href="https://github.com/glottobank/Grambank/blob/master/grambankcoding2016.pdf"><b>Grambank coding manual</b></a> (presentation, requires github login)</ul>
+<ul><a href="https://github.com/glottobank/Grambank/blob/master/Presentation%20slides%20and%20handouts/grambankcoding2016.pdf"><b>Grambank coding manual</b></a> (presentation, requires github login)</ul>
 
 
 <ul>The mailing list for all kinds of questions is <a href="https://groups.google.com/forum/#!forum/grambank-and-nts-coders-discussion">grambank-and-NTS-coders-discussion@googlegroups.com</a>. Note:
@@ -99,7 +99,7 @@ You find the features or languages of Grambank through the items "Features" and 
 
 <p>
 Grambank is a publication of the
-${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')} at the Max Planck Institute for the Science of Human History, Jena.
+${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')} at the Max Planck Institute for the Science of Human History, Jena. The datapoints furnished by Claire Bowern and Patience Epps was supported by National Science Foundation grant HSD-0902114 'Dynamics of Hunter Gatherer Language Change' PIs Claire Bowern, Patience Epps, Jane Hill, and Keith Hunley.
 </p>
 
 

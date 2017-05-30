@@ -23,6 +23,11 @@ class FeatureIdCol(IdCol):
     def order(self):
         return Feature.sortkey_str, Feature.sortkey_int
 
+class DeepFamilyIdCol(IdCol):
+    def search(self, qs):
+        if self.model_col:
+            return self.model_col.contains(qs)
+    
 class LanguageIdCol(LinkCol):
     def get_attrs(self, item):
         return dict(label=item.id)
@@ -203,7 +208,7 @@ class DeepFamilies(DataTable):
 
     def col_defs(self):
         return [
-            IdCol(self, 'Id', sClass='left', model_col=DeepFamily.id),
+            DeepFamilyIdCol(self, 'Id', sClass='left', model_col=DeepFamily.id),
             LinkCol(self, 'Family 1', sClass='left', model_col=self.fam1.name, get_object=lambda i: i.family1),
             LinkCol(self, 'Family 2', sClass='left', model_col=self.fam2.name, get_object=lambda i: i.family2),
             Col(self, 'Support Value', model_col=DeepFamily.support_value),

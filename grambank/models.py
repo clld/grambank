@@ -21,7 +21,8 @@ from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISuppo
 class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
     representation = Column(Integer)
-
+    nzrepresentation = Column(Integer)
+    
 @implementer(interfaces.IParameter)
 class Feature(CustomModelMixin, Parameter, Versioned):
     """Parameters in GramBank are called features. They are always related to one Designer.

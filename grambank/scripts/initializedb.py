@@ -122,6 +122,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     languages = {l.id: l for l in DBSession.query(GrambankLanguage)}        
     for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.iteritems() for (l, v) in lv.iteritems()]).iteritems():
         languages[l].representation = len(fv)
+        languages[l].nzrepresentation = len([v for (f, v) in fv if v != "? - Not Known"])
     DBSession.flush()
     _s = checkpoint(_s, 'representation assigned')
 
@@ -221,7 +222,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
                     historical_score = historical_score,
                     independent_score = independent_score,
                     support_score = support_score,
-                    value1= v1,
+                    value1 = v1,
                     value2 = v2,
                     feature=features[f])
             DBSession.add(HasSupport(
