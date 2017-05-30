@@ -10,7 +10,6 @@ grambank check
 - Recreate the database
 - Recompute coverage information running
 ```
-cd grambank/coverage
-./coverage.sh
+python grambank/scripts/coverage.py
 ```
 - Run the tests
