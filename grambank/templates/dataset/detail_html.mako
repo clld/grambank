@@ -56,7 +56,7 @@ Grambank is a database of structural (typological) features of language. It cons
 <ul><a href="https://github.com/glottobank/Grambank/blob/master/Presentation%20slides%20and%20handouts/grambankcoding2016.pdf"><b>Grambank coding manual</b></a> (presentation, requires github login)</ul>
 
 
-<ul>The mailing list for all kinds of questions is <a href="https://groups.google.com/forum/#!forum/grambank-and-nts-coders-discussion">grambank-and-NTS-coders-discussion@googlegroups.com</a>. Note:
+<ul>The mailing list for all kinds of questions is <a href="https://groups.google.com/forum/#!forum/grambank-coders">grambank-coders@googlegroups.com</a>. Note:
 
 <ulist>
 <ul> * There are (almost) no stupid questions</ul>
