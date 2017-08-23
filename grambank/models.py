@@ -141,11 +141,12 @@ class Support(Base, CustomModelMixin):
     feature = relationship(Feature, lazy='joined', foreign_keys = feature_pk)
 
 @implementer(IHasSupport)
-class HasSupport(Base, CustomModelMixin):
+class HasSupport(Base):
+    #__table_args__ = (UniqueConstraint('deepfamily_pk', 'support_pk'),)
     id = Column(String)
-    deepfamily_pk = Column(Integer, ForeignKey('deepfamily.pk'), primary_key=True)
+    deepfamily_pk = Column(Integer, ForeignKey('deepfamily.pk'))
     deepfamily = relationship(DeepFamily, lazy='joined', foreign_keys = deepfamily_pk)
-    support_pk = Column(Integer, ForeignKey('support.pk'), primary_key=True)
+    support_pk = Column(Integer, ForeignKey('support.pk'))
     support = relationship(Support, lazy='joined', foreign_keys = support_pk)
     
     
