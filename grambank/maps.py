@@ -1,5 +1,6 @@
 from clld.web.maps import Map, Layer
 
+
 class IsoGlossMap(Map):
     def get_layers(self):
         yield Layer(
@@ -25,7 +26,8 @@ class IsoGlossMap(Map):
                     }
                 ]
             })
-    
+
+
 class DeepFamilyMap(Map):
     def __init__(self, ctx, req, eid='map', icon_map=None):
         super(DeepFamilyMap, self).__init__(ctx, req, eid=eid)
