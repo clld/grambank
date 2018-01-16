@@ -27,11 +27,11 @@ from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
 
 GRAMBANK_REPOS = 'C:\\Python27\\glottobank\\Grambank\\' \
-    if getpass.getuser() not in ['robert', 'shh\\forkel'] \
+    if getpass.getuser() not in ['forkel@shh.mpg.de'] \
     else '/home/shh.mpg.de/forkel/venvs/grambank/Grambank'
 GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
     'glottolog3', 'glottolog') \
-    if getpass.getuser() in ['robert', 'shh\\forkel'] \
+    if getpass.getuser() in ['forkel@shh.mpg.de'] \
     else Path('C:\\Python27\\glottolog\\')  # add your path to the glottolog repos clone here!
 
 

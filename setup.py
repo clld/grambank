@@ -20,6 +20,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'pycldf<0.9',
         'clld>=3.2.0',
         'clldmpg>=2.0.0',
         'clld-glottologfamily-plugin>=2.0.0',
