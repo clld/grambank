@@ -312,7 +312,7 @@ class Datapoints(Values):
                     model_col=common.Language.name,
                     get_object=lambda i: i.valueset.language),
                 Col(
-                    self, 'ISO-639-3',
+                    self, 'Glottocode',
                     model_col=common.Language.id,
                     get_object=lambda i: i.valueset.language),
                 LinkCol(

@@ -19,7 +19,7 @@
 <h2>Welcome to Grambank</h2>
 
 <p class="lead">
-Grambank is a database of structural (typological) features of language. It consists of 200 logically independent features (most of them binary) spanning all subdomains of morphosyntax. The Grambank feature questionnaire has been filled in, based on reference grammars, for over 500 languages. The aim to eventually reach as many as 3,500 languages. The database can be used to investigate deep language prehistory, the geographical-distribution of features, language universals and the functional interaction of structural features.
+Grambank is a database of structural (typological) features of language. It consists of 195 logically independent features (most of them binary) spanning all subdomains of morphosyntax. The Grambank feature questionnaire has been filled in, based on reference grammars, for over 1,000 languages. The aim is to eventually reach as many as 3,500 languages. The database can be used to investigate deep language prehistory, the geographical-distribution of features, language universals and the functional interaction of structural features.
 </p>
 
 <table class="table table-condensed table-nonfluid">
