@@ -15,7 +15,7 @@ from clld.db.versioned import Versioned
 from clld.db.models.common import Contribution, Parameter, Language
 from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
 
-from interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport, IHasSupport
+from grambank.interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport, IHasSupport
 
 
 @implementer(interfaces.ILanguage)

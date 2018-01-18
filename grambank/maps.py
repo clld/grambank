@@ -64,4 +64,3 @@ class DeepFamilyMap(Map):
 #$(window).load(function() {CLLD.map("map", {"taga1270": {"type": "FeatureCollection", "properties": {"layer": "proto-East Bird's Head x proto-Hatam-Mansim ", "name": "proto-East Bird's Head x proto-Hatam-Mansim "}, "features": [{"geometry": {"type": "Point", "coordinates": [133.618, -1.18016]}, "type": "Feature", "properties": {"icon": "http://localhost:6543/clld-static/icons/c00ff00.png"}}, {"geometry": {"type": "Point", "coordinates": [134.037, -1.18016]}, "type": "Feature", "properties": {"icon": "http://localhost:6543/clld-static/icons/cff0000.png"}}]}}, {"sidebar": true, "max_zoom": 12, "zoom": 6});});
 def includeme(config):
     config.register_map('deepfamily', DeepFamilyMap)
-

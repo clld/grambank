@@ -18,12 +18,11 @@ from clld.db.models.common import (
     Contributor, ValueSet, Contribution, ContributionContributor, Language,
 )
 from clld_glottologfamily_plugin.models import Family
-from models import Dependency, Transition, GrambankLanguage
-
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
 from grambank.maps import DeepFamilyMap
+from grambank.models import Dependency, Transition, GrambankLanguage
 
 COLORS = [
     #            red     yellow
@@ -91,6 +90,7 @@ def dataset_detail_html(context=None, request=None, **kw):
             [rsc for rsc in RESOURCES if rsc.name in ['language', 'parameter', 'value']]),
     )
 
+
 def combination_detail_html(context=None, request=None, **kw):
     [f1, f2] = context.parameters[:2]
     [dependency] = list(DBSession.query(Dependency).filter(Dependency.feature1_pk == f1.pk, Dependency.feature2_pk == f2.pk))
@@ -102,18 +102,18 @@ def combination_detail_html(context=None, request=None, **kw):
     r["combinatory_status"] = dependency.combinatory_status
     return {'dependency': r}
 
+
 def stability_detail_html(context=None, request=None, **kw):
     def norm(d):
         z = float(sum(d.values()))
         if z == 0.0:
-            return dict([(k, v) for (k, v) in d.iteritems()])
-        return dict([(k, v/z) for (k, v) in d.iteritems()])
+            return {k: v for k, v in d.items()}
+        return {k: v/z for k, v in d.items()}
     
     def transition_counts_to_matrix(u):
-        kall = set([k for ks in u.iterkeys() for k in ks])
-        ks = dict([(k1, norm(dict([(k2, u.get((k1, k2), 0)) for k2 in kall]))) for k1 in kall])
-        return ks
-    
+        kall = set(k for ks in u.keys() for k in ks)
+        return {k1: norm({k2: u.get((k1, k2), 0) for k2 in kall}) for k1 in kall}
+
     def sumk(l):
         r = {}
         for (k, v) in l:
@@ -127,11 +127,12 @@ def stability_detail_html(context=None, request=None, **kw):
     transitions = DBSession.query(Transition.fromvalue, Transition.tovalue).filter(Transition.stability_pk == context.pk)
     u = trcount(transitions)
     m = transition_counts_to_matrix(u)
-    vtotal = sumk([(k1, v) for ((k1, k2), v) in u.iteritems()])
-    retentions = dict([(k1, v) for ((k1, k2), v) in u.iteritems() if k1 == k2])
-    scounts = [(k, v, vtotal.get(k, 0)) for (k, v) in sorted(retentions.iteritems())] + [("Total", sum(retentions.values()), sum(u.values()))]
+    vtotal = sumk([(k1, v) for ((k1, k2), v) in u.items()])
+    retentions = dict([(k1, v) for ((k1, k2), v) in u.items() if k1 == k2])
+    scounts = [(k, v, vtotal.get(k, 0)) for (k, v) in sorted(retentions.items())] + [("Total", sum(retentions.values()), sum(u.values()))]
     s = [(k, v, t, ("%.5f" % (float(v)/t)) if t > 0 else "-") for (k, v, t) in scounts]
     return {'transition_counts': u, 'transition_matrix': m, 'stability_table': s, 'state_total': vtotal}
+
 
 def deepfamily_detail_html(request=None, context=None, **kw):
     #family1_pk = Column(Integer, ForeignKey('family.pk'))

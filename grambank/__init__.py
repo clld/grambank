@@ -57,14 +57,6 @@ def main(global_config, **settings):
     config.add_route('coverage', pattern='/coverage')
     config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
 
-    #config.registry.settings['home_comp'].append('stability')
-    #config.add_route('stability', pattern='/stability')
-    #config.add_view(views.stability, route_name='stability', renderer='stability.mako')
-
-    #config.registry.settings['home_comp'].append('dependencies')
-    #config.add_route('dependencies', pattern='/dependencies')
-    #config.add_view(views.dependencies, route_name='dependencies', renderer='dependencies.mako')
-    
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
     config.register_resource('transition', Transition, ITransition, with_index=True)
     config.register_resource('stability', Stability, IStability, with_index=True)

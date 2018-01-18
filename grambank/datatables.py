@@ -12,8 +12,9 @@ from clld.web.datatables.contributor import Contributors, NameCol
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from models import GrambankLanguage, Feature, Dependency, Transition, Stability, DeepFamily, Support, HasSupport
+from grambank.models import GrambankLanguage, Feature, Dependency, Transition, Stability, DeepFamily, Support, HasSupport
 from clld.web.util.helpers import link
+
 
 class FeatureIdCol(IdCol):
     def search(self, qs):
@@ -23,11 +24,13 @@ class FeatureIdCol(IdCol):
     def order(self):
         return Feature.sortkey_str, Feature.sortkey_int
 
+
 class DeepFamilyIdCol(IdCol):
     def search(self, qs):
         if self.model_col:
             return self.model_col.contains(qs)
-    
+
+
 class LanguageIdCol(LinkCol):
     def get_attrs(self, item):
         return dict(label=item.id)
@@ -53,6 +56,7 @@ class GrambankLanguages(Languages):
             Col(self, 'Features', model_col=GrambankLanguage.representation),
         ]
 
+
 class Stabilities(DataTable):
     def get_options(self):
         opts = super(Stabilities, self).get_options()
@@ -71,7 +75,8 @@ class Stabilities(DataTable):
             Col(self, 'Retentions', model_col=Stability.parsimony_retentions),
             Col(self, 'Transitions', model_col=Stability.parsimony_transitions),
         ]
-    
+
+
 class Features(Parameters):
     #def __init__(self, req, *args, **kw):
     #    self.stability = kw.pop('stability', req.params.get('stability'))
@@ -106,6 +111,7 @@ class Features(Parameters):
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
 
+
 class Dependencies(DataTable):
     def __init__(self, req, model, **kw):
         DataTable.__init__(self, req, model, **kw)
@@ -138,7 +144,8 @@ class Dependencies(DataTable):
             StatusCol(self, 'Status', Dependency, attribute = "combinatory_status"),
             Col(self, 'Diachronic Strength', model_col=Dependency.diachronic_strength),
         ]
-    
+
+
 class Transitions(DataTable):
     __constraints__ = [Stability]
 
@@ -159,6 +166,7 @@ class Transitions(DataTable):
             Col(self, 'To Value', model_col=Transition.tovalue),
             StatusCol(self, 'Retention/Innovation', Transition, attribute = "retention_innovation"),
         ]
+
 
 class Supports(DataTable):
     __constraints__ = [HasSupport, DeepFamily]
@@ -186,7 +194,6 @@ class Supports(DataTable):
         ]
 
 
-    
 class DeepFamilies(DataTable):
     def __init__(self, req, model, **kw):
         DataTable.__init__(self, req, model, **kw)
@@ -218,7 +225,7 @@ class DeepFamilies(DataTable):
 
     
 class StatusCol(Col):
-    def __init__(self, dt, name, cls, attribute = 'combinatory_status', **kw):
+    def __init__(self, dt, name, cls, attribute='combinatory_status', **kw):
         self._col = getattr(cls, attribute)
         self.attribute = attribute
         kw['choices'] = get_distinct_values(self._col)
@@ -232,12 +239,14 @@ class StatusCol(Col):
 
     def format(self, item):
         return getattr(self.get_obj(item), self.attribute)
-    
+
+
 class LanguageCountCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
 
     def format(self, item):
         return int(len(item.languages))
+
 
 class FamilyMacroareaCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
@@ -254,6 +263,7 @@ class Families(Familys):
             FamilyMacroareaCol(self, 'macroarea'),
             LanguageCountCol(self, 'number of languages in GramBank'),
         ]
+
 
 class GrambankContributionsCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}

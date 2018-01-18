@@ -1,3 +1,4 @@
+from __future__ import print_function
 from collections import defaultdict, Counter, OrderedDict
 
 from sqlalchemy import select
@@ -7,63 +8,6 @@ from clldutils.jsonlib import load as jsonload
 from clld.db.models.common import Language
 from clld_glottologfamily_plugin.models import Family
 from clld.db.meta import DBSession
-
-
-#def about(req):
-#    return {'data': req, 'map': IsoGlossMap(None, req)}
-
-#@view_config(route_name='stability', renderer='stability.mako')
-def stability(req):
-    fs = jsonload(abspath_from_asset_spec('grambank:static/stability.json'))
-    #lfv = DBSession.query(Value).join(Value.valueset)\
-    #        .options(
-    #        joinedload(Value.valueset, ValueSet.language),
-    #        joinedload(Value.valueset, ValueSet.parameter)
-    #    )
-
-    #trp = [(v.id,) for v in lfv]
-    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
-    return {'data': fs}
-
-def dependencys(req):
-    print "ANAL"
-    deps = jsonload(abspath_from_asset_spec('grambank:static/dependencies.json'))
-    #lfv = DBSession.query(Value).join(Value.valueset)\
-    #        .options(
-    #        joinedload(Value.valueset, ValueSet.language),
-    #        joinedload(Value.valueset, ValueSet.parameter)
-    #    )
-
-    #trp = [(v.id,) for v in lfv]
-    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
-    return {'data': deps}
-
-def dependencies(req):
-    print "HEJ"
-    deps = jsonload(abspath_from_asset_spec('grambank:static/dependencies.json'))
-    #lfv = DBSession.query(Value).join(Value.valueset)\
-    #        .options(
-    #        joinedload(Value.valueset, ValueSet.language),
-    #        joinedload(Value.valueset, ValueSet.parameter)
-    #    )
-
-    #trp = [(v.id,) for v in lfv]
-    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
-    return {'data': deps}
-
-def dependency(req):
-    print "HEJ2"
-    deps = jsonload(abspath_from_asset_spec('grambank:static/dependencies.json'))
-    #lfv = DBSession.query(Value).join(Value.valueset)\
-    #        .options(
-    #        joinedload(Value.valueset, ValueSet.language),
-    #        joinedload(Value.valueset, ValueSet.parameter)
-    #    )
-
-    #trp = [(v.id,) for v in lfv]
-    #sorted(fs.items(), key = lambda (f, s): s, reverse=True)
-    return {'data': deps}
-
 
 
 def coverage(req):
