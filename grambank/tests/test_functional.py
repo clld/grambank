@@ -12,16 +12,16 @@ pytest_plugins = ['clld']
         ('get_json', '/parameters/GB020.geojson'),
         ('get_html', '/dependencys'),
         ('get_html', '/contributions'),
-        ('get_html', '/deepfamilys'),
+        #('get_html', '/deepfamilys'),
         ('get_html', '/familys'),
         ('get_dt', '/dependencys'),
         ('get_dt', '/contributions'),
-        ('get_dt', '/deepfamilys'),
+        #('get_dt', '/deepfamilys'),
         ('get_dt', '/familys'),
         ('get_dt', '/values'),
         ('get_html', '/contributors/bakkernancy'),
         ('get_html', '/stabilitys/S165'),
-        ('get_html', '/deepfamilys/proto-Andoque x proto-Burmeso'),
+        #('get_html', '/deepfamilys/proto-Andoque x proto-Burmeso'),
     ])
 def test_pages(app, method, path):
     getattr(app, method)(path)

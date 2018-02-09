@@ -78,6 +78,7 @@ def allmax(d, f=max):
 
 
 def pairs(xs):
+    # itertools.combination!
     return [(x, y) for x in xs for y in xs if x < y]
 
 def grp(l):

@@ -58,7 +58,7 @@
         <th>total</th>
         <td class="right">${'{:,}'.format(stats['value'])}</td>
     </tr>
-        % for name, count in sorted(coded_by.iteritems(), key = lambda (x, y): y, reverse = True):
+        % for name, count in sorted(coded_by.items(), key=lambda i: i[1], reverse=True):
             <tr>
                 <td></td>
                 <td>${name}</td>
