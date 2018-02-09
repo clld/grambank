@@ -193,50 +193,51 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
 
     missing_families = set()
     data = Data()
-    for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
-        dname = "proto-%s x proto-%s" % (glottolog_names[l1], glottolog_names[l2])
-        kmdistance = havdist(f1c, f2c)
-        (f1lon, f1lat) = f1c if f1c else (None, None)
-        (f2lon, f2lat) = f2c if f2c else (None, None)
+    
+    #for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
+    #    dname = "proto-%s x proto-%s" % (glottolog_names[l1], glottolog_names[l2])
+    #    kmdistance = havdist(f1c, f2c)
+    #    (f1lon, f1lat) = f1c if f1c else (None, None)
+    #    (f2lon, f2lat) = f2c if f2c else (None, None)
 
-        for li in [l1, l2]:
-            if li not in families:
-                missing_families.add(li)
+    #    for li in [l1, l2]:
+    #        if li not in families:
+    #            missing_families.add(li)
 
-        deepfam = DeepFamily(
-            id=dname,
-            support_value=support_value,
-            significance=significance,
-            family1=families.get(l1),
-            family2=families.get(l2),
-            family1_latitude = f1lat,
-            family1_longitude = f1lon,
-            family2_latitude = f2lat,
-            family2_longitude = f2lon,
-            geographic_plausibility = kmdistance)
-        DBSession.add(deepfam)
-        for (f, v1, v2, historical_score, independent_score, support_score) in supports:
-            vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
-            #vname = ("%s|%s" % (v1, v2)).replace(".", "")
-            #print vid, vname
-            if vid not in data["Support"]:
-                data.add(
-                    Support, vid,
-                    id = vid,
-                    historical_score = historical_score,
-                    independent_score = independent_score,
-                    support_score = support_score,
-                    value1 = v1,
-                    value2 = v2,
-                    feature=features[f])
-            DBSession.add(HasSupport(
-                id=dname + "-" + vid,
-                deepfamily = deepfam,
-                support = data["Support"][vid]))
+    #    deepfam = DeepFamily(
+    #        id=dname,
+    #        support_value=support_value,
+    #        significance=significance,
+    #        family1=families.get(l1),
+    #        family2=families.get(l2),
+    #        family1_latitude = f1lat,
+    #        family1_longitude = f1lon,
+    #        family2_latitude = f2lat,
+    #        family2_longitude = f2lon,
+    #        geographic_plausibility = kmdistance)
+    #    DBSession.add(deepfam)
+    #    for (f, v1, v2, historical_score, independent_score, support_score) in supports:
+    #        vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
+    #        #vname = ("%s|%s" % (v1, v2)).replace(".", "")
+    #        #print vid, vname
+    #        if vid not in data["Support"]:
+    #            data.add(
+    #                Support, vid,
+    #                id = vid,
+    #                historical_score = historical_score,
+    #                independent_score = independent_score,
+    #                support_score = support_score,
+    #                value1 = v1,
+    #                value2 = v2,
+    #                feature=features[f])
+    #        DBSession.add(HasSupport(
+    #            id=dname + "-" + vid,
+    #            deepfamily = deepfam,
+    #            support = data["Support"][vid]))
     print('missing_families:')
     print(missing_families)
-    DBSession.flush()
-    _s = checkpoint(_s, 'deep_families loaded')
+    #DBSession.flush()
+    #_s = checkpoint(_s, 'deep_families loaded')
 
     compute_language_sources()
 

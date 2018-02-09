@@ -58,7 +58,7 @@ ${h.map_marker_img(req, de)}
         <dd>${ctx.other_survey}</dd>
     % endif
 
-    % if ctx.jsondata.has_key('value_dist') and ctx.jsondata.has_key('value_dist_family'):
+    % if 'value_dist' in ctx.jsondatadict and 'value_dist_family' in ctx.jsondatadict:
         <dt>Incidence:</dt>
         <dd>
 
