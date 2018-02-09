@@ -16,8 +16,8 @@ from grambank.scripts.util import (
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
 
-from stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph, deep_families, havdist
-from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature, GrambankLanguage
+from stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph #, havdist, deep_families
+from grambank.models import Dependency, Transition, Stability, Feature, GrambankLanguage #, DeepFamily, Support, HasSupport
 
 
 def main(args):
@@ -188,12 +188,12 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
         for lg in DBSession.query(common.Language)
         .filter(common.Language.longitude != None)
         .filter(common.Language.latitude != None)}
-    deepfams = deep_families(datatriples, clfps, coordinates=coordinates)
-    _s = checkpoint(_s, '%s deep_families computed' % len(deepfams))
 
-    missing_families = set()
-    data = Data()
-    
+    #deepfams = deep_families(datatriples, clfps, coordinates=coordinates)
+    #_s = checkpoint(_s, '%s deep_families computed' % len(deepfams))
+
+    #missing_families = set()
+    #data = Data()
     #for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
     #    dname = "proto-%s x proto-%s" % (glottolog_names[l1], glottolog_names[l2])
     #    kmdistance = havdist(f1c, f2c)
@@ -203,7 +203,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     #    for li in [l1, l2]:
     #        if li not in families:
     #            missing_families.add(li)
-
+    #
     #    deepfam = DeepFamily(
     #        id=dname,
     #        support_value=support_value,
@@ -234,8 +234,8 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     #            id=dname + "-" + vid,
     #            deepfamily = deepfam,
     #            support = data["Support"][vid]))
-    print('missing_families:')
-    print(missing_families)
+    #print('missing_families:')
+    #print(missing_families)
     #DBSession.flush()
     #_s = checkpoint(_s, 'deep_families loaded')
 

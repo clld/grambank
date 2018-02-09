@@ -8,8 +8,8 @@ from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 # we must make sure custom models are known at database initialization!
 from grambank import models
 from grambank import views
-from grambank.interfaces import IDependency, ITransition, IStability, IDeepFamily, ISupport
-from grambank.models import Dependency, Transition, Stability, DeepFamily, Support
+from grambank.interfaces import IDependency, ITransition, IStability #, IDeepFamily, ISupport
+from grambank.models import Dependency, Transition, Stability #, DeepFamily, Support
 from grambank.datatables import Families
 
 
@@ -19,7 +19,7 @@ _('Parameter')
 _('Familys')
 _('Dependencys')
 _('Stabilitys')
-_('Deepfamilys')
+#_('Deepfamilys')
 
 
 class MyMapMarker(LanguageByFamilyMapMarker):
@@ -60,8 +60,8 @@ def main(global_config, **settings):
     config.register_resource('dependency', Dependency, IDependency, with_index=True)
     config.register_resource('transition', Transition, ITransition, with_index=True)
     config.register_resource('stability', Stability, IStability, with_index=True)
-    config.register_resource('deepfamily', DeepFamily, IDeepFamily, with_index=True)
-    config.register_resource('support', Support, ISupport, with_index=True)
+    #config.register_resource('deepfamily', DeepFamily, IDeepFamily, with_index=True)
+    #config.register_resource('support', Support, ISupport, with_index=True)
 
     config.registry.registerUtility(MyMapMarker(), IMapMarker)
 
