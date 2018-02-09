@@ -1,5 +1,12 @@
 <%inherit file="../home_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
+<%
+    coded_by = {}
+    for names, count in contribs:
+        ns = names.split(" and ")
+        for name in ns:
+	    coded_by[name] = coded_by.get(name, 0) + count/len(ns)
+%>
 
 <%def name="sidebar()">
     <img src="${request.static_url('grambank:static/glottobank_all.jpg')}"/>
@@ -51,7 +58,7 @@
         <th>total</th>
         <td class="right">${'{:,}'.format(stats['value'])}</td>
     </tr>
-        % for name, count in contribs:
+        % for name, count in sorted(coded_by.iteritems(), key = lambda (x, y): y, reverse = True):
             <tr>
                 <td></td>
                 <td>${name}</td>

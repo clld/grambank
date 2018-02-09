@@ -30,6 +30,15 @@ COLORS = [
 ]
 
 
+def table_incidence(*ds):
+    values = set([x for d in ds for x in d.keys()])
+    totals = [sum(d.values()) for d in ds]
+    cellrows = [(value, [(HTML.td("%.1f" % d.get(value, 0.0), class_='right'), HTML.td('\xa0%.1f%%\xa0' % (100*d.get(value, 0.0)/float(total)), class_='right', style='background-color: hsl({0},100%,50%)'.format((d.get(value, 0.0)/float(total)) * 120))) for (d, total) in zip(ds, totals)]) for value in sorted(values)] + [('Total', [(HTML.td("%s" % int(total), class_='right'), HTML.td("")) for total in totals])]
+    
+    rows = [''.join([HTML.td(value, class_='left')] + [cell for cellpair in row for cell in cellpair]) for (value, row) in cellrows]
+    
+    return ''.join(["<tr>%s</tr>\n" % row for row in rows])
+
 def td_coverage(glottolog=0, grambank=0, label=None):
     style = ''
     if glottolog == 0:

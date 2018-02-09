@@ -228,6 +228,21 @@ def feature_stability(datatriples, clfps):
     flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
     return ranks([(f, parsimony_stability(lv, clf)) for (f, lv) in flv.iteritems()])
 
+def tree_count(d, lv):
+    if not d:
+    	return {}
+    branches = [b for b in [{lv[k]: 1.0} if lv.has_key(k) else tree_count(v, lv) for (k, v) in d.iteritems()] if b]
+    vss = grp2l([(v, c/float(len(branches))) for vc in branches for (v, c) in vc.iteritems()])
+    return {v: sum(ss) for (v, ss) in vss.iteritems()}
+
+def feature_incidence(datatriples, clfps):
+    clf = paths_to_d(clfps)
+    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples if not undefined.has_key(v)]).iteritems()])
+
+    fvn = {feature: fd(lv.itervalues()) for (feature, lv) in flv.iteritems()}
+    ffvn = {feature: {k: len(lv)*v for (k, v) in tree_count(clf, lv).iteritems()} for (feature, lv) in flv.iteritems()}    
+    return {feature: {'value_dist': fvn[feature], 'value_dist_family': ffvn[feature]} for feature in flv.iterkeys()}
+
 def parsimony_stability(lv, fp):
     transitions = stability_ftp(lv, fp)
     u = trcount([tft for (f, label, tft) in transitions])    

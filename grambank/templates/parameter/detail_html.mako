@@ -57,6 +57,34 @@ ${h.map_marker_img(req, de)}
         <dt>Is there another Typological survey covering approximately the same domain as this feature:</dt>
         <dd>${ctx.other_survey}</dd>
     % endif
+
+    % if ctx.jsondata.has_key('value_dist') and ctx.jsondata.has_key('value_dist_family'):
+        <dt>Incidence:</dt>
+        <dd>
+
+<table>
+    <thead>
+    <tr>
+        <th>Value</th>
+        <th>Languages</th>
+	<th>%</th>
+	<th>Lineages</th>
+	<th>%</th>
+    </tr>
+    </thead>
+    <tbody>
+    
+${u.table_incidence(ctx.jsondata['value_dist'], ctx.jsondata['value_dist_family'])|n}
+    </tbody>
+
+
+
+</dd>
+    % endif
+
+</table>
+
+
 </dl>
 
 

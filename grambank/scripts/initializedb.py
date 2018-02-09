@@ -16,7 +16,7 @@ from grambank.scripts.util import (
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
 
-from stats_util import grp, grp2, feature_stability, feature_dependencies, feature_diachronic_dependencies, dependencies_graph, deep_families, havdist
+from stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph, deep_families, havdist
 from grambank.models import Dependency, Transition, Stability, DeepFamily, Support, HasSupport, Feature, GrambankLanguage
 
 
@@ -115,10 +115,14 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     clfps = get_clf_paths([row[0] for row in DBSession.execute("select id from language")])
     _s = checkpoint(_s, '%s clfps loaded' % len(clfps))
 
+    fi = feature_incidence(datatriples, clfps)
+    _s = checkpoint(_s, 'feature_incidence computed')
+    
     features = {f.id: f for f in DBSession.query(Feature)}
     for (f, lv) in flv.iteritems():
         features[f].representation = len(lv)
-
+        features[f].jsondata = fi[f]
+           
     languages = {l.id: l for l in DBSession.query(GrambankLanguage)}        
     for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.iteritems() for (l, v) in lv.iteritems()]).iteritems():
         languages[l].representation = len(fv)
