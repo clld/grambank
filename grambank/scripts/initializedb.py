@@ -6,8 +6,10 @@ from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
+from clldutils.path import read_text, Path
 from clld_glottologfamily_plugin.models import Family
 from clld_glottologfamily_plugin.util import load_families
+from clld_phylogeny_plugin.models import Phylogeny, LanguageTreeLabel, TreeLabel
 from pyglottolog.api import Glottolog
 
 import grambank
@@ -15,6 +17,7 @@ from grambank.scripts.util import (
     import_gb20_features, import_cldf, get_clf_paths, get_names,
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
+from grambank.scripts.global_tree import tree
 
 from stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph #, havdist, deep_families
 from grambank.models import Dependency, Transition, Stability, Feature, GrambankLanguage #, DeepFamily, Support, HasSupport
@@ -99,6 +102,15 @@ def prime_cache(args):
         print(n - s, msg or '')
         return n
 
+    newick, _ = tree([l.id for l in DBSession.query(common.Language)], GLOTTOLOG_REPOS)
+    phylo = Phylogeny(
+        id='p',
+        name='glottolog global tree',
+        newick=newick)
+    for l in DBSession.query(common.Language):
+        LanguageTreeLabel(
+            language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
+    DBSession.add(phylo)
 
     dump()
     

@@ -52,6 +52,7 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('clldmpg')
     config.include('clld_glottologfamily_plugin')
+    config.include('clld_phylogeny_plugin')
     
     config.registry.settings['home_comp'].append('coverage')
     config.add_route('coverage', pattern='/coverage')

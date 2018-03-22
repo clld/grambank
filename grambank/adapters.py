@@ -4,6 +4,14 @@ from clld import interfaces
 from clld.web.adapters.geojson import GeoJsonParameter
 from clld.db.meta import DBSession
 from clld.db.models.common import ValueSet, Value, DomainElement
+from clld_phylogeny_plugin.interfaces import ITree
+from clld_phylogeny_plugin.tree import Tree
+
+
+class GrambankTree(Tree):
+    def get_marker(self, valueset):
+        res = valueset.values[0].domainelement.jsondata['icon']
+        return res[0], '#' + res[1:]
 
 
 class GrambankGeoJsonParameter(GeoJsonParameter):
@@ -21,6 +29,7 @@ class GrambankGeoJsonParameter(GeoJsonParameter):
 
 
 def includeme(config):
+    config.registry.registerUtility(GrambankTree, ITree)
     config.register_adapter(
         GrambankGeoJsonParameter,
         interfaces.IParameter,

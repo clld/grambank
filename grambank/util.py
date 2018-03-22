@@ -20,6 +20,7 @@ from clld.db.models.common import (
 from clld_glottologfamily_plugin.models import Family
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
+from clld.web.util.multiselect import CombinationMultiSelect
 
 from grambank.maps import DeepFamilyMap
 from grambank.models import Dependency, Transition, GrambankLanguage
@@ -28,6 +29,12 @@ COLORS = [
     #            red     yellow
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
+
+
+def phylogeny_detail_html(request=None, context=None, **kw):
+    return {
+        'ms': CombinationMultiSelect,
+    }
 
 
 def table_incidence(*ds):

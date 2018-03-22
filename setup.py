@@ -23,6 +23,7 @@ setup(
         'clld~=4.0',
         'clldmpg~=3.1.0',
         'clld-glottologfamily-plugin>=2.0.0',
+        'clld-phylogeny-plugin>=1.1.0',
         'pyglottolog>=0.3.1',
         'sqlalchemy',
         'waitress',
