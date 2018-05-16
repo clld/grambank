@@ -209,6 +209,12 @@ class FeatureSpec(object):
 
 
 def import_gb20_features(datadir, data):
+    icons = [
+        'cffffff',
+        'cff0000',
+        'c0000ff',
+        'cffff00',
+    ]
     for feature in reader(
             os.path.join(datadir, 'gb20features.tsv'), delimiter='\t', dicts=True):
         feature = FeatureSpec(feature)
@@ -229,7 +235,11 @@ def import_gb20_features(datadir, data):
             requires_extensive_data=feature.requires_extensive_data,
             last_edited=feature.last_edited,
             other_survey=feature.other_survey)
-        for i, (deid, desc) in enumerate(feature.domain.items()):
+        for i, (deid, desc) in enumerate(sorted(feature.domain.items())):
+            if deid == '?':
+                icon = 'tcccccc'
+            else:
+                icon = icons[i]
             DomainElement(
                 id='%s-%s' % (f.id, deid),
                 parameter=f,
@@ -237,7 +247,7 @@ def import_gb20_features(datadir, data):
                 name='%s - %s' % (deid, desc),
                 number=int(deid) if deid != '?' else 999,
                 description=desc,
-                jsondata=dict(icon=ORDERED_ICONS[i].name))
+                jsondata=dict(icon=icon))
 
 
 def get_clf_paths(lgs):
