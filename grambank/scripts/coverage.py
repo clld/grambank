@@ -2,6 +2,7 @@ import sys
 import io
 from itertools import groupby
 from collections import Counter, defaultdict
+from functools import total_ordering
 
 from clldutils.path import Path
 from clldutils.jsonlib import load, dump
@@ -10,19 +11,20 @@ from pyglottolog.languoids import Level, Macroarea
 
 import grambank
 
-GLOTTOLOG_VENV = Path(grambank.__file__).parent.parent.parent.parent.joinpath('glottolog3')
+GLOTTOLOG_VENV = Path(grambank.__file__).parent.parent.parent.parent.joinpath('glottolog')
 
 
+@total_ordering
 class Language(object):
     def __init__(self, l, med):
         f, sf, ssf = l.lineage[:3] + [(None, None, None)] * (3 - len(l.lineage[:3]))
-        self.id = l.id
+        self.id = str(l.id)
         self.name = l.name
-        self.ssfid = ssf[1]
+        self.ssfid = str(ssf[1])
         self.ssfname = ssf[0]
-        self.sfid = sf[1]
+        self.sfid = str(sf[1])
         self.sfname = sf[0]
-        self.fid = f[1]
+        self.fid = str(f[1])
         self.fname = f[0]
         self.med = med.replace('_', '') if med in ['grammar', 'grammar_sketch'] else None
         self.macroareas = [(ma.value, ma.name) for ma in l.macroareas]
@@ -31,8 +33,17 @@ class Language(object):
     def gid(self):
         return (self.fid, self.sfid, self.ssfid, self.id)
 
+    def __eq__(self, other):
+        return self.gid == other.gid
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return self.gid < other.gid
+
     def __cmp__(self, other):
-        return cmp(self.gid, other.gid)
+        return (self.gid > other.gid) - (self.gid < other.gid)
 
 
 def iter_languages():

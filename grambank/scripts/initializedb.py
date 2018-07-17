@@ -19,7 +19,7 @@ from grambank.scripts.util import (
 )
 from grambank.scripts.global_tree import tree
 
-from stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph #, havdist, deep_families
+from grambank.scripts.stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph #, havdist, deep_families
 from grambank.models import Dependency, Transition, Stability, Feature, GrambankLanguage #, DeepFamily, Support, HasSupport
 
 
@@ -76,7 +76,7 @@ def dump(fn = "gbdump.tsv"):
 #where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
 #    """
     #datatriples = grp2([((v[0], v[1], v[2], v[3] or ""), v[4] or "") for v in DBSession.execute(dumpsql)])
-    #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.iteritems()]
+    #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.items()]
     dumpsql = """
 select l.name, l.id, p.id, p.name, v.name, v.description, vs.source
 from value as v, language as l, parameter as p, valueset as vs
@@ -121,7 +121,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     datatriples = [(v[0], v[1], v[2]) for v in DBSession.execute(sql)]
     _s = checkpoint(_s, '%s values loaded' % len(datatriples))
 
-    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).iteritems()])
+    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).items()])
     _s = checkpoint(_s, 'triples grouped')
 
     clfps = get_clf_paths([row[0] for row in DBSession.execute("select id from language")])
@@ -131,12 +131,12 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     _s = checkpoint(_s, 'feature_incidence computed')
     
     features = {f.id: f for f in DBSession.query(Feature)}
-    for (f, lv) in flv.iteritems():
+    for (f, lv) in flv.items():
         features[f].representation = len(lv)
         features[f].jsondata = fi[f]
            
     languages = {l.id: l for l in DBSession.query(GrambankLanguage)}        
-    for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.iteritems() for (l, v) in lv.iteritems()]).iteritems():
+    for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.items() for (l, v) in lv.items()]).items():
         languages[l].representation = len(fv)
         languages[l].nzrepresentation = len([v for (f, v) in fv if v != "? - Not Known"])
     DBSession.flush()
@@ -173,7 +173,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
     diachronic_imps = feature_diachronic_dependencies(datatriples, clfps)
     diachronic_imp_strength = {(f1, f2): v for (((v, ccalltrd), lalltr, ccdtr, ldtr, cccdtr, lcdtr), rnk, f1, f2) in diachronic_imps}
     _s = checkpoint(_s, 'feature_diachronic_dependencies computed')
-    
+
     imps = feature_dependencies(datatriples)
     _s = checkpoint(_s, 'feature_dependencies computed')
     if 1:
@@ -181,7 +181,7 @@ where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
         _s = checkpoint(_s, 'dependencies_graph written')
 
         for ((v, dstats), rnk, f1, f2) in imps:
-            combinatory_status = ("primary" if H.has_key((f1, f2)) else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
+            combinatory_status = ("primary" if (f1, f2) in H else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
             DBSession.add(Dependency(
                 id="%s->%s" % (f1, f2),
                 strength=v,

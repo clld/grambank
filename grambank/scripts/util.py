@@ -28,9 +28,9 @@ from grambank.models import GrambankLanguage, Feature, GrambankContribution
 
 GRAMBANK_REPOS = 'C:\\Python27\\glottobank\\Grambank\\' \
     if getpass.getuser() not in ['forkel@shh.mpg.de'] \
-    else '/home/shh.mpg.de/forkel/venvs/grambank/Grambank'
+    else '/home/forkel/venvs/grambank/Grambank'
 GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
-    'glottolog3', 'glottolog') \
+    'glottolog', 'glottolog') \
     if getpass.getuser() in ['forkel@shh.mpg.de'] \
     else Path('C:\\Python27\\glottolog\\')  # add your path to the glottolog repos clone here!
 
@@ -171,7 +171,7 @@ class FeatureSpec(object):
                         number, desc = m.split(':')
                         yield number.strip(), desc.strip()
         except:
-            print s
+            print(s)
             raise
 
     def __init__(self, d):
@@ -194,7 +194,7 @@ class FeatureSpec(object):
         self.thematic_order = d['Hedvigs thematic order']
         self.legacy_status = d['Legacy status']
         self.grambank_status = d['GramBank-status'] 
-    	self.nts_grambank = d['NTS or GramBank?']
+        self.nts_grambank = d['NTS or GramBank?']
         self.old_feature = d['Old feature']
     #u'Wordhood issues', u'Old feature number', u'Dependencies'
     #wip_comments = Column(String) alternative_id??
