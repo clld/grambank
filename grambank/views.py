@@ -34,7 +34,7 @@ def coverage(req):
     gb_langs = set([r[0] for r in DBSession.query(Language.id)])
 
     cstats = OrderedDict()
-    for fid, spec in sorted(gl.items(), key=lambda k: k[1]['name']):
+    for fid, spec in sorted(gl.items(), key=lambda k: k[1]['name'] or ''):
         d = dict(
             macroareas=spec['macroareas'],
             grammar=Counter(),
