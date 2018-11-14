@@ -6,6 +6,7 @@ following a special naming convention which are called to update the template co
 before rendering resource's detail or index views.
 """
 from __future__ import division, unicode_literals
+import re
 
 from sqlalchemy import func, desc, text
 from sqlalchemy.orm import joinedload
@@ -21,14 +22,44 @@ from clld_glottologfamily_plugin.models import Family
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 from clld.web.util.multiselect import CombinationMultiSelect
+from clld.web.util import glottolog
 
-from grambank.maps import DeepFamilyMap
-from grambank.models import Dependency, Transition, GrambankLanguage
+from grambank.models import GrambankLanguage
 
 COLORS = [
     #            red     yellow
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
+
+
+def process_markdown(text, req):
+    from markdown import markdown
+
+    md = []
+    in_example = False
+    for i, line in enumerate(text.strip().split('\n'), start=1):
+        if i == 1 and line.startswith('##'):
+            continue
+        if line.startswith('```'):
+            in_example = not in_example
+        elif in_example:
+            line = line.lstrip()
+        md.append(line)
+
+    html = markdown('\n'.join(md))
+    wiki_url_pattern = re.compile('https://github.com/glottobank/Grambank/wiki/(?P<id>GB[0-9]{3})')
+    html = wiki_url_pattern.sub(lambda m: req.route_url('parameter', id=m.group('id')), html)
+    return html.replace('<code>', '<pre>').replace('</code>', '</pre>')
+
+
+def parameter_detail_html(request=None, context=None, **kw):
+    from clldutils.path import Path, read_text
+
+    doc = None
+    p = Path(__file__).parent.parent.parent / 'Grambank.wiki' / '{0}.md'.format(context.id)
+    if p.exists():
+        doc = process_markdown(read_text(p, encoding='utf-8-sig'), request)
+    return {'doc': doc}
 
 
 def phylogeny_detail_html(request=None, context=None, **kw):
@@ -64,10 +95,9 @@ def td_coverage(glottolog=0, grambank=0, label=None):
 
 def source_detail_html(context=None, request=None, **kw):
     return dict(referents=get_referents(context, exclude=[
-        'language',
         'sentence',
         'contribution',
-        #'valueset',
+        'valueset',
     ]))
 
 
@@ -109,56 +139,11 @@ def dataset_detail_html(context=None, request=None, **kw):
 
 def combination_detail_html(context=None, request=None, **kw):
     [f1, f2] = context.parameters[:2]
-    [dependency] = list(DBSession.query(Dependency).filter(Dependency.feature1_pk == f1.pk, Dependency.feature2_pk == f2.pk))
-    r = dependency.jsondata
-    r["f1id"] = f1.id
-    r["f2id"] = f2.id
-    r["f1f2id"] = dependency.id
-    r["strength"] = dependency.strength if r["f2h"] > 0.0 else "-"
-    r["combinatory_status"] = dependency.combinatory_status
-    return {'dependency': r}
-
-
-def stability_detail_html(context=None, request=None, **kw):
-    def norm(d):
-        z = float(sum(d.values()))
-        if z == 0.0:
-            return {k: v for k, v in d.items()}
-        return {k: v/z for k, v in d.items()}
-    
-    def transition_counts_to_matrix(u):
-        kall = set(k for ks in u.keys() for k in ks)
-        return {k1: norm({k2: u.get((k1, k2), 0) for k2 in kall}) for k1 in kall}
-
-    def sumk(l):
-        r = {}
-        for (k, v) in l:
-            r[k] = r.get(k, 0.0) + v
-        return r
-
-    def trcount(transitions):
-        tpc = [[(tfi, tti) for tfi in tf.split("/") for tti in tt.split("/")] for (tf, tt) in transitions]
-        return sumk([(t, 1/float(len(tpci))) for tpci in tpc for t in tpci])
-    
-    transitions = DBSession.query(Transition.fromvalue, Transition.tovalue).filter(Transition.stability_pk == context.pk)
-    u = trcount(transitions)
-    m = transition_counts_to_matrix(u)
-    vtotal = sumk([(k1, v) for ((k1, k2), v) in u.items()])
-    retentions = dict([(k1, v) for ((k1, k2), v) in u.items() if k1 == k2])
-    scounts = [(k, v, vtotal.get(k, 0)) for (k, v) in sorted(retentions.items())] + [("Total", sum(retentions.values()), sum(u.values()))]
-    s = [(k, v, t, ("%.5f" % (float(v)/t)) if t > 0 else "-") for (k, v, t) in scounts]
-    return {'transition_counts': u, 'transition_matrix': m, 'stability_table': s, 'state_total': vtotal}
-
-
-def deepfamily_detail_html(request=None, context=None, **kw):
-    #family1_pk = Column(Integer, ForeignKey('family.pk'))
-    #family1_latitude = Column(
-    #family1_longitude = Column(
-    #family2_pk = Column(Integer, ForeignKey('family.pk'))
-    #family2_longitude = Column(
-    #family2_latitude = Column(
-    #[context.pk] +
-    icon_map = dict(zip([context.family1_pk, context.family2_pk], [s + c for s in SHAPES for c in COLORS]))
-    for key in icon_map:
-        icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
-    return dict(icon_map=icon_map, lmap=DeepFamilyMap(context, request, icon_map=icon_map))
+    #[dependency] = list(DBSession.query(Dependency).filter(Dependency.feature1_pk == f1.pk, Dependency.feature2_pk == f2.pk))
+    #r = dependency.jsondata
+    #r["f1id"] = f1.id
+    #r["f2id"] = f2.id
+    #r["f1f2id"] = dependency.id
+    #r["strength"] = dependency.strength if r["f2h"] > 0.0 else "-"
+    #r["combinatory_status"] = dependency.combinatory_status
+    return {'dependency': {}}

@@ -3,32 +3,34 @@ from clld.db.util import get_distinct_values, icontains
 from clld.web.util.htmllib import HTML
 
 from clld.db.models import common
-from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol, DataTable
+from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
 from clld.web.datatables.value import Values, ValueNameCol, RefsCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol
+from clld.web.datatables.source import Sources
 
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from grambank.models import GrambankLanguage, Feature, Dependency, Transition, Stability, DeepFamily, Support, HasSupport
+from grambank.models import GrambankLanguage, Feature, Coder
 from clld.web.util.helpers import link
 
 
-class FeatureIdCol(IdCol):
-    def search(self, qs):
-        if self.model_col:
-            return self.model_col.contains(qs)
+class LanguagesCol(Col):
+    __kw__ = dict(bSortable=False, bSearchable=False)
 
-    def order(self):
-        return Feature.sortkey_str, Feature.sortkey_int
+    def format(self, item):
+        return HTML.ul(
+            *[HTML.li(link(self.dt.req, lang)) for lang in item.languages],
+            class_='unstyled')
 
 
-class DeepFamilyIdCol(IdCol):
-    def search(self, qs):
-        if self.model_col:
-            return self.model_col.contains(qs)
+class References(Sources):
+    def col_defs(self):
+        res = Sources.col_defs(self)[:-1]
+        res.append(LanguagesCol(self, 'languages'))
+        return res
 
 
 class LanguageIdCol(LinkCol):
@@ -57,188 +59,15 @@ class GrambankLanguages(Languages):
         ]
 
 
-class Stabilities(DataTable):
-    def get_options(self):
-        opts = super(Stabilities, self).get_options()
-        opts['aaSorting'] = [[2, 'desc']]
-        return opts
-    
-    def base_query(self, query):
-        return query.outerjoin(Feature)
-
-    def col_defs(self):
-        return [
-            FeatureIdCol(self, 'Id', sClass='left', model_col=Stability.id),
-            LinkCol(self, 'Feature', model_col=Feature.name, get_object=lambda i: i.feature),
-            Col(self, 'Stability', model_col=Stability.parsimony_stability_value),
-            Col(self, 'Stability Rank', model_col=Stability.parsimony_stability_rank),
-            Col(self, 'Retentions', model_col=Stability.parsimony_retentions),
-            Col(self, 'Transitions', model_col=Stability.parsimony_transitions),
-        ]
-
-
 class Features(Parameters):
-    #def __init__(self, req, *args, **kw):
-    #    self.stability = kw.pop('stability', req.params.get('stability'))
-    #    Parameters.__init__(self, req, *args, **kw)
-
-    #def xhr_query(self):
-    #    res = Parameters.xhr_query(self)
-    #    if self.stability:
-    #        # make sure we can determine the stability table is requested also when called
-    #        # via XHR.
-    #        res['stability'] = '1'
-    #    return res
-
     def col_defs(self):
-        #if self.stability:
-        #    return [
-        #        FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
-        #        LinkCol(self, 'Feature', model_col=Feature.name),
-        #        Col(self, 'Stability', model_col=Feature.parsimony_stability_value),
-        #        Col(self, 'Retentions', model_col=Feature.parsimony_retentions),
-        #        Col(self, 'Transitions', model_col=Feature.parsimony_transitions),
-        #    ]
-
         return [
-            FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
+            IdCol(self, 'Id', sClass='left', model_col=Feature.id),
             LinkCol(self, 'Feature', model_col=Feature.name),
-            #Col(self, 'Abbreviation', model_col=Feature.abbreviation),
-            Col(self, 'Morphosynunit', model_col=Feature.jl_relevant_unit),
-            Col(self, 'Form', model_col=Feature.jl_form),
-            Col(self, 'Function', model_col=Feature.jl_function),
+            Col(self, 'patron', model_col=Feature.patron, choices=get_distinct_values(Feature.patron)),
             Col(self, 'Languages', model_col=Feature.representation),
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
-
-
-class Dependencies(DataTable):
-    def __init__(self, req, model, **kw):
-        DataTable.__init__(self, req, model, **kw)
-        self.f1 = aliased(Feature, name="f1")
-        self.f2 = aliased(Feature, name="f2")
-
-    def base_query(self, query):
-        query = query\
-            .join(self.f1, self.f1.pk == Dependency.feature1_pk)\
-            .options(joinedload(Dependency.feature1))\
-            .join(self.f2, self.f2.pk == Dependency.feature2_pk)\
-            .options(joinedload(Dependency.feature2))
-        return query
-
-    def get_options(self):
-        opts = super(Dependencies, self).get_options()
-        opts['aaSorting'] = [[3, 'desc'], [4, 'desc']]
-        return opts
-
-    def col_defs(self):
-        return [
-            IdCol(self, 'Id', sClass='left', model_col=Dependency.id),
-            #LinkCol(self, 'From Feature', sClass='left', model_col=Dependency.f1),
-            #LinkCol(self, 'To Feature', sClass='left', model_col=Dependency.f2),
-            LinkCol(self, 'From Feature', sClass='left', model_col=self.f1.name, get_object=lambda i: i.feature1),
-            LinkCol(self, 'To Feature', sClass='left', model_col=self.f2.name, get_object=lambda i: i.feature2),
-            Col(self, 'Strength', model_col=Dependency.strength),
-            Col(self, 'Rank', model_col=Dependency.rank),
-            Col(self, 'Representation', model_col=Dependency.representation),
-            StatusCol(self, 'Status', Dependency, attribute = "combinatory_status"),
-            Col(self, 'Diachronic Strength', model_col=Dependency.diachronic_strength),
-        ]
-
-
-class Transitions(DataTable):
-    __constraints__ = [Stability]
-
-    def base_query(self, query):
-        query = query.outerjoin(Stability).outerjoin(Family)
-        if self.stability:
-            query = query.filter(Transition.stability_pk == self.stability.pk)
-        return query
-    
-    def col_defs(self):
-        return [
-            IdCol(self, 'Id', sClass='left', model_col=Transition.id),
-            LinkCol(self, 'Feature', sClass='left', model_col=Stability.id, get_object=lambda i: i.stability),
-            FamilyLinkCol(self, 'Family', Transition),
-            Col(self, 'From Node', model_col=Transition.fromnode),
-            Col(self, 'From Value', model_col=Transition.fromvalue),
-            Col(self, 'To Node', model_col=Transition.tonode),
-            Col(self, 'To Value', model_col=Transition.tovalue),
-            StatusCol(self, 'Retention/Innovation', Transition, attribute = "retention_innovation"),
-        ]
-
-
-class Supports(DataTable):
-    __constraints__ = [HasSupport, DeepFamily]
-
-    def base_query(self, query):
-        query = query.outerjoin(HasSupport).outerjoin(DeepFamily).outerjoin(Feature)
-        if self.deepfamily:
-            query = query.filter(HasSupport.deepfamily_pk == self.deepfamily.pk)
-        return query
-
-    def get_options(self):
-        opts = super(Supports, self).get_options()
-        opts['aaSorting'] = [[3, 'desc'], [4, 'desc'], [5, 'desc']]
-        return opts
-
-    def col_defs(self):
-        return [
-            #IdCol(self, 'Id', sClass='left', model_col=Support.id),
-            LinkCol(self, 'Feature', model_col=Feature.name, get_object=lambda i: i.feature),
-            Col(self, 'Value 1', model_col=Support.value1),
-            Col(self, 'Value 2', model_col=Support.value2),
-            Col(self, 'Support Score', model_col=Support.support_score),
-            Col(self, 'Historical Score', model_col=Support.historical_score),
-            Col(self, 'Independent Score', model_col=Support.independent_score),
-        ]
-
-
-class DeepFamilies(DataTable):
-    def __init__(self, req, model, **kw):
-        DataTable.__init__(self, req, model, **kw)
-        self.fam1 = aliased(Family, name="fam1")
-        self.fam2 = aliased(Family, name="fam2")
-
-    def base_query(self, query):
-        query = query\
-            .join(self.fam1, self.fam1.pk == DeepFamily.family1_pk)\
-            .options(joinedload(DeepFamily.family1))\
-            .join(self.fam2, self.fam2.pk == DeepFamily.family2_pk)\
-            .options(joinedload(DeepFamily.family2))
-        return query
-
-    def get_options(self):
-        opts = super(DeepFamilies, self).get_options()
-        opts['aaSorting'] = [[3, 'desc'], [4, 'desc']]
-        return opts
-
-    def col_defs(self):
-        return [
-            DeepFamilyIdCol(self, 'Id', sClass='left', model_col=DeepFamily.id),
-            LinkCol(self, 'Family 1', sClass='left', model_col=self.fam1.name, get_object=lambda i: i.family1),
-            LinkCol(self, 'Family 2', sClass='left', model_col=self.fam2.name, get_object=lambda i: i.family2),
-            Col(self, 'Support Value', model_col=DeepFamily.support_value),
-            Col(self, 'Significance', model_col=DeepFamily.significance),
-            Col(self, 'Distance (km)', model_col=DeepFamily.geographic_plausibility),
-        ]
-
-    
-class StatusCol(Col):
-    def __init__(self, dt, name, cls, attribute='combinatory_status', **kw):
-        self._col = getattr(cls, attribute)
-        self.attribute = attribute
-        kw['choices'] = get_distinct_values(self._col)
-        Col.__init__(self, dt, name, **kw)
-
-    def order(self):
-        return self._col
-
-    def search(self, qs):
-        return icontains(self._col, qs)
-
-    def format(self, item):
-        return getattr(self.get_obj(item), self.attribute)
 
 
 class LanguageCountCol(Col):
@@ -269,12 +98,41 @@ class GrambankContributionsCol(Col):
     __kw__ = {'bSearchable': False, 'bSortable': False}
 
     def format(self, item):
-        return HTML.ul(
-            *[HTML.li(link(
-                self.dt.req, c.contribution, label="%s [%s]" % (c.contribution.desc, c.contribution.id))) for c in item.contribution_assocs])
+        return HTML.div(
+            HTML.div(
+                HTML.div(
+                    HTML.a(
+                        '{0} Languages'.format(len(item.contribution_assocs)),
+                        **{'class': 'accordion-toggle',
+                           'data-toggle': 'collapse',
+                           'data-parent': '#acc-{0}'.format(item.pk),
+                           'href': '#coll-{0}'.format(item.pk)}
+                    ),
+                    class_='accordion-heading'
+                ),
+                HTML.div(
+                    HTML.div(
+                        HTML.ul(
+                            *[HTML.li(link(
+                                self.dt.req, c.contribution)) for c in item.contribution_assocs]),
+                        class_='accordion-inner'
+                    ),
+                    **{'class': 'accordion-body collapse',
+                       'id': 'coll-{0}'.format(item.pk)}
+                ),
+                class_='accordion-group',
+            ),
+            class_='accordion',
+            id='acc-{0}'.format(item.pk)
+        )
 
 
-class GrambankContributors(Contributors):
+class NCol(Col):
+    def format(self, item):
+        return '{0:,}'.format(int(Col.format(self, item)))
+
+
+class Coders(Contributors):
     def base_query(self, query):
         return query.options(joinedload_all(
             common.Contributor.contribution_assocs,
@@ -283,8 +141,12 @@ class GrambankContributors(Contributors):
     def col_defs(self):
         return [
             NameCol(self, 'name'),
-            GrambankContributionsCol(self, 'Contributions')
+            NCol(self, 'datapoints', model_col=Coder.count_datapoints),
+            GrambankContributionsCol(self, 'Contributions'),
         ]
+
+    def get_options(self):
+        return {'aaSorting': [[1, 'desc']]}
 
 
 class Datapoints(Values):
@@ -333,7 +195,7 @@ class Datapoints(Values):
             ]
         elif self.language:
             cols = [
-                FeatureIdCol(
+                IdCol(
                     self, 'Feature Id',
                     sClass='left', model_col=common.Parameter.id,
                     get_object=lambda i: i.valueset.parameter),
@@ -356,20 +218,18 @@ class Datapoints(Values):
         return cols
 
     def get_options(self):
-        if self.language or self.parameter:
+        if self.language:
             # if the table is restricted to the values for one language, the number of
             # features is an upper bound for the number of values; thus, we do not
             # paginate.
             return {'bLengthChange': False, 'bPaginate': False}
+        return {}
 
 
 def includeme(config):
     config.register_datatable('values', Datapoints)
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
-    config.register_datatable('dependencys', Dependencies)
-    config.register_datatable('contributors', GrambankContributors)
-    config.register_datatable('transitions', Transitions)
-    config.register_datatable('stabilitys', Stabilities)
-    config.register_datatable('deepfamilys', DeepFamilies)
-    config.register_datatable('supports', Supports)
+    config.register_datatable('contributors', Coders)
+    config.register_datatable('familys', Families)
+    config.register_datatable('sources', References)

@@ -17,7 +17,7 @@
             <th>Datapoints</th>
         </%def>
         <td>${h.link(request, item[0])}</td>
-        <td>${item[0].id}</td>
+        <td>${u.glottolog.link(req, item[0].id, label=item[0].id)}</td>
         <td>${h.link(request, item[0].family)}</td>
         <td>${item[0].macroarea}</td>
         <td class="right">${'{0:,}'.format(item[1])}</td>

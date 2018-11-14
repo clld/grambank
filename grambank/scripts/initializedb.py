@@ -1,36 +1,38 @@
 from __future__ import unicode_literals, print_function
 import sys
-import os
 
+from sqlalchemy import func
+from clldutils.path import Path
 from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
-from clldutils.path import read_text, Path
+from clld.scripts.util import bibtex2source
+from clld.lib.bibtex import Database
+
 from clld_glottologfamily_plugin.models import Family
 from clld_glottologfamily_plugin.util import load_families
 from clld_phylogeny_plugin.models import Phylogeny, LanguageTreeLabel, TreeLabel
 from pyglottolog.api import Glottolog
+from pycldf import StructureDataset
 
 import grambank
 from grambank.scripts.util import (
-    import_gb20_features, import_cldf, get_clf_paths, get_names,
+    import_features, import_values, import_languages,
     GLOTTOLOG_REPOS, GRAMBANK_REPOS,
 )
 from grambank.scripts.global_tree import tree
 
-from grambank.scripts.stats_util import grp, grp2, feature_stability, feature_incidence, feature_dependencies, feature_diachronic_dependencies, dependencies_graph #, havdist, deep_families
-from grambank.models import Dependency, Transition, Stability, Feature, GrambankLanguage #, DeepFamily, Support, HasSupport
+from grambank.models import Feature, GrambankLanguage
 
 
 def main(args):
-    #TODO explain etc diachronic_strength
-    #sigtests of dependencies
-    #isogloss-maps
+    cldf = StructureDataset.from_metadata(Path(GRAMBANK_REPOS) / 'cldf' / 'StructureDataset-metadata.json')
     data = Data()
     dataset = common.Dataset(
         id=grambank.__name__,
         name="Grambank",
+        description="Grambank",
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="http://shh.mpg.de",
@@ -44,8 +46,12 @@ def main(args):
     glottolog = Glottolog(GLOTTOLOG_REPOS)
     languoids = {l.id: l for l in glottolog.languoids()}
 
-    import_gb20_features(GRAMBANK_REPOS, data)
-    import_cldf(os.path.join(GRAMBANK_REPOS, 'datasets'), data, languoids)
+    for rec in Database.from_file(cldf.bibpath, lowercase=True):
+        data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+
+    import_features(cldf, data)
+    import_languages(cldf, data)
+    import_values(cldf, data)
     load_families(
         data,
         data['GrambankLanguage'].values(),
@@ -68,39 +74,25 @@ def main(args):
     return 
 
 
-def dump(fn = "gbdump.tsv"):
-    import io
-#    dumpsql = """
-#select l.id, p.id, v.name, v.description, s.name
-#from value as v, language as l, parameter as p, valueset as vs LEFT OUTER JOIN valuesetreference as vsref ON vsref.valueset_pk = vs.pk LEFT OUTER JOIN source as s ON vsref.source_pk = s.pk
-#where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
-#    """
-    #datatriples = grp2([((v[0], v[1], v[2], v[3] or ""), v[4] or "") for v in DBSession.execute(dumpsql)])
-    #dump = [xs + ("; ".join(refs),) for (xs, refs) in datatriples.items()]
-    dumpsql = """
-select l.name, l.id, p.id, p.name, v.name, v.description, vs.source
-from value as v, language as l, parameter as p, valueset as vs
-where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
-    """
-    dump = [(lgname, lgid, "%s. %s" % (fid, fname), v, com, src) for (lgname, lgid, fid, fname, v, com, src) in DBSession.execute(dumpsql)]
-    tab = lambda rows: u''.join([u'\t'.join(row) + u"\n" for row in rows])
-    txt = tab([("Language_Name", "Language_ID", "Feature", "Value", "Comment", "Source")] + dump)
-    with io.open(fn, 'w', encoding="utf-8") as fp:
-        fp.write(txt)
-    #copy C:\python27\gb\gbdump.tsv C:\python27\glottobank\grambank\
-
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
-    from time import time
-    _s = time()
+    langs = {l.pk: l for l in DBSession.query(GrambankLanguage)}
+    features = {f.pk: f for f in DBSession.query(Feature)}
 
-    def checkpoint(s, msg=None):
-        n = time()
-        print(n - s, msg or '')
-        return n
+    for lpk, nf in DBSession.query(common.ValueSet.language_pk, func.count(common.ValueSet.pk)) \
+            .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
+            .filter(common.Value.name != None) \
+            .group_by(common.ValueSet.language_pk):
+        langs[lpk].representation = nf
+
+    for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk))\
+            .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk)\
+            .filter(common.Value.name != None)\
+            .group_by(common.ValueSet.parameter_pk):
+        features[fpk].representation = nl
 
     newick, _ = tree([l.id for l in DBSession.query(common.Language)], GLOTTOLOG_REPOS)
     phylo = Phylogeny(
@@ -112,144 +104,13 @@ def prime_cache(args):
             language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
     DBSession.add(phylo)
 
-    dump()
-    
-    sql = """
-select l.id, p.id, v.name from value as v, valueset as vs, language as l, parameter as p
-where v.valueset_pk = vs.pk and vs.language_pk = l.pk and vs.parameter_pk = p.pk
-    """
-    datatriples = [(v[0], v[1], v[2]) for v in DBSession.execute(sql)]
-    _s = checkpoint(_s, '%s values loaded' % len(datatriples))
-
-    flv = dict([(feature, dict(lvs)) for (feature, lvs) in grp([(f, l, v) for (l, f, v) in datatriples]).items()])
-    _s = checkpoint(_s, 'triples grouped')
-
-    clfps = get_clf_paths([row[0] for row in DBSession.execute("select id from language")])
-    _s = checkpoint(_s, '%s clfps loaded' % len(clfps))
-
-    fi = feature_incidence(datatriples, clfps)
-    _s = checkpoint(_s, 'feature_incidence computed')
-    
-    features = {f.id: f for f in DBSession.query(Feature)}
-    for (f, lv) in flv.items():
-        features[f].representation = len(lv)
-        features[f].jsondata = fi[f]
-           
-    languages = {l.id: l for l in DBSession.query(GrambankLanguage)}        
-    for (l, fv) in grp2([(l, (f, v)) for (f, lv) in flv.items() for (l, v) in lv.items()]).items():
-        languages[l].representation = len(fv)
-        languages[l].nzrepresentation = len([v for (f, v) in fv if v != "? - Not Known"])
-    DBSession.flush()
-    _s = checkpoint(_s, 'representation assigned')
-
-    fs = feature_stability(datatriples, clfps)
-    _s = checkpoint(_s, 'feature_stability computed')
-
-    glottolog_names = get_names()
-    families = {f.id: f for f in DBSession.query(Family)}
-    for (f, (s, transitions, stationarity_p, synchronic_p)) in fs:
-        stability = Stability(
-            id=f.replace("GB", "S"),
-            feature=features[f],
-            parsimony_stability_value=s["stability"],
-            parsimony_stability_rank=s["rank"],
-            parsimony_retentions=s["retentions"],
-            parsimony_transitions=s["transitions"],
-            jsondata={'diachronic_p': stationarity_p, "synchronic_p": synchronic_p})
-        DBSession.add(stability)
-        for (i, (fam, (fromnode, tonode), (ft, tt))) in enumerate(transitions):
-            DBSession.add(Transition(
-                id="%s: %s->%s" % (f, fromnode, tonode),
-                stability=stability,
-                fromnode=glottolog_names[fromnode],
-                tonode=glottolog_names[tonode],
-                fromvalue=ft,
-                tovalue=tt,
-                family=families[fam],
-                retention_innovation="Retention" if ft == tt else "Innovation"))
-    DBSession.flush()
-    _s = checkpoint(_s, 'stability and transitions loaded')
-
-    diachronic_imps = feature_diachronic_dependencies(datatriples, clfps)
-    diachronic_imp_strength = {(f1, f2): v for (((v, ccalltrd), lalltr, ccdtr, ldtr, cccdtr, lcdtr), rnk, f1, f2) in diachronic_imps}
-    _s = checkpoint(_s, 'feature_diachronic_dependencies computed')
-
-    imps = feature_dependencies(datatriples)
-    _s = checkpoint(_s, 'feature_dependencies computed')
-    if 1:
-        (H, V) = dependencies_graph([(v, f1, f2) for ((v, dstats), rnk, f1, f2) in imps])
-        _s = checkpoint(_s, 'dependencies_graph written')
-
-        for ((v, dstats), rnk, f1, f2) in imps:
-            combinatory_status = ("primary" if (f1, f2) in H else ("epiphenomenal" if v > 0.0 else None)) if H else "N/A"
-            DBSession.add(Dependency(
-                id="%s->%s" % (f1, f2),
-                strength=v,
-                diachronic_strength=diachronic_imp_strength.get((f1, f2)),
-                rank=rnk,
-                feature1=features[f1],
-                feature2=features[f2],
-                representation=dstats["representation"],
-                combinatory_status=combinatory_status,
-                jsondata=dstats))
-        DBSession.flush()
-        _s = checkpoint(_s, 'dependencies loaded')
-
-    coordinates = {
-        lg.id: (lg.longitude, lg.latitude)
-        for lg in DBSession.query(common.Language)
-        .filter(common.Language.longitude != None)
-        .filter(common.Language.latitude != None)}
-
-    #deepfams = deep_families(datatriples, clfps, coordinates=coordinates)
-    #_s = checkpoint(_s, '%s deep_families computed' % len(deepfams))
-
-    #missing_families = set()
-    #data = Data()
-    #for ((l1, l2), support_value, significance, supports, f1c, f2c) in deepfams:
-    #    dname = "proto-%s x proto-%s" % (glottolog_names[l1], glottolog_names[l2])
-    #    kmdistance = havdist(f1c, f2c)
-    #    (f1lon, f1lat) = f1c if f1c else (None, None)
-    #    (f2lon, f2lat) = f2c if f2c else (None, None)
-
-    #    for li in [l1, l2]:
-    #        if li not in families:
-    #            missing_families.add(li)
-    #
-    #    deepfam = DeepFamily(
-    #        id=dname,
-    #        support_value=support_value,
-    #        significance=significance,
-    #        family1=families.get(l1),
-    #        family2=families.get(l2),
-    #        family1_latitude = f1lat,
-    #        family1_longitude = f1lon,
-    #        family2_latitude = f2lat,
-    #        family2_longitude = f2lon,
-    #        geographic_plausibility = kmdistance)
-    #    DBSession.add(deepfam)
-    #    for (f, v1, v2, historical_score, independent_score, support_score) in supports:
-    #        vid = ("%s: %s %s %s" % (f, v1, "==" if v1 == v2 else "!=", v2)).replace(".", "")
-    #        #vname = ("%s|%s" % (v1, v2)).replace(".", "")
-    #        #print vid, vname
-    #        if vid not in data["Support"]:
-    #            data.add(
-    #                Support, vid,
-    #                id = vid,
-    #                historical_score = historical_score,
-    #                independent_score = independent_score,
-    #                support_score = support_score,
-    #                value1 = v1,
-    #                value2 = v2,
-    #                feature=features[f])
-    #        DBSession.add(HasSupport(
-    #            id=dname + "-" + vid,
-    #            deepfamily = deepfam,
-    #            support = data["Support"][vid]))
-    #print('missing_families:')
-    #print(missing_families)
-    #DBSession.flush()
-    #_s = checkpoint(_s, 'deep_families loaded')
+    contributors = {c.pk: c for c in DBSession.query(common.Contributor)}
+    for cpk, ndp in DBSession.execute("""\
+select cc.contributor_pk, count(distinct vs.pk) 
+from valueset as vs, contribution as co, contributioncontributor as cc
+where vs.contribution_pk = co.pk and co.pk = cc.contribution_pk
+group by cc.contributor_pk"""):
+        contributors[cpk].count_datapoints = ndp
 
     compute_language_sources()
 
