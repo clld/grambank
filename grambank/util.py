@@ -53,13 +53,7 @@ def process_markdown(text, req):
 
 
 def parameter_detail_html(request=None, context=None, **kw):
-    from clldutils.path import Path, read_text
-
-    doc = None
-    p = Path(__file__).parent.parent.parent / 'Grambank.wiki' / '{0}.md'.format(context.id)
-    if p.exists():
-        doc = process_markdown(read_text(p, encoding='utf-8-sig'), request)
-    return {'doc': doc}
+    return {'doc': process_markdown(context.description, request)}
 
 
 def phylogeny_detail_html(request=None, context=None, **kw):
