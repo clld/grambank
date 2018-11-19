@@ -16,7 +16,7 @@ ${request.get_datatable('values', h.models.Value, language=ctx).render()}
     <div style="clear: right;"> </div>
     <%util:well title="Contributor">
         ${h.linked_contributors(request, ctx.contribution)}
-        ${h.cite_button(request, ctx.contribution)}
+        ${h.cite_button(request, request.dataset)}
     </%util:well>
 
     <%util:well>

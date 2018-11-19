@@ -15,7 +15,7 @@ GLOTTOLOG_VENV = Path(grambank.__file__).parent.parent.parent.parent.joinpath('g
 
 
 @total_ordering
-class Language(object):
+class Language(object):  # pragma: no coverage
     def __init__(self, l, med):
         f, sf, ssf = l.lineage[:3] + [(None, None, None)] * (3 - len(l.lineage[:3]))
         self.id = str(l.id)
@@ -46,20 +46,20 @@ class Language(object):
         return (self.gid > other.gid) - (self.gid < other.gid)
 
 
-def iter_languages():
+def iter_languages():  # pragma: no coverage
     ldstatus = load(GLOTTOLOG_VENV.joinpath('glottolog3/glottolog3/static/ldstatus.json'))
     for l in Glottolog(GLOTTOLOG_VENV.joinpath('glottolog')).languoids():
         if l.level == Level.language and not l.category.startswith('Pseudo'):
             yield Language(l, ((ldstatus.get(l.id) or [[0, None]])[0] or [0, None])[1])
 
 
-def read(n):
+def read(n):  # pragma: no coverage
     with io.open('%s.csv' % n, encoding='utf8') as fp:
         for i, line in enumerate(fp):
             yield [None if col == '[NULL]' else col for col in line.strip().split('+++')]
 
 
-def get_md(name, langs):
+def get_md(name, langs):  # pragma: no coverage
     res = dict(name=name, extension=[], macroareas=set(), doctype=None, subgroups={})
     for l in langs:
         if res['doctype'] != 'grammar':
@@ -71,7 +71,7 @@ def get_md(name, langs):
     return res
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no coverage
     res = {}
     log = Counter()
     languages = sorted(iter_languages())

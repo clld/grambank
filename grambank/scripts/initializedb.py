@@ -3,12 +3,14 @@ import sys
 
 from sqlalchemy import func
 from clldutils.path import Path
+from clldutils.misc import slug
 from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
 from clld.scripts.util import bibtex2source
 from clld.lib.bibtex import Database
+from csvw.dsv import reader
 
 from clld_glottologfamily_plugin.models import Family
 from clld_glottologfamily_plugin.util import load_families
@@ -23,13 +25,13 @@ from grambank.scripts.util import (
 )
 from grambank.scripts.global_tree import tree
 
-from grambank.models import Feature, GrambankLanguage
+from grambank.models import Feature, GrambankLanguage, Coder, Grambank
 
 
-def main(args):
+def main(args):  # pragma: no cover
     cldf = StructureDataset.from_metadata(Path(GRAMBANK_REPOS) / 'cldf' / 'StructureDataset-metadata.json')
     data = Data()
-    dataset = common.Dataset(
+    dataset = Grambank(
         id=grambank.__name__,
         name="Grambank",
         description="Grambank",
@@ -42,6 +44,16 @@ def main(args):
         jsondata={
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
+    for i, row in enumerate(reader(Path(__file__).parent / 'contributors.csv', dicts=True), start=1):
+        key = slug(row['first name'] + row['last name'])
+        contributor_id = slug(row['last name'] + row['first name'])
+        contrib = data.add(
+            Coder,
+            key,
+            id=contributor_id,
+            name='{0} {1}'.format(row['first name'], row['last name']))
+        common.Editor(dataset=dataset, contributor=contrib, ord=i)
+
     DBSession.add(dataset)
     glottolog = Glottolog(GLOTTOLOG_REPOS)
     languoids = {l.id: l for l in glottolog.languoids()}
@@ -74,7 +86,7 @@ def main(args):
     return 
 
 
-def prime_cache(args):
+def prime_cache(args):  # pragma: no cover
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
@@ -115,6 +127,6 @@ group by cc.contributor_pk"""):
     compute_language_sources()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     initializedb(create=main, prime_cache=prime_cache)
     sys.exit(0)

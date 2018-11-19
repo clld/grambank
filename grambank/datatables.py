@@ -40,7 +40,7 @@ class LanguageIdCol(LinkCol):
 
 class GrambankLanguages(Languages):
     def base_query(self, query):
-        return query.outerjoin(Family)
+        return query.outerjoin(Family).options(joinedload(GrambankLanguage.family))
 
     def col_defs(self):
         return [
@@ -129,7 +129,10 @@ class GrambankContributionsCol(Col):
 
 class NCol(Col):
     def format(self, item):
-        return '{0:,}'.format(int(Col.format(self, item)))
+        try:
+            return '{0:,}'.format(int(Col.format(self, item)))
+        except ValueError:
+            return ''
 
 
 class Coders(Contributors):

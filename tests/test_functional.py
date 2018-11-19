@@ -10,18 +10,14 @@ pytest_plugins = ['clld']
         ('get_html', '/coverage'),
         ('get_html', '/parameters/GB020'),
         ('get_json', '/parameters/GB020.geojson'),
-        #('get_html', '/dependencys'),
+        ('get_json', '/parameters/GB020.geojson?domainelement=GB020-1'),
+        ('get_html', '/languages/nene1249'),
         ('get_html', '/contributions'),
-        #('get_html', '/deepfamilys'),
         ('get_html', '/familys'),
-        ('get_dt', '/dependencys'),
         ('get_dt', '/contributions'),
-        #('get_dt', '/deepfamilys'),
         ('get_dt', '/familys'),
         ('get_dt', '/values'),
         ('get_html', '/contributors/bakkernancy'),
-        #('get_html', '/stabilitys/S165'),
-        #('get_html', '/deepfamilys/proto-Andoque x proto-Burmeso'),
     ])
 def test_pages(app, method, path):
     getattr(app, method)(path)

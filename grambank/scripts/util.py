@@ -27,7 +27,7 @@ GLOTTOLOG_REPOS = Path(grambank.__file__).parent.parent.parent.parent.joinpath(
     else Path('C:\\Python27\\glottolog\\')  # add your path to the glottolog repos clone here!
 
 
-def import_languages(cldf, data):
+def import_languages(cldf, data):  # pragma: no cover
     for lang in cldf['LanguageTable']:
         lname = '{0} [{1}]'.format(lang['Name'], lang['ID'])
         contrib = data.add(
@@ -38,12 +38,13 @@ def import_languages(cldf, data):
         )
         for name in re.split(',|\s+and\s+', lang['contributed_datapoints']):
             contributor_name = HumanName(name.strip())
-            contributor_id = slug(contributor_name.last + contributor_name.first)
-            contributor = data['Coder'].get(contributor_id)
+            key = slug('{0}'.format(contributor_name))
+            contributor_id = slug(contributor_name.middle + contributor_name.last + contributor_name.first)
+            contributor = data['Coder'].get(key)
             if not contributor:
                 contributor = data.add(
                     Coder,
-                    contributor_id,
+                    key,
                     id=contributor_id,
                     name='%s' % contributor_name)
             DBSession.add(
@@ -60,7 +61,7 @@ def import_languages(cldf, data):
         )
 
 
-def import_values(cldf, data):
+def import_values(cldf, data):  # pragma: no cover
     for value in cldf['ValueTable']:
         vs = data.add(
             ValueSet, value['ID'],
@@ -84,7 +85,7 @@ def import_values(cldf, data):
                 ValueSetReference(valueset=vs, source=data['Source'][sid], description=pages)
 
 
-def import_features(cldf, data):
+def import_features(cldf, data):  # pragma: no cover
     icons = [
         'cffffff',
         'cff0000',

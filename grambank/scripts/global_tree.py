@@ -11,7 +11,7 @@ from ete3 import Tree
 from pyglottolog.api import Glottolog
 
 
-def tree(glottocodes, gl_repos):
+def tree(glottocodes, gl_repos):  # pragma: no cover
     label_pattern = re.compile("'[^\[]+\[([a-z0-9]{4}[0-9]{4})[^']*'")
 
     def rename(n):

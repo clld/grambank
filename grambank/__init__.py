@@ -1,9 +1,12 @@
 from pyramid.config import Configurator
+from sqlalchemy.orm import joinedload
 
 from clld.interfaces import (
-    IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs, IContribution,
+    IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs, IContribution, ICtxFactoryQuery,
 )
+from clld.web.app import CtxFactoryQuery
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
+from clld.db.models import common
 
 # we must make sure custom models are known at database initialization!
 from grambank import models
@@ -16,7 +19,7 @@ _('Parameter')
 _('Familys')
 
 
-class MyMapMarker(LanguageByFamilyMapMarker):
+class GrambankMapMarker(LanguageByFamilyMapMarker):
     def get_icon(self, ctx, req):
         if IValue.providedBy(ctx):
             return ctx.domainelement.jsondata['icon']
@@ -25,6 +28,13 @@ class MyMapMarker(LanguageByFamilyMapMarker):
         if IDomainElement.providedBy(ctx):
             return ctx.jsondata['icon']
         return LanguageByFamilyMapMarker.get_icon(self, ctx, req)
+
+
+class GrambankCtxFactoryQuery(CtxFactoryQuery):
+    def refined_query(self, query, model, req):
+        if model == common.Language:
+            query = query.options(joinedload(models.GrambankLanguage.family))
+        return query
 
 
 def link_attrs(req, obj, **kw):
@@ -47,6 +57,7 @@ def main(global_config, **settings):
     config.add_route('coverage', pattern='/coverage')
     config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
 
-    config.registry.registerUtility(MyMapMarker(), IMapMarker)
+    config.registry.registerUtility(GrambankCtxFactoryQuery(), ICtxFactoryQuery)
+    config.registry.registerUtility(GrambankMapMarker(), IMapMarker)
     config.registry.registerUtility(link_attrs, ILinkAttrs)
     return config.make_wsgi_app()

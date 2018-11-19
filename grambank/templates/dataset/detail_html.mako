@@ -1,12 +1,7 @@
 <%inherit file="../home_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
-<%
-    coded_by = {}
-    for names, count in contribs:
-        ns = names.split(" and ")
-        for name in ns:
-	    coded_by[name] = coded_by.get(name, 0) + count/len(ns)
-%>
+<% TxtCitation = h.get_adapter(h.interfaces.IRepresentation, ctx, request, ext='md.txt') %>
+
 
 <%def name="sidebar()">
     <img src="${request.static_url('grambank:static/glottobank_all.jpg')}"/>
@@ -68,6 +63,12 @@
     If you nevertheless think you need to cite it contact Harald Hammarstr&ouml;m. The
     eventual citation will contain the names of alll people who contributed to Grambank.
 </p>
+
+<blockquote>
+    ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
+    <a href="https://doi.org/10.5281/zenodo.1321024"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1321024.svg" alt="DOI"></a>
+</blockquote>
+
 <p>
     Grambank is a publication of the
     ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')}

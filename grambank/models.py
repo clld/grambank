@@ -13,8 +13,16 @@ from sqlalchemy.orm import relationship, backref
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.versioned import Versioned
-from clld.db.models.common import Contribution, Parameter, Language, Contributor
+from clld.db.models.common import Contribution, Parameter, Language, Contributor, Dataset
 from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
+
+
+@implementer(interfaces.IDataset)
+class Grambank(CustomModelMixin, Dataset):
+    pk = Column(Integer, ForeignKey('dataset.pk'), primary_key=True)
+
+    def formatted_editors(self):
+        return 'The Grambank Consortium'
 
 
 @implementer(interfaces.IContributor)

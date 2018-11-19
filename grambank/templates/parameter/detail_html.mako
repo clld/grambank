@@ -48,62 +48,7 @@
             ${request.get_datatable('values', h.models.Value, parameter=ctx).render()}
         </div>
         <div id="doc" class="tab-pane">
-            % if doc:
-                ${doc|n}
-            % else:
-                <dl>
-                    <dt>Additional Information:</dt>
-                    <dd>${ctx.doc}</dd>
-                    <dt>French:</dt>
-                    <dd>${ctx.name_french}</dd>
-                    % if ctx.patron:
-                        <dt>Patron:</dt>
-                        <dd>${ctx.patron}</dd>
-                    % endif
-                    % if ctx.designer:
-                        <dt>Designer:</dt>
-                        <dd>${ctx.designer}</dd>
-                    % endif
-                    % if ctx.legacy_status:
-                        <dt>Legacy Status:</dt>
-                        <dd>${ctx.legacy_status}</dd>
-                    % endif
-                    % if ctx.grambank_status:
-                        <dt>Grambank Status:</dt>
-                        <dd>${ctx.grambank_status}</dd>
-                    % endif
-                    % if ctx.old_feature:
-                        <dt>Old Formulation (shown for historical purposes only):</dt>
-                        <dd>${ctx.old_feature}</dd>
-                    % endif
-                    % if ctx.other_survey:
-                        <dt>Is there another Typological survey covering approximately the same domain as this
-                            feature:
-                        </dt>
-                        <dd>${ctx.other_survey}</dd>
-                    % endif
-
-                    % if 'value_dist' in ctx.jsondatadict and 'value_dist_family' in ctx.jsondatadict:
-                        <dt>Incidence:</dt>
-                        <dd>
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Value</th>
-                                        <th>Languages</th>
-                                        <th>%</th>
-                                        <th>Lineages</th>
-                                        <th>%</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${u.table_incidence(ctx.jsondata['value_dist'], ctx.jsondata['value_dist_family'])|n}
-                                </tbody>
-                            </table>
-                        </dd>
-                    % endif
-                </dl>
-            % endif
+            ${u.process_markdown(ctx.description, req)|n}
         </div>
     </div>
     <script>
