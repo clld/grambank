@@ -5,56 +5,42 @@
 
 <%def name="sidebar()">
     <img src="${request.static_url('grambank:static/glottobank_all.jpg')}"/>
-    <div class="well">
-        <h3>grambank</h3>
-        <p>
-            produced by a team directed by Russell Gray and Quentin
-            Atkinson. The original questionnaire was designed by Ger Reesink and
-            Michael Dunn, subsequent extensions and clarifications were done by
-            Hedvig Skirg&aring;rd, Suzanne van der Meer, Harald Hammarstr&ouml;m,
-            Stephen Levinson, Hannah Haynie, Jeremy Collins, Alena Witzlack, Jakob Lesage
-            and Nicholas Evans.</p>
-
-    </div>
-
+        <div class="well well-small">
+            <h3>Statistics</h3>
+            <table class="table table-condensed">
+                <tbody>
+                <tr>
+                    <th>Languages</th>
+                    <td class="right">${'{:,}'.format(stats['language'])}</td>
+                </tr>
+                <tr>
+                    <th>Features</th>
+                    <td class="right">${'{:,}'.format(stats['parameter'])}</td>
+                </tr>
+                <tr>
+                    <th>Datapoints</th>
+                    <td class="right">${'{:,}'.format(stats['value'])}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 </%def>
 
 <h2>Welcome to Grambank</h2>
 
 <p class="lead">
     Grambank is a database of structural (typological) features of language. It consists
-    of 195 logically independent features (most of them binary) spanning all subdomains of
+    of
+    <a href="${req.route_url('parameters')}">195 logically independent features</a>
+    (most of them binary) spanning all subdomains of
     morphosyntax. The Grambank feature questionnaire has been filled in, based on
-    reference grammars, for over 1,000 languages. The aim is to eventually reach as many
+    reference grammars, for over
+    <a href="${req.route_url('languages')}">1,000 languages</a>. The aim is to eventually reach as many
     as 3,500 languages. The database can be used to investigate deep language prehistory,
     the geographical-distribution of features, language universals and the functional
     interaction of structural features.
 </p>
 
-<table class="table table-condensed table-nonfluid">
-    <thead>
-    <tr>
-        <th colspan="3">Statistics</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <th>Languages</th>
-        <td></td>
-        <td class="right">${'{:,}'.format(stats['language'])}</td>
-    </tr>
-    <tr>
-        <th>Features</th>
-        <td></td>
-        <td class="right">${'{:,}'.format(stats['parameter'])}</td>
-    </tr>
-    <tr>
-        <th>Datapoints</th>
-        <th>total</th>
-        <td class="right">${'{:,}'.format(stats['value'])}</td>
-    </tr>
-    </tbody>
-</table>
 
 
 <h3>How to cite Grambank Online</h3>
