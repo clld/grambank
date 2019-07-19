@@ -6,8 +6,8 @@ from functools import total_ordering
 
 from clldutils.path import Path
 from clldutils.jsonlib import load, dump
+from csvw.dsv import reader
 from pyglottolog.api import Glottolog
-from pyglottolog.languoids import Level, Macroarea
 
 import grambank
 
@@ -26,8 +26,8 @@ class Language(object):  # pragma: no coverage
         self.sfname = sf[0]
         self.fid = str(f[1])
         self.fname = f[0]
-        self.med = med.replace('_', '') if med in ['grammar', 'grammar_sketch'] else None
-        self.macroareas = [(ma.value, ma.name) for ma in l.macroareas]
+        self.med = med.replace(' ', '') if med in ['grammar', 'grammar sketch'] else None
+        self.macroareas = [(ma.name, ma.id) for ma in l.macroareas]
 
     @property
     def gid(self):
@@ -46,11 +46,14 @@ class Language(object):  # pragma: no coverage
         return (self.gid > other.gid) - (self.gid < other.gid)
 
 
-def iter_languages():  # pragma: no coverage
-    ldstatus = load(GLOTTOLOG_VENV.joinpath('glottolog3/glottolog3/static/ldstatus.json'))
-    for l in Glottolog(GLOTTOLOG_VENV.joinpath('glottolog')).languoids():
-        if l.level == Level.language and not l.category.startswith('Pseudo'):
-            yield Language(l, ((ldstatus.get(l.id) or [[0, None]])[0] or [0, None])[1])
+def iter_languages(api):  # pragma: no coverage
+    meds = {
+        row['Language_ID']: row['Value'] for row in reader(
+            GLOTTOLOG_VENV / 'glottolog-cldf' / 'cldf' / 'values.csv', dicts=True)
+        if row['Parameter_ID'] == 'med'}
+    for l in api.languoids():
+        if l.level == api.languoid_levels.language and not l.category.startswith('Pseudo'):
+            yield Language(l, meds.get(l.id))
 
 
 def read(n):  # pragma: no coverage
@@ -73,8 +76,9 @@ def get_md(name, langs):  # pragma: no coverage
 
 if __name__ == '__main__':  # pragma: no coverage
     res = {}
+    api = Glottolog(GLOTTOLOG_VENV.joinpath('glottolog'))
     log = Counter()
-    languages = sorted(iter_languages())
+    languages = sorted(iter_languages(api))
 
     for (fid, fname), langs in groupby(languages, lambda l: (l.fid, l.fname)):
         langs = list(langs)
@@ -127,7 +131,7 @@ if __name__ == '__main__':  # pragma: no coverage
     
     dump(stats, outdir.joinpath('stats_by_macroarea.json'))
 
-    macroareas = {ma.name: ma.value for ma in Macroarea}
+    macroareas = {ma.id: ma.name for ma in api.macroareas.values()}
     dump(macroareas, outdir.joinpath('stats_macroareas.json'))
 
     print(log)
