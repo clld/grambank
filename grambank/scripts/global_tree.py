@@ -1,11 +1,7 @@
-# coding: utf8
 """
 Recreate glottolog data files from the current version published at http://glottolog.org
 """
-from __future__ import unicode_literals
 import re
-
-from six import PY2
 
 from ete3 import Tree
 from pyglottolog.api import Glottolog
@@ -42,7 +38,7 @@ def tree(glottocodes, gl_repos):  # pragma: no cover
         tree = Tree("({0});".format(node.newick), format=3)
         tree.name = 'glottolog_{0}'.format(family.id)
         if family.level.name == 'family':
-            tree.prune([n.encode('ascii') if PY2 else n for n in langs_selected])
+            tree.prune(langs_selected)
             glottocodes_in_global_tree = glottocodes_in_global_tree.union(
                 set(n.name for n in tree.traverse()))
         else:
@@ -51,5 +47,5 @@ def tree(glottocodes, gl_repos):  # pragma: no cover
 
     # global
     nodes = glottocodes_in_global_tree.intersection(glottocodes)
-    glob.prune([n.encode('ascii') if PY2 else n for n in nodes])
+    glob.prune(nodes)
     return glob.write(format=9), nodes

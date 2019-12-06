@@ -20,8 +20,9 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
+        'cldfcatalog',
         'clld>=4.4.1',
-        'clldmpg~=3.1.0',
+        'clldmpg>=3.1.0',
         'clld-glottologfamily-plugin>=3.0.0',
         'clld-phylogeny-plugin>=1.1.0',
         'pyglottolog>=0.3.1',
@@ -46,8 +47,12 @@ setup(
         ],
     },
     test_suite="grambank",
-    entry_points="""\
-[paste.app_factory]
-main = grambank:main
-""",
+    entry_points={
+        'console_scripts': [
+            'grambank-app=grambank.__main__:main',
+        ],
+        'paste.app_factory': [
+            'main = grambank:main',
+        ],
+    },
 )

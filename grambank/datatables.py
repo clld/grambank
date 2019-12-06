@@ -1,5 +1,5 @@
-from sqlalchemy.orm import aliased, joinedload, joinedload_all
-from clld.db.util import get_distinct_values, icontains
+from sqlalchemy.orm import joinedload, joinedload_all
+from clld.db.util import get_distinct_values
 from clld.web.util.htmllib import HTML
 
 from clld.db.models import common

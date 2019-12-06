@@ -14,8 +14,12 @@ ${request.get_datatable('values', h.models.Value, language=ctx).render()}
 <%def name="sidebar()">
     ${util.codes()}
     <div style="clear: right;"> </div>
-    <%util:well title="Contributor">
-        ${h.linked_contributors(request, ctx.contribution)}
+    <%util:well title="Contributors">
+        <ul class="unstyled">
+            % for coder in ctx.coders:
+                <li>${h.link(req, coder)}</li>
+            % endfor
+        </ul>
         ${h.cite_button(request, request.dataset)}
     </%util:well>
 

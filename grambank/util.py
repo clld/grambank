@@ -5,7 +5,6 @@ This module is also used to lookup custom template context providers, i.e. funct
 following a special naming convention which are called to update the template context
 before rendering resource's detail or index views.
 """
-from __future__ import division, unicode_literals
 import re
 
 from sqlalchemy import func, desc, text
@@ -19,10 +18,8 @@ from clld.db.models.common import (
     Contributor, ValueSet, Contribution, ContributionContributor, Language,
 )
 from clld_glottologfamily_plugin.models import Family
-from clld.web.icon import SHAPES
-from clld.interfaces import IIcon
 from clld.web.util.multiselect import CombinationMultiSelect
-from clld.web.util import glottolog
+from clld.web.util import glottolog  # used in templates!
 
 from grambank.models import GrambankLanguage
 

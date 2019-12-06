@@ -1,7 +1,5 @@
 import pytest
 
-pytest_plugins = ['clld']
-
 
 @pytest.mark.parametrize(
     "method,path",
@@ -17,7 +15,7 @@ pytest_plugins = ['clld']
         ('get_dt', '/contributions'),
         ('get_dt', '/familys'),
         ('get_dt', '/values'),
-        ('get_html', '/contributors/bakkernancy'),
+        ('get_html', '/contributors/ML'),
     ])
 def test_pages(app, method, path):
     getattr(app, method)(path)

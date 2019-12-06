@@ -1,3 +1,5 @@
+import collections
+
 from zope.interface import implementer
 from sqlalchemy import (
     Column,
@@ -37,8 +39,17 @@ class GrambankLanguage(CustomModelMixin, Language, HasFamilyMixin):
     macroarea = Column(Unicode)
     representation = Column(Integer)
     nzrepresentation = Column(Integer)
-    contribution_pk = Column(Integer, ForeignKey('contribution.pk'))
-    contribution = relationship(Contribution, backref=backref("language", uselist=False))
+
+    @property
+    def coders(self):
+        coders = {}
+        datapoints = collections.Counter()
+        for vs in self.valuesets:
+            for coder in vs.contribution.primary_contributors:
+                datapoints.update([coder.id])
+                coders[coder.id] = coder
+        return [coders[cid] for cid, _ in datapoints.most_common()]
+
 
 @implementer(interfaces.IParameter)
 class Feature(CustomModelMixin, Parameter, Versioned):

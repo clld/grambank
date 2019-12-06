@@ -1,20 +1,20 @@
-import sys
 import io
-from itertools import groupby
-from collections import Counter, defaultdict
-from functools import total_ordering
+import sys
+import pathlib
+import functools
+import itertools
+import collections
 
-from clldutils.path import Path
-from clldutils.jsonlib import load, dump
+from clldutils.jsonlib import dump
 from csvw.dsv import reader
 from pyglottolog.api import Glottolog
 
 import grambank
 
-GLOTTOLOG_VENV = Path(grambank.__file__).parent.parent.parent.parent.joinpath('glottolog')
+GLOTTOLOG_VENV = pathlib.Path(grambank.__file__).parent.parent.parent.parent.joinpath('glottolog')
 
 
-@total_ordering
+@functools.total_ordering
 class Language(object):  # pragma: no coverage
     def __init__(self, l, med):
         f, sf, ssf = l.lineage[:3] + [(None, None, None)] * (3 - len(l.lineage[:3]))
@@ -74,13 +74,13 @@ def get_md(name, langs):  # pragma: no coverage
     return res
 
 
-if __name__ == '__main__':  # pragma: no coverage
+def main(args):
     res = {}
-    api = Glottolog(GLOTTOLOG_VENV.joinpath('glottolog'))
-    log = Counter()
+    api = Glottolog(args.glottolog)
+    log = collections.Counter()
     languages = sorted(iter_languages(api))
 
-    for (fid, fname), langs in groupby(languages, lambda l: (l.fid, l.fname)):
+    for (fid, fname), langs in itertools.groupby(languages, lambda l: (l.fid, l.fname)):
         langs = list(langs)
         if fid:
             if fname in 'Bookkeeping|Mixed Language|Pidgin|Sign Language|Unclassifiable|Artificial Language'.split('|'):
@@ -93,7 +93,7 @@ if __name__ == '__main__':  # pragma: no coverage
             log.update(['family'])
             res[fid] = d
 
-            for (sfid, sfname), slangs in groupby(langs, lambda l: (l.sfid, l.sfname)):
+            for (sfid, sfname), slangs in itertools.groupby(langs, lambda l: (l.sfid, l.sfname)):
                 slangs = list(slangs)
                 if sfid:
                     dd = get_md(sfname, slangs)
@@ -102,7 +102,7 @@ if __name__ == '__main__':  # pragma: no coverage
 
                     log.update(['subunit'])
                     res[fid]['subgroups'][sfid] = dd
-                    for (ssfid, ssfname), sslangs in groupby(slangs, lambda l: (l.ssfid, l.ssfname)):
+                    for (ssfid, ssfname), sslangs in itertools.groupby(slangs, lambda l: (l.ssfid, l.ssfname)):
                         sslangs = list(sslangs)
                         if ssfid:
                             ddd = get_md(ssfname, sslangs)
@@ -121,10 +121,10 @@ if __name__ == '__main__':  # pragma: no coverage
                         'extension': [l.id],
                     }
 
-    outdir = Path(grambank.__file__).parent.joinpath('static')
+    outdir = pathlib.Path(grambank.__file__).parent.joinpath('static')
     dump(res, outdir.joinpath('stats_by_classification.json'))
 
-    stats = defaultdict(lambda: defaultdict(list))
+    stats = collections.defaultdict(lambda: collections.defaultdict(list))
     for fid, f in res.items():
         for maname, maid in f['macroareas']:
             stats[maid][f['doctype']].append(fid)
@@ -135,4 +135,3 @@ if __name__ == '__main__':  # pragma: no coverage
     dump(macroareas, outdir.joinpath('stats_macroareas.json'))
 
     print(log)
-    sys.exit(0)

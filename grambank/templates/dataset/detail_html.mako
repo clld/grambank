@@ -31,11 +31,11 @@
 <p class="lead">
     Grambank is a database of structural (typological) features of language. It consists
     of
-    <a href="${req.route_url('parameters')}">195 logically independent features</a>
+    <a href="${req.route_url('parameters')}">${stats['parameter']} logically independent features</a>
     (most of them binary) spanning all subdomains of
     morphosyntax. The Grambank feature questionnaire has been filled in, based on
-    reference grammars, for over
-    <a href="${req.route_url('languages')}">1,000 languages</a>. The aim is to eventually reach as many
+    reference grammars, for
+    <a href="${req.route_url('languages')}">${'{:,}'.format(stats['language'])} languages</a>. The aim is to eventually reach as many
     as 3,500 languages. The database can be used to investigate deep language prehistory,
     the geographical-distribution of features, language universals and the functional
     interaction of structural features.
