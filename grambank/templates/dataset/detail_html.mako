@@ -45,21 +45,21 @@
 
 <h3>How to cite Grambank Online</h3>
 <p>
-    Grambank is not yet publically available and should not for the time being be cited.
-    If you nevertheless think you need to cite it contact Harald Hammarstr&ouml;m. The
-    eventual citation will contain the names of alll people who contributed to Grambank.
+    Grambank is not yet publicly available and should not for the time being be cited.
+    If you nevertheless think you need to cite it <a href="${req.route_url('contact')}">contact us</a>. The
+    eventual citation will contain the names of
+    <a href="${req.route_url('contributors')}">all people who contributed to Grambank</a>.
 </p>
 
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
-    <a href="https://doi.org/10.5281/zenodo.1321024"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1321024.svg" alt="DOI"></a>
 </blockquote>
 
 <p>
     Grambank is a publication of the
     ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')}
-    at the Max Planck Institute for the Science of Human History, Jena. The datapoints
-    furnished by Claire Bowern and Patience Epps was supported by National Science
+    at the Max Planck Institute for the Science of Human History, Jena. The data
+    furnished by Claire Bowern, Patience Epps and Amalia Skilton was supported by National Science
     Foundation grant HSD-0902114 'Dynamics of Hunter Gatherer Language Change' PIs Claire
     Bowern, Patience Epps, Jane Hill, and Keith Hunley.
 </p>
