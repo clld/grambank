@@ -5,25 +5,25 @@
 
 <%def name="sidebar()">
     <img src="${request.static_url('grambank:static/glottobank_all.jpg')}"/>
-        <div class="well well-small">
-            <h3>Statistics</h3>
-            <table class="table table-condensed">
-                <tbody>
-                <tr>
-                    <th>Languages</th>
-                    <td class="right">${'{:,}'.format(stats['language'])}</td>
-                </tr>
-                <tr>
-                    <th>Features</th>
-                    <td class="right">${'{:,}'.format(stats['parameter'])}</td>
-                </tr>
-                <tr>
-                    <th>Datapoints</th>
-                    <td class="right">${'{:,}'.format(stats['value'])}</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="well well-small">
+        <h3>Statistics</h3>
+        <table class="table table-condensed">
+            <tbody>
+            <tr>
+                <th>Languages</th>
+                <td class="right">${'{:,}'.format(stats['language'])}</td>
+            </tr>
+            <tr>
+                <th>Features</th>
+                <td class="right">${'{:,}'.format(stats['parameter'])}</td>
+            </tr>
+            <tr>
+                <th>Datapoints</th>
+                <td class="right">${'{:,}'.format(stats['value'])}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </%def>
 
 <h2>Welcome to Grambank</h2>
@@ -35,12 +35,12 @@
     (most of them binary) spanning all subdomains of
     morphosyntax. The Grambank feature questionnaire has been filled in, based on
     reference grammars, for
-    <a href="${req.route_url('languages')}">${'{:,}'.format(stats['language'])} languages</a>. The aim is to eventually reach as many
+    <a href="${req.route_url('languages')}">${'{:,}'.format(stats['language'])} languages</a>. The aim is to eventually
+    reach as many
     as 3,500 languages. The database can be used to investigate deep language prehistory,
     the geographical-distribution of features, language universals and the functional
     interaction of structural features.
 </p>
-
 
 
 <h3>How to cite Grambank Online</h3>
@@ -57,7 +57,7 @@
 
 <p>
     Grambank is a publication of the
-    ${h.external_link('http://http://www.shh.mpg.de', label='Linguistic and Cultural Evolution Group')}
+    ${h.external_link('https://www.shh.mpg.de/1399801/dlce-research', label='Department of Linguistic and Cultural Evolution')}
     at the Max Planck Institute for the Science of Human History, Jena. The data
     furnished by Claire Bowern, Patience Epps and Amalia Skilton was supported by National Science
     Foundation grant HSD-0902114 'Dynamics of Hunter Gatherer Language Change' PIs Claire
