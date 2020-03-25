@@ -1,5 +1,5 @@
 from sqlalchemy.orm import joinedload, joinedload_all
-from clld.db.util import get_distinct_values
+from clld.db.meta import DBSession
 from clld.web.util.htmllib import HTML
 
 from clld.db.models import common
@@ -13,7 +13,7 @@ from clld.web.datatables.source import Sources
 from clld_glottologfamily_plugin.datatables import Familys, MacroareaCol, FamilyLinkCol, GlottologUrlCol
 from clld_glottologfamily_plugin.models import Family
 
-from grambank.models import GrambankLanguage, Feature, Coder
+from grambank.models import GrambankLanguage, Feature
 from clld.web.util.helpers import link
 
 
@@ -59,12 +59,29 @@ class GrambankLanguages(Languages):
         ]
 
 
+class PatronCol(LinkCol):
+    def __init__(self, *args, **kw):
+        kw['choices'] = [
+            c.name for c in DBSession.query(common.Contributor).filter(
+                common.Contributor.pk.in_(DBSession.query(Feature.patron_pk)))]
+        LinkCol.__init__(self, *args, **kw)
+
+    def order(self):
+        return common.Contributor.name
+
+    def search(self, qs):
+        return qs == common.Contributor.name
+
+
 class Features(Parameters):
+    def base_query(self, query):
+        return query.join(common.Contributor).options(joinedload(Feature.patron))
+
     def col_defs(self):
         return [
             IdCol(self, 'Id', sClass='left', model_col=Feature.id),
             LinkCol(self, 'Feature', model_col=Feature.name),
-            Col(self, 'patron', model_col=Feature.patron, choices=get_distinct_values(Feature.patron)),
+            PatronCol(self, 'patron', get_object=lambda i: i.patron),
             Col(self, 'Languages', model_col=Feature.representation),
             DetailsRowLinkCol(self, 'd', button_text='Values'),
         ]
@@ -127,14 +144,6 @@ class GrambankContributionsCol(Col):
         )
 
 
-class NCol(Col):
-    def format(self, item):
-        try:
-            return '{0:,}'.format(int(Col.format(self, item)))
-        except ValueError:
-            return ''
-
-
 class Coders(Contributors):
     def base_query(self, query):
         return query.options(joinedload_all(
@@ -144,7 +153,6 @@ class Coders(Contributors):
     def col_defs(self):
         return [
             NameCol(self, 'name'),
-            NCol(self, 'datapoints', model_col=Coder.count_datapoints),
             GrambankContributionsCol(self, 'Contributions'),
         ]
 

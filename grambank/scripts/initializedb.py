@@ -31,7 +31,7 @@ def main(args):  # pragma: no cover
         description="Grambank",
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
-        publisher_url="http://shh.mpg.de",
+        publisher_url="https://shh.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
         domain='grambank.clld.org',
         contact='grambank@shh.mpg.de',
@@ -40,11 +40,10 @@ def main(args):  # pragma: no cover
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     for i, contrib in enumerate(api.contributors):
         contrib = data.add(
-            models.Coder,
+            common.Contributor,
             contrib.id,
             id=contrib.id,
             name=contrib.name,
-            count_datapoints=0,
         )
         common.Editor(dataset=dataset, contributor=contrib, ord=i)
 
@@ -109,13 +108,5 @@ def prime_cache(args):  # pragma: no cover
         LanguageTreeLabel(
             language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
     DBSession.add(phylo)
-
-    contributors = {c.pk: c for c in DBSession.query(common.Contributor)}
-    for cpk, ndp in DBSession.execute("""\
-select cc.contributor_pk, count(distinct vs.pk) 
-from valueset as vs, contribution as co, contributioncontributor as cc
-where vs.contribution_pk = co.pk and co.pk = cc.contribution_pk
-group by cc.contributor_pk"""):
-        contributors[cpk].count_datapoints = ndp
 
     compute_language_sources()

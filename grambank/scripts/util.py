@@ -13,6 +13,18 @@ from grambank.models import GrambankLanguage, Feature
 def import_languages(cldf, data):  # pragma: no cover
     for lang in tqdm(list(cldf['LanguageTable']), desc='loading languages'):
         lname = '{0} [{1}]'.format(lang['Name'], lang['ID'])
+        c = data.add(
+            Contribution,
+            lang['ID'],
+            id=lang['ID'],
+            name='Dataset for {0}'.format(lname),
+        )
+        for i, cid in enumerate(lang['Coders'], start=1):
+            DBSession.add(ContributionContributor(
+                contribution=c,
+                contributor=data['Contributor'][cid],
+                ord=i,
+            ))
         data.add(
             GrambankLanguage,
             lang['ID'],
@@ -26,24 +38,12 @@ def import_languages(cldf, data):  # pragma: no cover
 
 def import_values(cldf, data):  # pragma: no cover
     for value in tqdm(list(cldf['ValueTable']), desc='loading values'):
-        contrib_id = '-'.join(value['Coders'])
-        contrib = data['Contribution'].get(contrib_id)
-        if not contrib:
-            contrib = data.add(
-                Contribution,
-                contrib_id,
-                id=contrib_id,
-                name=contrib_id,
-            )
-            for ord, c in enumerate(value['Coders'], start=1):
-                DBSession.add(ContributionContributor(
-                    ord=ord, contribution=contrib, contributor=data['Coder'][c]))
         vs = data.add(
             ValueSet, value['ID'],
             id=value['ID'],
             parameter=data['Feature'][value['Parameter_ID']],
             language=data['GrambankLanguage'][value['Language_ID']],
-            contribution=contrib,
+            contribution=data['Contribution'][value['Language_ID']],
         )
         data.add(
             Value,
@@ -67,6 +67,14 @@ def import_features(cldf, data):  # pragma: no cover
         'c0000ff',
         'cffff00',
     ]
+    patrons = {
+        'Alena': 'AWM',
+        'Hannah': 'HJH',
+        'Harald': 'HH',
+        'Hedvig': 'HS',
+        'Jakob': 'JLE',
+        'Jeremy': 'JC',
+    }
     domains = {}
     for fid, codes in itertools.groupby(
             sorted(cldf['CodeTable'], key=lambda c: c['Parameter_ID']),
@@ -81,7 +89,7 @@ def import_features(cldf, data):  # pragma: no cover
             id=fid,
             name=feature['Name'],
             description=feature['Description'],
-            patron=feature['patron'],
+            patron=data['Contributor'][patrons[feature['patron']]],
             name_french=feature['name_in_french'],
         )
         for code in domains[fid]:
