@@ -27,10 +27,16 @@
 </div>
 
 <h2>Feature ${ctx.id}: ${ctx.name}</h2>
-<div>${h.alt_representations(req, ctx, doc_position='right', exclude=['snippet.html'])|n}</div>
+<div>
+    ${h.alt_representations(req, ctx, doc_position='right', exclude=['snippet.html'])|n}
+    <div class="badge">
+        <strong>Patron:</strong> ${h.link(req, ctx.patron)}
+    </div>
+</div>
 
 
 <br style="clear: right"/>
+
 
 % if request.map:
     ${request.map.render()}
