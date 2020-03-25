@@ -1,7 +1,8 @@
 from sqlalchemy.orm import joinedload, joinedload_all
-from clld.db.meta import DBSession
-from clld.web.util.htmllib import HTML
 
+from clld.db.meta import DBSession
+from clld.db.util import icontains
+from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
 from clld.web.datatables.value import Values, ValueNameCol, RefsCol
@@ -73,13 +74,18 @@ class PatronCol(LinkCol):
         return qs == common.Contributor.name
 
 
+class FeatureIdCol(IdCol):
+    def search(self, qs):
+        return icontains(Feature.id, qs)
+
+
 class Features(Parameters):
     def base_query(self, query):
         return query.join(common.Contributor).options(joinedload(Feature.patron))
 
     def col_defs(self):
         return [
-            IdCol(self, 'Id', sClass='left', model_col=Feature.id),
+            FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
             LinkCol(self, 'Feature', model_col=Feature.name),
             PatronCol(self, 'patron', get_object=lambda i: i.patron),
             Col(self, 'Languages', model_col=Feature.representation),
