@@ -12,12 +12,11 @@ from grambank.models import GrambankLanguage, Feature
 
 def import_languages(cldf, data):  # pragma: no cover
     for lang in tqdm(list(cldf['LanguageTable']), desc='loading languages'):
-        lname = '{0} [{1}]'.format(lang['Name'], lang['ID'])
         c = data.add(
             Contribution,
             lang['ID'],
             id=lang['ID'],
-            name='Dataset for {0}'.format(lname),
+            name='Dataset for {0}'.format(lang['Name']),
         )
         for i, cid in enumerate(lang['Coders'], start=1):
             DBSession.add(ContributionContributor(
@@ -29,7 +28,7 @@ def import_languages(cldf, data):  # pragma: no cover
             GrambankLanguage,
             lang['ID'],
             id=lang['ID'],
-            name=lname,
+            name=lang['Name'],
             macroarea=lang['Macroarea'],
             latitude=lang['Latitude'],
             longitude=lang['Longitude'],
