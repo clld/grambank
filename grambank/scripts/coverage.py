@@ -1,5 +1,4 @@
 import io
-import sys
 import pathlib
 import functools
 import itertools

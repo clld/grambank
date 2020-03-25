@@ -6,16 +6,14 @@ from sqlalchemy import (
     String,
     Integer,
     Unicode,
-    Float,
     ForeignKey,
-    CheckConstraint,
 )
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import Contribution, Parameter, Language, Contributor, Dataset
-from clld_glottologfamily_plugin.models import HasFamilyMixin, Family
+from clld_glottologfamily_plugin.models import HasFamilyMixin
 
 
 @implementer(interfaces.IDataset)
