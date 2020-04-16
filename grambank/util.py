@@ -113,8 +113,3 @@ def dataset_detail_html(context=None, request=None, **kw):
         stats=context.get_stats(
             [rsc for rsc in RESOURCES if rsc.name in ['language', 'parameter', 'value']]),
     )
-
-
-def combination_detail_html(context=None, request=None, **kw):
-    [f1, f2] = context.parameters[:2]
-    return {'dependency': {}}
