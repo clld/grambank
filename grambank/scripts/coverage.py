@@ -73,9 +73,8 @@ def get_md(name, langs):  # pragma: no coverage
     return res
 
 
-def main(args):
+def main(api):
     res = {}
-    api = Glottolog(args.glottolog)
     log = collections.Counter()
     languages = sorted(iter_languages(api))
 

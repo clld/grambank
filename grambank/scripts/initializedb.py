@@ -1,9 +1,13 @@
+import pathlib
+import itertools
+
+import transaction
+from tqdm import tqdm
 from sqlalchemy import func
-from clld.scripts.util import Data
+from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
-from clld.scripts.util import bibtex2source
 from clld.lib.bibtex import Database
 
 from clld_glottologfamily_plugin.models import Family
@@ -14,57 +18,90 @@ from pycldf import StructureDataset
 from pygrambank import Grambank
 
 import grambank
-from grambank.scripts.util import import_features, import_values, import_languages
+from grambank.scripts.util import import_features, import_values
 from grambank.scripts.global_tree import tree
+from grambank.scripts import coverage
 
 from grambank import models
 
 
+PROJECT_DIR = pathlib.Path(grambank.__file__).parent.parent.resolve()
+REPOS = {'Grambank': None, 'grambank-cldf': None, 'glottolog/glottolog': None}
+
+
 def main(args):  # pragma: no cover
-    api = Grambank(args.Grambank)
+    for repo in list(REPOS.keys()):
+        d = PROJECT_DIR.parent
+        if '/' in repo:
+            d = d.parent
+            repo = repo.split('/', maxsplit=1)
+        else:
+            repo = [repo]
+        d = d.joinpath(*repo)
+        REPOS[repo[-1]] = pathlib.Path(input('{} [{}]: '.format(repo[-1], d)) or d)
+
+    api = Grambank(REPOS['Grambank'])
     cldf = StructureDataset.from_metadata(
-        args.grambank_cldf / 'cldf' / 'StructureDataset-metadata.json')
+        REPOS['grambank-cldf'] / 'cldf' / 'StructureDataset-metadata.json')
     data = Data()
     dataset = models.Grambank(
         id=grambank.__name__,
         name="Grambank",
         description="Grambank",
-        publisher_name="Max Planck Institute for the Science of Human History",
-        publisher_place="Jena",
-        publisher_url="https://shh.mpg.de",
+        publisher_name="Max Planck Institute for Evolutionary Anthropology",
+        publisher_place="Leipzig",
+        publisher_url="https://www.eva.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
         domain='grambank.clld.org',
         contact='grambank@shh.mpg.de',
         jsondata={
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
+    contributors = {}
     for i, contrib in enumerate(api.contributors):
-        contrib = data.add(
-            common.Contributor,
+        contrib = common.Contributor(
             contrib.id,
             id=contrib.id,
             name=contrib.name,
         )
         common.Editor(dataset=dataset, contributor=contrib, ord=i)
+        DBSession.add(contrib)
+        DBSession.flush()
+        contributors[contrib.id] = contrib.pk
+    contributions = {r['ID']: r for r in cldf['LanguageTable']}
 
     DBSession.add(dataset)
-    glottolog = Glottolog(args.glottolog)
-    languoids = {l.id: l for l in glottolog.languoids()}
 
-    for rec in Database.from_file(cldf.bibpath, lowercase=True):
+    for rec in tqdm(list(Database.from_file(cldf.bibpath, lowercase=True)), desc='sources'):
         data.add(common.Source, rec.id, _obj=bibtex2source(rec))
+    DBSession.flush()
+    sources = {k: v.pk for k, v in data['Source'].items()}
 
-    import_features(cldf, data)
-    import_languages(cldf, data)
-    import_values(cldf, data)
+    features, codes = import_features(cldf, contributors)
+    transaction.commit()
+
+    values_by_sheet = [(lid, list(v)) for lid, v in itertools.groupby(
+        sorted(cldf['ValueTable'], key=lambda r: r['Language_ID']),
+        lambda r: r['Language_ID'],
+    )]
+    for lid, values in tqdm(values_by_sheet, desc='loading values'):
+        transaction.begin()
+        import_values(values, contributions[lid], features, codes, contributors, sources)
+        transaction.commit()
+
+    transaction.begin()
+
+    glottolog = Glottolog(REPOS['glottolog'])
+    languoids = {l.id: l for l in glottolog.languoids()}
+    gblangs = DBSession.query(models.GrambankLanguage).all()
     load_families(
         data,
-        data['GrambankLanguage'].values(),
-        glottolog_repos=args.glottolog,
-        isolates_icon='tcccccc')
+        gblangs,
+        glottolog_repos=REPOS['glottolog'],
+        isolates_icon='dcccccc')
 
     # Add isolates
-    for lg in data['GrambankLanguage'].values():
+    for lg in gblangs:
         gl_language = languoids.get(lg.id)
         if not gl_language.family:
             family = data.add(
@@ -76,7 +113,8 @@ def main(args):  # pragma: no cover
                     type=common.IdentifierType.glottolog.value).url(),
                 jsondata={"icon": 'tcccccc'})
             lg.family = family
-    return 
+    coverage.main(glottolog)
+    return
 
 
 def prime_cache(args):  # pragma: no cover
@@ -99,6 +137,9 @@ def prime_cache(args):  # pragma: no cover
             .group_by(common.ValueSet.parameter_pk):
         features[fpk].representation = nl
 
+    compute_language_sources()
+
+    return
     newick, _ = tree([l.id for l in DBSession.query(common.Language)], args.glottolog)
     phylo = Phylogeny(
         id='p',
@@ -109,4 +150,3 @@ def prime_cache(args):  # pragma: no cover
             language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
     DBSession.add(phylo)
 
-    compute_language_sources()

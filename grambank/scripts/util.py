@@ -1,6 +1,7 @@
 import itertools
 
 from tqdm import tqdm
+from pycldf.sources import Sources
 
 from clld.db.meta import DBSession
 from clld.db.models.common import (
@@ -10,56 +11,47 @@ from clld.db.models.common import (
 from grambank.models import GrambankLanguage, Feature
 
 
-def import_languages(cldf, data):  # pragma: no cover
-    for lang in tqdm(list(cldf['LanguageTable']), desc='loading languages'):
-        c = data.add(
-            Contribution,
-            lang['ID'],
-            id=lang['ID'],
-            name='Dataset for {0}'.format(lang['Name']),
-        )
-        for i, cid in enumerate(lang['Coders'], start=1):
-            DBSession.add(ContributionContributor(
-                contribution=c,
-                contributor=data['Contributor'][cid],
-                ord=i,
-            ))
-        data.add(
-            GrambankLanguage,
-            lang['ID'],
-            id=lang['ID'],
-            name=lang['Name'],
-            macroarea=lang['Macroarea'],
-            latitude=lang['Latitude'],
-            longitude=lang['Longitude'],
-        )
-
-
-def import_values(cldf, data):  # pragma: no cover
-    for value in tqdm(list(cldf['ValueTable']), desc='loading values'):
-        vs = data.add(
-            ValueSet, value['ID'],
+def import_values(values, lang, features, codes, contributors, sources):  # pragma: no cover
+    c = Contribution(
+        id=lang['ID'],
+        name='Dataset for {0}'.format(lang['Name']),
+    )
+    for i, cid in enumerate(lang['Coders'], start=1):
+        DBSession.add(ContributionContributor(
+            contribution=c,
+            contributor_pk=contributors[cid],
+            ord=i,
+        ))
+    l = GrambankLanguage(
+        id=lang['ID'],
+        name=lang['Name'],
+        macroarea=lang['Macroarea'],
+        latitude=lang['Latitude'],
+        longitude=lang['Longitude'],
+    )
+    for value in values:
+        vs = ValueSet(
             id=value['ID'],
-            parameter=data['Feature'][value['Parameter_ID']],
-            language=data['GrambankLanguage'][value['Language_ID']],
-            contribution=data['Contribution'][value['Language_ID']],
+            parameter_pk=features[value['Parameter_ID']],
+            language=l,
+            contribution=c,
         )
-        data.add(
-            Value,
-            value['ID'],
+        Value(
             id=value['ID'],
             valueset=vs,
             name=value['Value'],
             description=value['Comment'],
-            domainelement=data['DomainElement'][value['Parameter_ID'], value['Value']])
+            domainelement_pk=codes[value['Code_ID'] or '{}-NA'.format(value['Parameter_ID'])])
 
         if value['Source']:
             for ref in value['Source']:
-                sid, pages = cldf.sources.parse(ref)
-                ValueSetReference(valueset=vs, source=data['Source'][sid], description=pages)
+                sid, pages = Sources.parse(ref)
+                ValueSetReference(valueset=vs, source_pk=sources[sid], description=pages)
+    DBSession.add(c)
 
 
-def import_features(cldf, data):  # pragma: no cover
+def import_features(cldf, contributors):  # pragma: no cover
+    features, codes = {}, {}
     icons = [
         'cffffff',
         'cff0000',
@@ -75,20 +67,18 @@ def import_features(cldf, data):  # pragma: no cover
         'Jeremy': 'JC',
     }
     domains = {}
-    for fid, codes in itertools.groupby(
+    for fid, des in itertools.groupby(
             sorted(cldf['CodeTable'], key=lambda c: c['Parameter_ID']),
             lambda c: c['Parameter_ID']):
-        domains[fid] = list(codes) + [dict(ID=fid + '-NA', Name='?', Description='Not known')]
+        domains[fid] = list(des) + [dict(ID=fid + '-NA', Name='?', Description='Not known')]
 
     for feature in tqdm(list(cldf['ParameterTable']), desc='loading features'):
         fid = feature['ID']
-        f = data.add(
-            Feature,
-            fid,
+        f = Feature(
             id=fid,
             name=feature['Name'],
             description=feature['Description'],
-            patron=data['Contributor'][patrons[feature['patron']]],
+            patron_pk=contributors[patrons[feature['patron']]],
             name_french=feature['name_in_french'],
         )
         for code in domains[fid]:
@@ -96,12 +86,18 @@ def import_features(cldf, data):  # pragma: no cover
                 icon, number, value = 'tcccccc', 999, None
             else:
                 icon, number, value = icons[int(code['Name'])], int(code['Name']), code['Name']
-            data.add(
-                DomainElement,
-                (fid, value),
+            DomainElement(
                 id=code['ID'],
                 parameter=f,
                 name=code['Name'],
                 number=number,
                 description=code['Description'],
-                jsondata=dict(icon=icon))
+                jsondata=dict(icon=icon)
+            )
+        DBSession.add(f)
+        DBSession.flush()
+        features[fid] = f.pk
+        for de in f.domain:
+            codes[de.id] = de.pk
+
+    return features, codes
