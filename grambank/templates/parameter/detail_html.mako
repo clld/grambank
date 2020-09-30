@@ -35,9 +35,17 @@
 
 <h2>Feature ${ctx.id}: ${ctx.name}</h2>
 <div>
-    ${h.alt_representations(req, ctx, doc_position='right', exclude=['snippet.html'])|n}
-    <div class="badge">
-        <strong>Patron:</strong> ${h.link(req, ctx.patron)}
+    <div class="span1">
+        ${h.alt_representations(req, ctx, doc_position='right', exclude=['snippet.html'])|n}
+    </div>
+    <div class="span9">
+        <strong>Patrons:</strong>
+        % for i, patron in enumerate(ctx.patrons):
+            % if i:
+                ' and '
+            % endif
+            ${h.link(req, patron)}
+        % endfor
     </div>
 </div>
 

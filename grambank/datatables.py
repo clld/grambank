@@ -65,17 +65,10 @@ class GrambankLanguages(Languages):
 
 
 class PatronCol(LinkCol):
-    def __init__(self, *args, **kw):
-        kw['choices'] = [
-            c.name for c in DBSession.query(common.Contributor).filter(
-                common.Contributor.pk.in_(DBSession.query(Feature.patron_pk)))]
-        LinkCol.__init__(self, *args, **kw)
+    __kw__ = {'bSortable': False, 'bSearchable': False}
 
-    def order(self):
-        return common.Contributor.name
-
-    def search(self, qs):
-        return qs == common.Contributor.name
+    def format(self, item):
+        return ' and '.join([link(self.dt.req, p) for p in item.patrons])
 
 
 class FeatureIdCol(IdCol):
@@ -85,7 +78,7 @@ class FeatureIdCol(IdCol):
 
 class Features(Parameters):
     def base_query(self, query):
-        return query.join(common.Contributor).options(joinedload(Feature.patron))
+        return query.options(joinedload(Feature.contributor_assocs))
 
     def col_defs(self):
         return [

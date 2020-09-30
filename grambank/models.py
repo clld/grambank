@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     Unicode,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -50,6 +51,23 @@ class Feature(CustomModelMixin, Parameter):
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
     representation = Column(Integer)
-    patron_pk = Column(Integer, ForeignKey('contributor.pk'))
-    patron = relationship(Contributor)
     name_french = Column(String)
+
+    @property
+    def patrons(self):
+        return [ca.contributor for ca in self.contributor_assocs]
+
+
+class FeaturePatron(Base):
+    __table_args__ = (UniqueConstraint('feature_pk', 'contributor_pk'),)
+
+    feature_pk = Column(Integer, ForeignKey('feature.pk'), nullable=False)
+    contributor_pk = Column(Integer, ForeignKey('contributor.pk'), nullable=False)
+
+    # contributors are ordered.
+    ord = Column(Integer, default=1)
+
+    feature = relationship(
+        Feature, innerjoin=True, backref='contributor_assocs')
+    contributor = relationship(
+        Contributor, innerjoin=True, lazy=False, backref='feature_assocs')

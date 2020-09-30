@@ -38,6 +38,8 @@ def process_markdown(text, req, section=None):
         if line.startswith('##'):
             current_section = line[2:].strip()
             line = '##' + line
+            if current_section.startswith('Patron'):
+                break
         if section and current_section != section:
             in_section = False
         if i == 1 and line.startswith('##'):

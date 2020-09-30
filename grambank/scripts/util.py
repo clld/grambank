@@ -8,7 +8,7 @@ from clld.db.models.common import (
     ValueSet, Value, DomainElement, ValueSetReference, ContributionContributor, Contribution,
 )
 
-from grambank.models import GrambankLanguage, Feature
+from grambank.models import GrambankLanguage, Feature, FeaturePatron
 
 
 def import_values(values, lang, features, codes, contributors, sources):  # pragma: no cover
@@ -58,14 +58,6 @@ def import_features(cldf, contributors):  # pragma: no cover
         'c0000ff',
         'cffff00',
     ]
-    patrons = {
-        'Alena': 'AWM',
-        'Hannah': 'HJH',
-        'Harald': 'HH',
-        'Hedvig': 'HS',
-        'Jakob': 'JLE',
-        'Jeremy': 'JC',
-    }
     domains = {}
     for fid, des in itertools.groupby(
             sorted(cldf['CodeTable'], key=lambda c: c['Parameter_ID']),
@@ -78,9 +70,10 @@ def import_features(cldf, contributors):  # pragma: no cover
             id=fid,
             name=feature['Name'],
             description=feature['Description'],
-            patron_pk=contributors[patrons[feature['patron']]],
             name_french=feature['name_in_french'],
         )
+        for ord, patron in enumerate(feature['Patrons'], start=1):
+            DBSession.add(FeaturePatron(ord=1, feature=f, contributor_pk=contributors[patron]))
         for code in domains[fid]:
             if code['Name'] == '?':
                 icon, number, value = 'tcccccc', 999, None
