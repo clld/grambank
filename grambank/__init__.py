@@ -11,7 +11,7 @@ from clld.db.models import common
 # we must make sure custom models are known at database initialization!
 from grambank import models
 from grambank import views
-
+from grambank import datatables
 
 _ = lambda s: s
 _('Parameters')
@@ -52,7 +52,8 @@ def main(global_config, **settings):
     config.include('clldmpg')
     config.include('clld_glottologfamily_plugin')
     config.include('clld_phylogeny_plugin')
-    
+    config.register_datatable('familys', datatables.Families)
+
     config.registry.settings['home_comp'].append('coverage')
     config.add_route('coverage', pattern='/coverage')
     config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')

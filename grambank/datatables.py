@@ -1,7 +1,7 @@
 from sqlalchemy.orm import joinedload, joinedload_all
 
 from clld.db.meta import DBSession
-from clld.db.util import icontains
+from clld.db.util import icontains, get_distinct_values
 from clld.web.util.htmllib import HTML
 from clld.db.models import common
 from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
@@ -40,7 +40,11 @@ class LanguageIdCol(LinkCol):
 
 
 class GrambankLanguages(Languages):
+    __constraints__ = [Family]
+
     def base_query(self, query):
+        if self.family:
+            return query.join(Family).filter(GrambankLanguage.family == self.family).options(joinedload(GrambankLanguage.family))
         return query.outerjoin(Family).options(joinedload(GrambankLanguage.family))
 
     def col_defs(self):
@@ -113,7 +117,10 @@ class Families(Familys):
             LinkCol(self, 'name'),
             GlottologUrlCol(self, 'description', sTitle='Glottolog'),
             FamilyMacroareaCol(self, 'macroarea'),
-            LanguageCountCol(self, 'number of languages in GramBank'),
+            LanguageCountCol(
+                self,
+                'number of languages in GramBank',
+                sClass='right'),
         ]
 
 
@@ -167,8 +174,17 @@ class Coders(Contributors):
 
 
 class Datapoints(Values):
+    __constraints__ = [common.Parameter, common.Contribution, common.Language, Family]
+
     def base_query(self, query):
         query = Values.base_query(self, query)
+        if self.family:
+            query = query.join(common.ValueSet.parameter)\
+                .join(GrambankLanguage).join(Family).filter(GrambankLanguage.family == self.family)
+            query = query.options(
+                joinedload_all(common.Value.valueset, common.ValueSet.parameter),
+                joinedload(common.Value.domainelement),
+            )
         if self.language:
             query = query.options(
                 joinedload_all(common.Value.valueset, common.ValueSet.parameter),
@@ -221,6 +237,23 @@ class Datapoints(Values):
                     model_col=common.Parameter.name,
                     get_object=lambda i: i.valueset.parameter)
             ]
+        elif self.family:
+            cols = [
+                LinkCol(
+                    self, 'Name',
+                    model_col=common.Language.name,
+                    get_object=lambda i: i.valueset.language),
+                IdCol(
+                    self, 'Feature Id',
+                    sClass='left', model_col=common.Parameter.id,
+                    get_object=lambda i: i.valueset.parameter),
+                LinkCol(
+                    self, 'Feature',
+                    model_col=common.Parameter.name,
+                    get_object=lambda i: i.valueset.parameter,
+                    choices=get_distinct_values(common.Parameter.name),
+                )
+            ]
 
         cols = cols + [
             name_col,
@@ -248,5 +281,4 @@ def includeme(config):
     config.register_datatable('languages', GrambankLanguages)
     config.register_datatable('parameters', Features)
     config.register_datatable('contributors', Coders)
-    config.register_datatable('familys', Families)
     config.register_datatable('sources', References)
