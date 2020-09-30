@@ -15,7 +15,7 @@ from clld.web.util.helpers import get_referents
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Contributor, ValueSet, Contribution, ContributionContributor, Language,
+    Contributor, ValueSet, Contribution, ContributionContributor, Language, Parameter,
 )
 from clld_glottologfamily_plugin.models import Family
 from clld.web.util.multiselect import CombinationMultiSelect
@@ -29,24 +29,40 @@ COLORS = [
 ]
 
 
-def process_markdown(text, req):
+def process_markdown(text, req, section=None):
     from markdown import markdown
 
-    md = []
+    md, in_section, current_section = [], False, None
     in_example = False
     for i, line in enumerate(text.strip().split('\n'), start=1):
+        if line.startswith('##'):
+            current_section = line[2:].strip()
+            line = '##' + line
+        if section and current_section != section:
+            in_section = False
         if i == 1 and line.startswith('##'):
             continue
         if line.startswith('```'):
             in_example = not in_example
         elif in_example:
             line = line.lstrip()
-        md.append(line)
+        if (not section) or in_section:
+            md.append(line)
+        if section and current_section == section:
+            in_section = True
 
-    html = markdown('\n'.join(md))
-    wiki_url_pattern = re.compile('https://github.com/glottobank/Grambank/wiki/(?P<id>GB[0-9]{3})')
+    html = markdown('\n'.join(md), extensions=['tables', 'fenced_code', 'toc'])
+    wiki_url_pattern = re.compile('https://github.com/grambank/[gG]rambank/wiki/(?P<id>GB[0-9]{3})')
     html = wiki_url_pattern.sub(lambda m: req.route_url('parameter', id=m.group('id')), html)
-    return html.replace('<code>', '<pre>').replace('</code>', '</pre>')
+    return html.replace('<code>', '').replace('</code>', '').replace('<table>', '<table class="table table-nonfluid">')
+
+
+def family_detail_html(request=None, context=None, **kw):
+    from clld.web import app
+    return {
+        'features': DBSession.query(Parameter).all(),
+        'feature': Parameter.get(request.params['feature']) if request.params.get('feature') else None,
+    }
 
 
 def phylogeny_detail_html(request=None, context=None, **kw):

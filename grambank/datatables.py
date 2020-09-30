@@ -93,7 +93,7 @@ class Features(Parameters):
             LinkCol(self, 'Feature', model_col=Feature.name),
             PatronCol(self, 'patron', get_object=lambda i: i.patron),
             Col(self, 'Languages', model_col=Feature.representation),
-            DetailsRowLinkCol(self, 'd', button_text='Values'),
+            DetailsRowLinkCol(self, 'd', button_text='Values and description'),
         ]
 
 
@@ -176,33 +176,47 @@ class Coders(Contributors):
 class Datapoints(Values):
     __constraints__ = [common.Parameter, common.Contribution, common.Language, Family]
 
+    def __init__(self, req, *args, **kw):
+        self.feature = kw.pop('feature', None)
+        if (not self.feature) and 'feature' in req.params:
+            self.feature = common.Parameter.get(req.params['feature'])
+        Values.__init__(self, req, *args, **kw)
+
     def base_query(self, query):
         query = Values.base_query(self, query)
         if self.family:
-            query = query.join(common.ValueSet.parameter)\
-                .join(GrambankLanguage).join(Family).filter(GrambankLanguage.family == self.family)
+            if self.feature:
+                query = query.filter(common.ValueSet.parameter_pk == int(self.feature.pk))
+            query = query.join(GrambankLanguage).join(Family).filter(GrambankLanguage.family == self.family)
             query = query.options(
                 joinedload_all(common.Value.valueset, common.ValueSet.parameter),
                 joinedload(common.Value.domainelement),
             )
-        if self.language:
-            query = query.options(
-                joinedload_all(common.Value.valueset, common.ValueSet.parameter),
-                joinedload(common.Value.domainelement),
-            )
-        if self.parameter:
-            query = query\
-                .join(common.ValueSet.contribution)\
-                .join(common.Contribution.contributor_assocs)\
-                .join(common.ContributionContributor.contributor)\
-                .options(
-                joinedload(common.Value.valueset, common.ValueSet.language),
-                joinedload_all(
-                    common.Value.valueset,
-                    common.ValueSet.contribution,
-                    common.Contribution.contributor_assocs,
-                    common.ContributionContributor.contributor))
+        else:
+            if self.language:
+                query = query.options(
+                    joinedload_all(common.Value.valueset, common.ValueSet.parameter),
+                    joinedload(common.Value.domainelement),
+                )
+            if self.parameter:
+                query = query\
+                    .join(common.ValueSet.contribution)\
+                    .join(common.Contribution.contributor_assocs)\
+                    .join(common.ContributionContributor.contributor)\
+                    .options(
+                    joinedload(common.Value.valueset, common.ValueSet.language),
+                    joinedload_all(
+                        common.Value.valueset,
+                        common.ValueSet.contribution,
+                        common.Contribution.contributor_assocs,
+                        common.ContributionContributor.contributor))
         return query
+
+    def xhr_query(self):
+        res = Values.xhr_query(self)
+        if self.feature:
+            res['feature'] = self.feature.id
+        return res
 
     def col_defs(self):
         name_col = ValueNameCol(self, 'value')
@@ -242,18 +256,21 @@ class Datapoints(Values):
                 LinkCol(
                     self, 'Name',
                     model_col=common.Language.name,
-                    get_object=lambda i: i.valueset.language),
-                IdCol(
-                    self, 'Feature Id',
-                    sClass='left', model_col=common.Parameter.id,
-                    get_object=lambda i: i.valueset.parameter),
-                LinkCol(
-                    self, 'Feature',
-                    model_col=common.Parameter.name,
-                    get_object=lambda i: i.valueset.parameter,
-                    choices=get_distinct_values(common.Parameter.name),
-                )
+                    get_object=lambda i: i.valueset.language)
             ]
+            if not self.feature:
+                cols.extend([
+                    IdCol(
+                        self, 'Feature Id',
+                        sClass='left', model_col=common.Parameter.id,
+                        get_object=lambda i: i.valueset.parameter),
+                    LinkCol(
+                        self, 'Feature',
+                        model_col=common.Parameter.name,
+                        get_object=lambda i: i.valueset.parameter,
+                        choices=get_distinct_values(common.Parameter.name),
+                    )
+                ])
 
         cols = cols + [
             name_col,

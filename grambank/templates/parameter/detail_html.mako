@@ -8,23 +8,30 @@
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
 </%block>
 
-<div class="span4" style="float: right; margin-top: 1em;">
-        <%util:well title="Values">
-        <table class="table table-condensed">
-            % for de in ctx.domain:
-                <tr>
-                    <td title="click to select a different map marker" id="iconselect${str(de.number)}"
-                        data-toggle="popover" data-placement="left">
-                        ${h.map_marker_img(req, de)}
-                    </td>
-                    <td>${de.name}</td>
-                    <td>${de.description}</td>
-                    <td class="right">${len(de.values)}</td>
-                </tr>
-            % endfor
-        </table>
-    </%util:well>
-</div>
+<ul class="nav nav-pills" style="float: right">
+    <li class="">
+        <a href="#info-container">
+            <img src="${req.static_url('grambank:static/About_Icon.png')}"
+                 width="35">
+            Description
+        </a>
+    </li>
+    <li class="">
+        <a href="#map-container">
+            <img src="${req.static_url('grambank:static/Map_Icon.png')}"
+                 width="35">
+            Map
+        </a>
+    </li>
+    <li class="">
+        <a href="#table-container">
+            <img src="${req.static_url('grambank:static/Table_Icon.png')}"
+                 width="35">
+            Values
+        </a>
+    </li>
+</ul>
+
 
 <h2>Feature ${ctx.id}: ${ctx.name}</h2>
 <div>
@@ -34,37 +41,22 @@
     </div>
 </div>
 
+<h3 id="info-container">
+    Description
+    <a href="#top" title="go to top of the page" style="vertical-align: bottom">&#x21eb;</a>
+</h3>
+${u.process_markdown(ctx.description, req)|n}
 
 <br style="clear: right"/>
 
+<h3 id="map-container">
+    Map
+    <a href="#top" title="go to top of the page" style="vertical-align: bottom">&#x21eb;</a>
+</h3>
+${request.map.render()}
 
-% if request.map:
-    ${request.map.render()}
-% endif
-
-
-
-<div class="tabbable">
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="#values" data-toggle="tab">Values</a></li>
-        <li><a href="#doc" data-toggle="tab">Description</a></li>
-    </ul>
-    <div class="tab-content" style="overflow: visible;">
-        <div id="values" class="tab-pane active">
-            ${request.get_datatable('values', h.models.Value, parameter=ctx).render()}
-        </div>
-        <div id="doc" class="tab-pane">
-            ${u.process_markdown(ctx.description, req)|n}
-        </div>
-    </div>
-    <script>
-        $(document).ready(function () {
-            if (location.hash !== '') {
-                $('a[href="#' + location.hash.substr(2) + '"]').tab('show');
-            }
-            return $('a[data-toggle="tab"]').on('shown', function (e) {
-                return location.hash = 't' + $(e.target).attr('href').substr(1);
-            });
-        });
-    </script>
-</div>
+<h3 id="table-container">
+    Values
+    <a href="#top" title="go to top of the page" style="vertical-align: bottom">&#x21eb;</a>
+</h3>
+${request.get_datatable('values', h.models.Value, parameter=ctx).render()}
