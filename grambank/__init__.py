@@ -7,6 +7,7 @@ from clld.interfaces import (
 from clld.web.app import CtxFactoryQuery
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.db.models import common
+from clldutils import svg
 
 # we must make sure custom models are known at database initialization!
 from grambank import models
@@ -20,14 +21,16 @@ _('Familys')
 
 
 class GrambankMapMarker(LanguageByFamilyMapMarker):
-    def get_icon(self, ctx, req):
+    def __call__(self, ctx, req):
         if IValue.providedBy(ctx):
-            return ctx.domainelement.jsondata['icon']
-        if IValueSet.providedBy(ctx):
-            return ctx.values[0].domainelement.jsondata['icon']
-        if IDomainElement.providedBy(ctx):
-            return ctx.jsondata['icon']
-        return LanguageByFamilyMapMarker.get_icon(self, ctx, req)
+            icon = ctx.domainelement.jsondata['icon']
+        elif IValueSet.providedBy(ctx):
+            icon = ctx.values[0].domainelement.jsondata['icon']
+        elif IDomainElement.providedBy(ctx):
+            icon = ctx.jsondata['icon']
+        else:
+            icon = LanguageByFamilyMapMarker.get_icon(self, ctx, req)
+        return svg.data_url(svg.icon(icon, opacity=0.6))
 
 
 class GrambankCtxFactoryQuery(CtxFactoryQuery):

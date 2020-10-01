@@ -1,4 +1,3 @@
-
 .color-primary-0 { color: #B4AB8E }	/* Main Primary color */
 .color-primary-1 { color: #FFFBEF }
 .color-primary-2 { color: #D9D2BC }
@@ -126,3 +125,4 @@ a:hover {
         background-image: none;
 }
 
+img.leaflet-marker-icon {opacity: 0.5;}
