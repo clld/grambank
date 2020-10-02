@@ -4,10 +4,9 @@ Recreate glottolog data files from the current version published at http://glott
 import re
 
 from ete3 import Tree
-from pyglottolog.api import Glottolog
 
 
-def tree(glottocodes, gl_repos):  # pragma: no cover
+def iter_trees(glottocodes, glottolog):  # pragma: no cover
     label_pattern = re.compile("'[^\[]+\[([a-z0-9]{4}[0-9]{4})[^']*'")
 
     def rename(n):
@@ -15,17 +14,13 @@ def tree(glottocodes, gl_repos):  # pragma: no cover
         n.length = 1
 
     glottocodes = set(glottocodes)
-    glottocodes_in_global_tree = set()
     languoids = {}
     families = []
-    for lang in Glottolog(gl_repos).languoids():
+    for lang in glottolog.languoids():
         if not lang.lineage:  # a top-level node
             if not lang.category.startswith('Pseudo '):
                 families.append(lang)
         languoids[lang.id] = lang
-
-    glob = Tree()
-    glob.name = 'glottolog_global'
 
     for family in sorted(families, key=lambda f: f.name):
         node = family.newick_node(nodes=languoids)
@@ -39,13 +34,4 @@ def tree(glottocodes, gl_repos):  # pragma: no cover
         tree.name = 'glottolog_{0}'.format(family.id)
         if family.level.name == 'family':
             tree.prune(langs_selected)
-            glottocodes_in_global_tree = glottocodes_in_global_tree.union(
-                set(n.name for n in tree.traverse()))
-        else:
-            glottocodes_in_global_tree = glottocodes_in_global_tree.union(langs_in_tree)
-        glob.add_child(tree)
-
-    # global
-    nodes = glottocodes_in_global_tree.intersection(glottocodes)
-    glob.prune(nodes)
-    return glob.write(format=9), nodes
+            yield tree

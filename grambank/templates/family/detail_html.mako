@@ -1,13 +1,41 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
+<%! from clld_phylogeny_plugin.tree import Tree %>
+<%! from clld_phylogeny_plugin.interfaces import ITree %>
 <%! active_menu_item = "languages" %>
+
+<%block name="head">
+    ${Tree.head(req)|n}
+</%block>
+
 <%block name="title">Family ${ctx.name}</%block>
 
 <%! from sqlalchemy.orm import joinedload %>
 
-<ul class="nav nav-pills pull-right">
-    <li><a href="#varieties">Varieties in grambank</a></li>
-    <li><a href="#values">Feature values</a></li>
+<ul class="nav nav-pills" style="float: right">
+    <li class="">
+        <a href="#varieties">
+            <img src="${req.static_url('grambank:static/Map_Icon.png')}"
+                 width="35">
+            Varieties in grambank
+        </a>
+    </li>
+    <li class="">
+        <a href="#values">
+            <img src="${req.static_url('grambank:static/Table_Icon.png')}"
+                 width="35">
+            Feature values
+        </a>
+    </li>
+    % if phylogeny:
+        <li class="">
+            <a href="#tree-container">
+                <img src="${req.static_url('grambank:static/Tree_Icon.png')}"
+                     width="35">
+                Classification
+            </a>
+        </li>
+    % endif
 </ul>
 
 <h2>Family ${ctx.name}</h2>
@@ -54,3 +82,16 @@
     </h3>
     ${request.get_datatable('values', h.models.Value, family=ctx, feature=feature).render()}
 </div>
+
+% if phylogeny:
+<div id="tree-container">
+    <h3>
+        Family classification according to Glottolog
+        <a href="#top" title="go to top of the page" style="vertical-align: bottom">&#x21eb;</a>
+        <a class="headerlink" href="#values" title="Permalink to this headline">¶</a>
+    </h3>
+    <% tree = req.registry.queryUtility(ITree)(phylogeny, req) %>
+    <% tree.pids = [feature.id] if feature else [] %>
+    ${tree.render()}
+</div>
+% endif

@@ -3,15 +3,31 @@ from sqlalchemy.orm import joinedload, joinedload_all
 from clld import interfaces
 from clld.web.adapters.geojson import GeoJsonParameter
 from clld.db.meta import DBSession
-from clld.db.models.common import ValueSet, Value, DomainElement
+from clld.db.models.common import ValueSet, Value, DomainElement, Parameter
 from clld_phylogeny_plugin.interfaces import ITree
 from clld_phylogeny_plugin.tree import Tree
 from clld_glottologfamily_plugin.models import Family
+from clldutils.misc import lazyproperty
 
 from grambank import models
 
 
 class GrambankTree(Tree):
+    def __init__(self, *args, pids=None, **kw):
+        self.pids = pids or []
+        Tree.__init__(self, *args, **kw)
+
+    @lazyproperty
+    def parameters(self):
+        if self.pids:
+            return DBSession.query(Parameter) \
+                .filter(Parameter.id.in_(self.pids)) \
+                .options(
+                joinedload_all(Parameter.valuesets, ValueSet.values),
+                joinedload(Parameter.domain)) \
+                .all()
+        return []
+
     def get_marker(self, valueset):
         res = valueset.values[0].domainelement.jsondata['icon']
         return res[0], '#' + res[1:]

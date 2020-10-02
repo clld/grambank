@@ -20,6 +20,7 @@ from clld.db.models.common import (
 from clld_glottologfamily_plugin.models import Family
 from clld.web.util.multiselect import CombinationMultiSelect
 from clld.web.util import glottolog  # used in templates!
+from clld_phylogeny_plugin.models import Phylogeny
 
 from grambank.models import GrambankLanguage
 
@@ -60,10 +61,10 @@ def process_markdown(text, req, section=None):
 
 
 def family_detail_html(request=None, context=None, **kw):
-    from clld.web import app
     return {
         'features': DBSession.query(Parameter).all(),
         'feature': Parameter.get(request.params['feature']) if request.params.get('feature') else None,
+        'phylogeny': Phylogeny.get(context.id, default=None),
     }
 
 

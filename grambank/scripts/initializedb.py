@@ -19,7 +19,7 @@ from pygrambank import Grambank
 
 import grambank
 from grambank.scripts.util import import_features, import_values
-from grambank.scripts.global_tree import tree
+from grambank.scripts.trees import iter_trees
 from grambank.scripts import coverage
 
 from grambank import models
@@ -29,7 +29,7 @@ PROJECT_DIR = pathlib.Path(grambank.__file__).parent.parent.resolve()
 REPOS = {'Grambank': None, 'grambank-cldf': None, 'glottolog/glottolog': None}
 
 
-def main(args):  # pragma: no cover
+def get_repos():
     for repo in list(REPOS.keys()):
         d = PROJECT_DIR.parent
         if '/' in repo:
@@ -40,6 +40,9 @@ def main(args):  # pragma: no cover
         d = d.joinpath(*repo)
         REPOS[repo[-1]] = pathlib.Path(input('{} [{}]: '.format(repo[-1], d)) or d)
 
+
+def main(args):  # pragma: no cover
+    get_repos()
     api = Grambank(REPOS['Grambank'])
     cldf = StructureDataset.from_metadata(
         REPOS['grambank-cldf'] / 'cldf' / 'StructureDataset-metadata.json')
@@ -122,29 +125,40 @@ def prime_cache(args):  # pragma: no cover
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
-    langs = {l.pk: l for l in DBSession.query(models.GrambankLanguage)}
-    features = {f.pk: f for f in DBSession.query(models.Feature)}
+    if 1:
+        langs = {l.pk: l for l in DBSession.query(models.GrambankLanguage)}
+        features = {f.pk: f for f in DBSession.query(models.Feature)}
 
-    for lpk, nf in DBSession.query(common.ValueSet.language_pk, func.count(common.ValueSet.pk)) \
-            .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
-            .group_by(common.ValueSet.language_pk):
-        langs[lpk].representation = nf
+        for lpk, nf in DBSession.query(common.ValueSet.language_pk, func.count(common.ValueSet.pk)) \
+                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
+                .group_by(common.ValueSet.language_pk):
+            langs[lpk].representation = nf
 
-    for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk))\
-            .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk)\
-            .group_by(common.ValueSet.parameter_pk):
-        features[fpk].representation = nl
+        for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk))\
+                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk)\
+                .group_by(common.ValueSet.parameter_pk):
+            features[fpk].representation = nl
 
-    compute_language_sources()
+        compute_language_sources()
 
-    return
-    newick, _ = tree([l.id for l in DBSession.query(common.Language)], args.glottolog)
-    phylo = Phylogeny(
-        id='p',
-        name='glottolog global tree',
-        newick=newick)
-    for l in DBSession.query(common.Language):
-        LanguageTreeLabel(
-            language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
-    DBSession.add(phylo)
+    get_repos()
 
+    for obj in DBSession.query(LanguageTreeLabel).all():
+        DBSession.delete(obj)
+    for obj in DBSession.query(TreeLabel).all():
+        DBSession.delete(obj)
+    for obj in DBSession.query(Phylogeny).all():
+        DBSession.delete(obj)
+    DBSession.flush()
+
+    for tree in tqdm(iter_trees(
+            [l.id for l in DBSession.query(common.Language)], Glottolog(REPOS['glottolog']))):
+        nodes = set(n.name for n in tree.traverse())
+        phylo = Phylogeny(
+            id=tree.name.split('_')[1],
+            name=tree.name,
+            newick=tree.write(format=9))
+        for l in DBSession.query(common.Language).filter(common.Language.id.in_(nodes)):
+            LanguageTreeLabel(
+                language=l, treelabel=TreeLabel(id=l.id, name=l.id, phylogeny=phylo))
+        DBSession.add(phylo)
