@@ -30,7 +30,7 @@ class GrambankMapMarker(LanguageByFamilyMapMarker):
             icon = ctx.jsondata['icon']
         else:
             icon = LanguageByFamilyMapMarker.get_icon(self, ctx, req)
-        return svg.data_url(svg.icon(icon, opacity=0.6))
+        return svg.data_url(svg.icon(icon, opacity=0.8))
 
 
 class GrambankCtxFactoryQuery(CtxFactoryQuery):
