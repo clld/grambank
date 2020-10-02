@@ -30,6 +30,12 @@ class GrambankMapMarker(LanguageByFamilyMapMarker):
             icon = ctx.jsondata['icon']
         else:
             icon = LanguageByFamilyMapMarker.get_icon(self, ctx, req)
+        icon = {
+            'cffffff': 'c0077bb',
+            'cff0000': 'ccc3311',
+            'c0000ff': 'c009988',
+            'cffff00': 'cee7733',
+        }.get(icon, icon)
         return svg.data_url(svg.icon(icon, opacity=0.8))
 
 

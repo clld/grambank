@@ -51,12 +51,19 @@ def import_values(values, lang, features, codes, contributors, sources):  # prag
 
 
 def import_features(cldf, contributors):  # pragma: no cover
+    """
+    ? = gray cbbbbbb (is ? mapped? if not then don't worry)
+    0 = blue c0077bb
+    1 = red ccc3311
+    2 = teal c009988
+    3 = orange cee7733
+    """"""
     features, codes = {}, {}
     icons = [
-        'cffffff',
-        'cff0000',
-        'c0000ff',
-        'cffff00',
+        'cffffff',  # 'c0077bb'
+        'cff0000',  # 'ccc3311'
+        'c0000ff',  # 'c009988'
+        'cffff00',  # 'cee7733'
     ]
     domains = {}
     for fid, des in itertools.groupby(
