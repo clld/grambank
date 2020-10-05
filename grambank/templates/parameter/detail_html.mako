@@ -44,7 +44,7 @@
         <strong>Patrons:</strong>
         % for i, patron in enumerate(ctx.patrons):
             % if i:
-                ' and '
+                 and
             % endif
             ${h.link(req, patron)}
         % endfor

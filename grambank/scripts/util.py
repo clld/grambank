@@ -57,7 +57,7 @@ def import_features(cldf, contributors):  # pragma: no cover
     1 = red ccc3311
     2 = teal c009988
     3 = orange cee7733
-    """"""
+    """
     features, codes = {}, {}
     icons = [
         'cffffff',  # 'c0077bb'
