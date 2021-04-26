@@ -13,13 +13,13 @@
         <tr>
             <th>Macroarea</th>
             <th>Glottolog</th>
-            <th>GramBank</th>
+            <th>Grambank</th>
             <th>Coverage</th>
             <th>Glottolog</th>
-            <th>GramBank</th>
+            <th>Grambank</th>
             <th>Coverage</th>
             <th>Glottolog</th>
-            <th>GramBank</th>
+            <th>Grambank</th>
             <th>Coverage</th>
         </tr>
     </thead>
@@ -59,14 +59,14 @@
         <th>Family</th>
         <th>Subunit</th>
         <th>Glottolog</th>
-        <th>GramBank</th>
+        <th>Grambank</th>
         <th>Coverage</th>
         <th>Macroareas</th>
         <th>Glottolog</th>
-        <th>GramBank</th>
+        <th>Grambank</th>
         <th>Coverage</th>
         <th>Glottolog</th>
-        <th>GramBank</th>
+        <th>Grambank</th>
         <th>Coverage</th>
     </tr>
     </thead>
