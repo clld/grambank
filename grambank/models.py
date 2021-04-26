@@ -51,7 +51,6 @@ class Feature(CustomModelMixin, Parameter):
     """
     pk = Column(Integer, ForeignKey('parameter.pk'), primary_key=True)
     representation = Column(Integer)
-    name_french = Column(String)
 
     @property
     def patrons(self):

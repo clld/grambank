@@ -14,7 +14,6 @@ from clld_glottologfamily_plugin.models import Family
 from clld_glottologfamily_plugin.util import load_families
 from clld_phylogeny_plugin.models import Phylogeny, LanguageTreeLabel, TreeLabel
 from pyglottolog.api import Glottolog
-from pycldf import StructureDataset
 from pygrambank import Grambank
 
 import grambank
@@ -44,8 +43,7 @@ def get_repos():
 def main(args):  # pragma: no cover
     get_repos()
     api = Grambank(REPOS['Grambank'])
-    cldf = StructureDataset.from_metadata(
-        REPOS['grambank-cldf'] / 'cldf' / 'StructureDataset-metadata.json')
+    cldf = args.cldf
     data = Data()
     dataset = models.Grambank(
         id=grambank.__name__,

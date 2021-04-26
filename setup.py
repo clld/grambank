@@ -48,9 +48,6 @@ setup(
     },
     test_suite="grambank",
     entry_points={
-        'console_scripts': [
-            'grambank-app=grambank.__main__:main',
-        ],
         'paste.app_factory': [
             'main = grambank:main',
         ],

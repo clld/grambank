@@ -1,4 +1,4 @@
-from sqlalchemy.orm import joinedload, joinedload_all
+from sqlalchemy.orm import joinedload
 
 from clld import interfaces
 from clld.web.adapters.geojson import GeoJsonParameter
@@ -23,7 +23,7 @@ class GrambankTree(Tree):
             return DBSession.query(Parameter) \
                 .filter(Parameter.id.in_(self.pids)) \
                 .options(
-                joinedload_all(Parameter.valuesets, ValueSet.values),
+                joinedload(Parameter.valuesets).joinedload(ValueSet.values),
                 joinedload(Parameter.domain)) \
                 .all()
         return []
@@ -46,7 +46,7 @@ class GrambankGeoJsonParameter(GeoJsonParameter):
                     .filter(Family.id == req.params['family'])
             return [
                 v.valueset for v in query.options(
-                    joinedload_all(Value.valueset, ValueSet.values),
+                    joinedload(Value.valueset).joinedload(ValueSet.values),
                     joinedload(Value.valueset, ValueSet.language))]
         return self.get_query(ctx, req)
 

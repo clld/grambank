@@ -1,4 +1,4 @@
-from sqlalchemy.orm import joinedload, joinedload_all
+from sqlalchemy.orm import joinedload
 
 from clld.db.meta import DBSession
 from clld.db.util import icontains, get_distinct_values
@@ -152,9 +152,9 @@ class GrambankContributionsCol(Col):
 
 class Coders(Contributors):
     def base_query(self, query):
-        return query.options(joinedload_all(
-            common.Contributor.contribution_assocs,
-            common.ContributionContributor.contribution))
+        return query.options(
+            joinedload(common.Contributor.contribution_assocs)
+            .joinedload(common.ContributionContributor.contribution))
 
     def col_defs(self):
         return [
@@ -182,13 +182,13 @@ class Datapoints(Values):
                 query = query.filter(common.ValueSet.parameter_pk == int(self.feature.pk))
             query = query.join(GrambankLanguage).join(Family).filter(GrambankLanguage.family == self.family)
             query = query.options(
-                joinedload_all(common.Value.valueset, common.ValueSet.parameter),
+                joinedload(common.Value.valueset).joinedload(common.ValueSet.parameter),
                 joinedload(common.Value.domainelement),
             )
         else:
             if self.language:
                 query = query.options(
-                    joinedload_all(common.Value.valueset, common.ValueSet.parameter),
+                    joinedload(common.Value.valueset).joinedload(common.ValueSet.parameter),
                     joinedload(common.Value.domainelement),
                 )
             if self.parameter:
@@ -198,11 +198,10 @@ class Datapoints(Values):
                     .join(common.ContributionContributor.contributor)\
                     .options(
                     joinedload(common.Value.valueset, common.ValueSet.language),
-                    joinedload_all(
-                        common.Value.valueset,
-                        common.ValueSet.contribution,
-                        common.Contribution.contributor_assocs,
-                        common.ContributionContributor.contributor))
+                    joinedload(common.Value.valueset)
+                    .joinedload(common.ValueSet.contribution)
+                    .joinedload(common.Contribution.contributor_assocs)
+                    .joinedload(common.ContributionContributor.contributor))
         return query
 
     def xhr_query(self):

@@ -5,7 +5,7 @@
   - glottobank/grambank-cldf
   - glottolog/glottolog
 - recreate the database running
-```shell script
-grambank-app initdb --glottolog-version=v...
-```
+  ```shell
+  clld initdb  --cldf ../grambank-cldf/cldf/StructureDataset-metadata.json --glottolog-version=v...
+  ```
 - Run the tests

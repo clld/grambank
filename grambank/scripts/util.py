@@ -77,7 +77,6 @@ def import_features(cldf, contributors):  # pragma: no cover
             id=fid,
             name=feature['Name'],
             description=feature['Description'],
-            name_french=feature['name_in_french'],
         )
         for ord, patron in enumerate(feature['Patrons'], start=1):
             DBSession.add(FeaturePatron(ord=1, feature=f, contributor_pk=contributors[patron]))
