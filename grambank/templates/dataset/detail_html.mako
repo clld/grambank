@@ -57,9 +57,9 @@
 
 <p>
     Grambank is a publication of the
-    ${h.external_link('https://www.shh.mpg.de/1399801/dlce-research', label='Department of Linguistic and Cultural Evolution')}
-    at the Max Planck Institute for the Science of Human History, Jena. The data
-    furnished by Claire Bowern, Patience Epps and Amalia Skilton was supported by National Science
+    ${h.external_link('https://www.eva.mpg.de/linguistic-and-cultural-evolution/index/', label='Department of Linguistic and Cultural Evolution')}
+    at the Max Planck Institute for Evolutionary Anthropology, Leipzig. The data
+    furnished by the Hunter-Gatherer Language Database was supported by National Science
     Foundation grant HSD-0902114 'Dynamics of Hunter Gatherer Language Change' PIs Claire
     Bowern, Patience Epps, Jane Hill, and Keith Hunley.
 </p>
@@ -71,4 +71,10 @@
     published under a Creative Commons Licence.
     We invite the community of users to think about further applications for the available
     data and look forward to your comments, feedback and questions.
+</p>
+
+<h3>Contributing</h3>
+<p>
+    For more information, including contributing data, see
+    ${h.external_link('https://github.com/grambank/grambank/wiki', label='our wiki')}.
 </p>
