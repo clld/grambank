@@ -18,6 +18,7 @@ _ = lambda s: s
 _('Parameters')
 _('Parameter')
 _('Familys')
+_('Languages')
 
 
 class GrambankMapMarker(LanguageByFamilyMapMarker):

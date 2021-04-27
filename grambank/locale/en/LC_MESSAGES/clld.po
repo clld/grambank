@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: grambank 0.0\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-06 20:04+0100\n"
+"POT-Creation-Date: 2021-04-27 10:25+0200\n"
 "PO-Revision-Date: 2016-01-06 20:03+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -16,29 +16,20 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.1.1\n"
+"Generated-By: Babel 2.9.0\n"
 
-#: grambank/__init__.py:17
+#: grambank/__init__.py:18
 msgid "Parameters"
 msgstr "Features"
 
-#: grambank/__init__.py:18
+#: grambank/__init__.py:19
 msgid "Parameter"
 msgstr "Feature"
 
-#: grambank/__init__.py:19
+#: grambank/__init__.py:20
 msgid "Familys"
 msgstr "Families"
 
-#: grambank/__init__.py:20
-msgid "Dependencys"
-msgstr "Dependencies"
-
 #: grambank/__init__.py:21
-msgid "Stabilitys"
-msgstr "Stabilities"
-
-#: grambank/__init__.py:22
-msgid "Deepfamilys"
-msgstr "Deep-Family Suggestions"
-
+msgid "Languages"
+msgstr "Languages and dialects"
