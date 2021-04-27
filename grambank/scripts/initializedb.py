@@ -1,4 +1,3 @@
-import pathlib
 import itertools
 
 import transaction
@@ -8,41 +7,26 @@ from clld.cliutil import Data, bibtex2source
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db.util import compute_language_sources
+from clld.web.icon import ORDERED_ICONS
 from clld.lib.bibtex import Database
-
 from clld_glottologfamily_plugin.models import Family
-from clld_glottologfamily_plugin.util import load_families
 from clld_phylogeny_plugin.models import Phylogeny, LanguageTreeLabel, TreeLabel
-from pyglottolog.api import Glottolog
-from pygrambank import Grambank
+from ete3 import Tree
 
 import grambank
 from grambank.scripts.util import import_features, import_values
-from grambank.scripts.trees import iter_trees
-from grambank.scripts import coverage
 
 from grambank import models
 
 
-PROJECT_DIR = pathlib.Path(grambank.__file__).parent.parent.resolve()
-REPOS = {'Grambank': None, 'grambank-cldf': None, 'glottolog/glottolog': None}
-
-
-def get_repos():
-    for repo in list(REPOS.keys()):
-        d = PROJECT_DIR.parent
-        if '/' in repo:
-            d = d.parent
-            repo = repo.split('/', maxsplit=1)
-        else:
-            repo = [repo]
-        d = d.joinpath(*repo)
-        REPOS[repo[-1]] = pathlib.Path(input('{} [{}]: '.format(repo[-1], d)) or d)
+def iter_trees(families):  # pragma: no cover
+    for row in families:
+        tree = Tree("({0});".format(row['Newick']), format=3)
+        tree.name = 'glottolog_{0}'.format(row['ID'])
+        yield tree
 
 
 def main(args):  # pragma: no cover
-    get_repos()
-    api = Grambank(REPOS['Grambank'])
     cldf = args.cldf
     data = Data()
     dataset = models.Grambank(
@@ -59,12 +43,8 @@ def main(args):  # pragma: no cover
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     contributors = {}
-    for i, contrib in enumerate(api.contributors):
-        contrib = common.Contributor(
-            contrib.id,
-            id=contrib.id,
-            name=contrib.name,
-        )
+    for i, contrib in enumerate(cldf['contributors.csv']):
+        contrib = common.Contributor(contrib['ID'], id=contrib['ID'], name=contrib['Name'])
         common.Editor(dataset=dataset, contributor=contrib, ord=i)
         DBSession.add(contrib)
         DBSession.flush()
@@ -73,7 +53,7 @@ def main(args):  # pragma: no cover
 
     DBSession.add(dataset)
 
-    for rec in tqdm(list(Database.from_file(cldf.bibpath, lowercase=True)), desc='sources'):
+    for rec in list(Database.from_file(cldf.bibpath, lowercase=True)):
         data.add(common.Source, rec.id, _obj=bibtex2source(rec))
     DBSession.flush()
     sources = {k: v.pk for k, v in data['Source'].items()}
@@ -92,30 +72,35 @@ def main(args):  # pragma: no cover
 
     transaction.begin()
 
-    glottolog = Glottolog(REPOS['glottolog'])
-    languoids = {l.id: l for l in glottolog.languoids()}
-    gblangs = DBSession.query(models.GrambankLanguage).all()
-    load_families(
-        data,
-        gblangs,
-        glottolog_repos=REPOS['glottolog'],
-        isolates_icon='dcccccc')
-
-    # Add isolates
-    for lg in gblangs:
-        gl_language = languoids.get(lg.id)
-        if not gl_language.family:
+    icons = itertools.cycle(
+        [getattr(i, 'name', i) for i in ORDERED_ICONS if getattr(i, 'name', i) != 'dcccccc'])
+    gblangs = {l.id: l for l in DBSession.query(models.GrambankLanguage).all()}
+    for (fid, fname), langs in itertools.groupby(
+        sorted(cldf['languages.csv'], key=lambda l: l['Family_id'] or ''),
+        lambda l: (l['Family_id'], l['Family_name']),
+    ):
+        if fid:
             family = data.add(
-                Family, gl_language.id,
-                id=gl_language.id,
-                name=gl_language.name,
+                Family,
+                fid,
+                id=fid,
+                name=fname,
                 description=common.Identifier(
-                    name=gl_language.id,
-                    type=common.IdentifierType.glottolog.value).url(),
-                jsondata={"icon": 'tcccccc'})
-            lg.family = family
-    coverage.main(glottolog)
-    return
+                    name=fid, type=common.IdentifierType.glottolog.value).url(),
+                jsondata=dict(icon=next(icons)))
+            for l in langs:
+                gblangs[l['ID']].family = family
+        else:
+            # Add isolates
+            for l in langs:
+                family = data.add(
+                    Family, l['ID'],
+                    id=l['ID'],
+                    name=l['Name'],
+                    description=common.Identifier(
+                        name=l['ID'], type=common.IdentifierType.glottolog.value).url(),
+                    jsondata={"icon": 'dcccccc'})
+                gblangs[l['ID']].family = family
 
 
 def prime_cache(args):  # pragma: no cover
@@ -139,8 +124,6 @@ def prime_cache(args):  # pragma: no cover
 
         compute_language_sources()
 
-    get_repos()
-
     for obj in DBSession.query(LanguageTreeLabel).all():
         DBSession.delete(obj)
     for obj in DBSession.query(TreeLabel).all():
@@ -149,8 +132,7 @@ def prime_cache(args):  # pragma: no cover
         DBSession.delete(obj)
     DBSession.flush()
 
-    for tree in tqdm(iter_trees(
-            [l.id for l in DBSession.query(common.Language)], Glottolog(REPOS['glottolog']))):
+    for tree in iter_trees(list(args.cldf['families.csv'])):
         nodes = set(n.name for n in tree.traverse())
         phylo = Phylogeny(
             id=tree.name.split('_')[1],

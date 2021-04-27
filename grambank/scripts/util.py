@@ -71,7 +71,7 @@ def import_features(cldf, contributors):  # pragma: no cover
             lambda c: c['Parameter_ID']):
         domains[fid] = list(des) + [dict(ID=fid + '-NA', Name='?', Description='Not known')]
 
-    for feature in tqdm(list(cldf['ParameterTable']), desc='loading features'):
+    for feature in cldf['ParameterTable']:
         fid = feature['ID']
         f = Feature(
             id=fid,

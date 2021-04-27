@@ -5,7 +5,6 @@ import pytest
     "method,path",
     [
         ('get_html', '/'),
-        ('get_html', '/coverage'),
         ('get_html', '/parameters/GB020'),
         ('get_json', '/parameters/GB020.geojson'),
         ('get_json', '/parameters/GB020.geojson?domainelement=GB020-1'),

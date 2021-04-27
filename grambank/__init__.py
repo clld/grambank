@@ -63,10 +63,6 @@ def main(global_config, **settings):
     config.include('clld_phylogeny_plugin')
     config.register_datatable('familys', datatables.Families)
 
-    config.registry.settings['home_comp'].append('coverage')
-    config.add_route('coverage', pattern='/coverage')
-    config.add_view(views.coverage, route_name='coverage', renderer='coverage.mako')
-
     config.registry.registerUtility(GrambankCtxFactoryQuery(), ICtxFactoryQuery)
     config.registry.registerUtility(GrambankMapMarker(), IMapMarker)
     config.registry.registerUtility(link_attrs, ILinkAttrs)
