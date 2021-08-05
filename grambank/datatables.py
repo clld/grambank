@@ -265,7 +265,7 @@ class Datapoints(Values):
                 ])
 
         cols = cols + [
-            name_col,
+            Col(self, 'name', sTitle='Value'),
             RefsCol(self, 'Source',
                 model_col=common.ValueSet.source,
                 get_object=lambda i: i.valueset),
