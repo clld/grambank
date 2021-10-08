@@ -71,35 +71,39 @@ def main(args):  # pragma: no cover
         transaction.commit()
 
     transaction.begin()
-
     icons = itertools.cycle(
         [getattr(i, 'name', i) for i in ORDERED_ICONS if getattr(i, 'name', i) != 'dcccccc'])
     gblangs = {l.id: l for l in DBSession.query(models.GrambankLanguage).all()}
     for (fid, fname), langs in itertools.groupby(
-        sorted(cldf['languages.csv'], key=lambda l: l['Family_id'] or ''),
-        lambda l: (l['Family_id'], l['Family_name']),
+            sorted(args.cldf['LanguageTable'], key=lambda l: l['Family_level_ID'] or ''),
+            lambda l: (l['Family_level_ID'], l['Family_name']),
     ):
         if fid:
             family = data.add(
-                Family,
-                fid,
-                id=fid,
-                name=fname,
-                description=common.Identifier(
-                    name=fid, type=common.IdentifierType.glottolog.value).url(),
-                jsondata=dict(icon=next(icons)))
+                Family, fid,
+                    id=fid,
+                    name=fname,
+                    description=common.Identifier(
+                        name=fid, type=common.IdentifierType.glottolog.value).url(),
+                    jsondata=dict(icon=next(icons)))
             for l in langs:
+                if l['ID'] not in gblangs:
+                    print('skipping languoid with no values: {}'.format(l['ID']))
+                    continue
                 gblangs[l['ID']].family = family
         else:
             # Add isolates
             for l in langs:
+                if l['ID'] not in gblangs:
+                    print('skipping languoid with no values: {}'.format(l['ID']))
+                    continue
                 family = data.add(
                     Family, l['ID'],
-                    id=l['ID'],
-                    name=l['Name'],
-                    description=common.Identifier(
-                        name=l['ID'], type=common.IdentifierType.glottolog.value).url(),
-                    jsondata={"icon": 'dcccccc'})
+                        id=l['ID'],
+                        name=l['Name'],
+                        description=common.Identifier(
+                            name=l['ID'], type=common.IdentifierType.glottolog.value).url(),
+                        jsondata={"icon": 'dcccccc'})
                 gblangs[l['ID']].family = family
 
 

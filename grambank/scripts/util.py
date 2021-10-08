@@ -47,6 +47,7 @@ def import_values(values, lang, features, codes, contributors, sources):  # prag
             for ref in value['Source']:
                 sid, pages = Sources.parse(ref)
                 ValueSetReference(valueset=vs, source_pk=sources[sid], description=pages)
+    DBSession.add(l)
     DBSession.add(c)
 
 
