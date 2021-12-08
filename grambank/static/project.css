@@ -101,7 +101,7 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e8d9d2bc', e
 
 a {
         color: #382E45;
-        text-decoration: none;
+        text-decoration: underline dotted;
 }
 a:hover {
         color: #898193;

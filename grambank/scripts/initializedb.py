@@ -38,13 +38,21 @@ def main(args):  # pragma: no cover
         publisher_url="https://www.eva.mpg.de",
         license="http://creativecommons.org/licenses/by/4.0/",
         domain='grambank.clld.org',
-        contact='grambank@shh.mpg.de',
+        contact='grambank_admin@eva.mpg.de',
         jsondata={
+            'faq': cldf.directory.joinpath('FAQ.md').read_text(encoding='utf8'),
             'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0 International License'})
     contributors = {}
+    photo_url = cldf['contributors.csv', 'Photo'].valueUrl
     for i, contrib in enumerate(cldf['contributors.csv']):
-        contrib = common.Contributor(contrib['ID'], id=contrib['ID'], name=contrib['Name'])
+        contrib = common.Contributor(
+            id=contrib['ID'],
+            name=contrib['Name'],
+            description=contrib['Description'],
+            url=photo_url.expand(contrib) if contrib['Photo'] else None,
+            jsondata=dict(roles=contrib['Roles']),
+        )
         common.Editor(dataset=dataset, contributor=contrib, ord=i)
         DBSession.add(contrib)
         DBSession.flush()

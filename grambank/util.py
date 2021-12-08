@@ -6,6 +6,8 @@ following a special naming convention which are called to update the template co
 before rendering resource's detail or index views.
 """
 import re
+import itertools
+import collections
 
 from sqlalchemy import func, desc, text
 from sqlalchemy.orm import joinedload
@@ -21,6 +23,8 @@ from clld_glottologfamily_plugin.models import Family
 from clld.web.util.multiselect import CombinationMultiSelect
 from clld.web.util import glottolog  # used in templates!
 from clld_phylogeny_plugin.models import Phylogeny
+from clldutils.misc import slug
+from markdown import markdown
 
 from grambank.models import GrambankLanguage
 
@@ -28,6 +32,7 @@ COLORS = [
     #            red     yellow
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
+assert markdown
 
 
 def process_markdown(text, req, section=None):
@@ -58,6 +63,29 @@ def process_markdown(text, req, section=None):
     wiki_url_pattern = re.compile('https://github.com/grambank/[gG]rambank/wiki/(?P<id>GB[0-9]{3})')
     html = wiki_url_pattern.sub(lambda m: req.route_url('parameter', id=m.group('id')), html)
     return html.replace('<code>', '').replace('</code>', '').replace('<table>', '<table class="table table-nonfluid">')
+
+
+def contributor_index_html(request=None, context=None, **kw):
+    contribs = DBSession.query(Contributor).order_by(Contributor.pk).options(
+        joinedload(Contributor.contribution_assocs)
+        .joinedload(ContributionContributor.contribution)).all()
+    res = []
+    for role in [
+        'Project leader',
+        'Project coordinator',
+        'Database manager',
+        'Patron',
+        'Node leader',
+        'Coder',
+        'Methods-team',
+        'Senior advisor',
+    ]:
+        cs = [c for c in contribs if role in c.jsondata['roles']]
+        iter_ = iter(reversed(cs) if role == 'Project leader' else cs)
+        people = list(itertools.zip_longest(iter_, iter_, iter_, iter_))
+        res.append((role, slug(role), people))
+
+    return dict(contribs=res)
 
 
 def family_detail_html(request=None, context=None, **kw):

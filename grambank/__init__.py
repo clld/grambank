@@ -1,10 +1,12 @@
+import functools
+
 from pyramid.config import Configurator
 from sqlalchemy.orm import joinedload
 
 from clld.interfaces import (
     IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs, IContribution, ICtxFactoryQuery,
 )
-from clld.web.app import CtxFactoryQuery
+from clld.web.app import CtxFactoryQuery, menu_item
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.db.models import common
 from clldutils import svg
@@ -63,8 +65,18 @@ def main(global_config, **settings):
     config.include('clld_glottologfamily_plugin')
     config.include('clld_phylogeny_plugin')
     config.register_datatable('familys', datatables.Families)
+    config.add_route_and_view('faq', '/faq', lambda *args, **kw: {}, renderer='faq.mako')
 
     config.registry.registerUtility(GrambankCtxFactoryQuery(), ICtxFactoryQuery)
     config.registry.registerUtility(GrambankMapMarker(), IMapMarker)
     config.registry.registerUtility(link_attrs, ILinkAttrs)
+
+    config.register_menu(
+        ('dataset', functools.partial(menu_item, 'dataset', label='Home')),
+        ('parameters', functools.partial(menu_item, 'parameters', label='Features')),
+        ('languages', functools.partial(menu_item, 'languages', label='Languages and dialects')),
+        ('contributors', functools.partial(menu_item, 'contributors', label='People')),
+        ('faq', functools.partial(menu_item, 'faq', label='FAQ')),
+    )
+
     return config.make_wsgi_app()

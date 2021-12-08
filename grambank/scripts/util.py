@@ -35,11 +35,12 @@ def import_values(values, lang, features, codes, contributors, sources):  # prag
             parameter_pk=features[value['Parameter_ID']],
             language=l,
             contribution=c,
+            source=value['Source_comment'] if not value['Source'] else None,
         )
         Value(
             id=value['ID'],
             valueset=vs,
-            name=value['Value'],
+            name=value['Value'] if value['Value'] else '?',
             description=value['Comment'],
             domainelement_pk=codes[value['Code_ID'] or '{}-NA'.format(value['Parameter_ID'])])
 

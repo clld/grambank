@@ -1,11 +1,11 @@
 from sqlalchemy.orm import joinedload
 
-from clld.db.meta import DBSession
 from clld.db.util import icontains, get_distinct_values
-from clld.web.util.htmllib import HTML
+from clld.web.util.htmllib import HTML, literal
+from clld.web.util.helpers import map_marker_img
 from clld.db.models import common
 from clld.web.datatables.base import Col, IdCol, LinkCol, DetailsRowLinkCol, LinkToMapCol
-from clld.web.datatables.value import Values, ValueNameCol, RefsCol
+from clld.web.datatables.value import Values, RefsCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.contributor import Contributors, NameCol
@@ -16,6 +16,31 @@ from clld_glottologfamily_plugin.models import Family
 
 from grambank.models import GrambankLanguage, Feature
 from clld.web.util.helpers import link
+
+
+class ValueNameCol(LinkCol):
+
+    """Render the label for a Value."""
+
+    def get_obj(self, item):
+        return item.valueset
+
+    def get_attrs(self, item):
+        label = str(item)
+        title = label
+        if self.dt.parameter:
+            label = HTML.span(map_marker_img(self.dt.req, item), literal('&nbsp;'), label)
+        return {'label': label, 'title': title}
+
+    def order(self):
+        return common.DomainElement.number \
+            if self.dt.parameter and self.dt.parameter.domain \
+            else common.Value.name
+
+    def search(self, qs):
+        if self.dt.parameter and self.dt.parameter.domain:
+            return common.DomainElement.name.__eq__(qs)
+        return icontains(common.Value.name, qs)
 
 
 class LanguagesCol(Col):
@@ -265,7 +290,8 @@ class Datapoints(Values):
                 ])
 
         cols = cols + [
-            Col(self, 'name', sTitle='Value'),
+            name_col,
+            #Col(self, 'name', sTitle='Value'),
             RefsCol(self, 'Source',
                 model_col=common.ValueSet.source,
                 get_object=lambda i: i.valueset),
