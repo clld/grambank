@@ -129,10 +129,22 @@ def prime_cache(args):  # pragma: no cover
                 .group_by(common.ValueSet.language_pk):
             langs[lpk].representation = nf
 
-        for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk))\
-                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk)\
+        for lpk, nf in DBSession.query(common.ValueSet.language_pk, func.count(common.ValueSet.pk)) \
+                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
+                .filter(common.Value.name != '?') \
+                .group_by(common.ValueSet.language_pk):
+            langs[lpk].nzrepresentation = nf
+
+        for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk)) \
+                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
                 .group_by(common.ValueSet.parameter_pk):
             features[fpk].representation = nl
+
+        for fpk, nl in DBSession.query(common.ValueSet.parameter_pk, func.count(common.ValueSet.pk))\
+                .join(common.Value, common.Value.valueset_pk == common.ValueSet.pk) \
+                .filter(common.Value.name != '?') \
+                .group_by(common.ValueSet.parameter_pk):
+            features[fpk].nzrepresentation = nl
 
         compute_language_sources()
 

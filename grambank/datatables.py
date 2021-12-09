@@ -85,7 +85,7 @@ class GrambankLanguages(Languages):
                 sDescription='<small>The geographic longitude</small>'),
             MacroareaCol(self, 'macroarea', GrambankLanguage),
             FamilyLinkCol(self, 'family', GrambankLanguage),
-            Col(self, 'Features', model_col=GrambankLanguage.representation),
+            Col(self, 'Features', model_col=GrambankLanguage.nzrepresentation),
         ]
 
 
@@ -110,7 +110,7 @@ class Features(Parameters):
             FeatureIdCol(self, 'Id', sClass='left', model_col=Feature.id),
             LinkCol(self, 'Feature', model_col=Feature.name),
             PatronCol(self, 'patron', get_object=lambda i: i.patron),
-            Col(self, 'Languages', model_col=Feature.representation),
+            Col(self, 'Languages', model_col=Feature.nzrepresentation),
             DetailsRowLinkCol(self, 'd', button_text='Values and description'),
         ]
 
@@ -226,7 +226,7 @@ class Datapoints(Values):
                     joinedload(common.Value.valueset)
                     .joinedload(common.ValueSet.contribution)
                     .joinedload(common.Contribution.contributor_assocs)
-                    .joinedload(common.ContributionContributor.contributor))
+                    .joinedload(common.ContributionContributor.contributor)).distinct()
         return query
 
     def xhr_query(self):

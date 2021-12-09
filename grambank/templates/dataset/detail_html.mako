@@ -19,7 +19,7 @@
             </tr>
             <tr>
                 <th>Datapoints</th>
-                <td class="right">${'{:,}'.format(stats['value'])}</td>
+                <td class="right">${'{:,}'.format(stats['value'])} (${'{:,}'.format(nzvalues)} excl. "not known")</td>
             </tr>
             </tbody>
         </table>

@@ -17,7 +17,7 @@ from clld.web.util.helpers import get_referents
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Contributor, ValueSet, Contribution, ContributionContributor, Language, Parameter,
+    Contributor, ValueSet, Contribution, ContributionContributor, Language, Parameter, Value,
 )
 from clld_glottologfamily_plugin.models import Family
 from clld.web.util.multiselect import CombinationMultiSelect
@@ -159,4 +159,5 @@ def dataset_detail_html(context=None, request=None, **kw):
         contribs=contribs,
         stats=context.get_stats(
             [rsc for rsc in RESOURCES if rsc.name in ['language', 'parameter', 'value']]),
+        nzvalues=DBSession.query(Value).filter(Value.name != '?').count(),
     )
