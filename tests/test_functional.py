@@ -10,6 +10,7 @@ import pytest
         ('get_json', '/parameters/GB020.geojson?domainelement=GB020-1'),
         ('get_html', '/languages/nene1249'),
         ('get_html', '/contributions'),
+        ('get_html', '/contributors'),
         ('get_html', '/familys'),
         ('get_dt', '/contributions'),
         ('get_dt', '/familys'),

@@ -25,7 +25,7 @@ _('Languages')
 
 class GrambankMapMarker(LanguageByFamilyMapMarker):
     def __call__(self, ctx, req):
-        if IValue.providedBy(ctx):
+        if IValue.providedBy(ctx):  # pragma: no cover
             icon = ctx.domainelement.jsondata['icon']
         elif IValueSet.providedBy(ctx):
             icon = ctx.values[0].domainelement.jsondata['icon']
