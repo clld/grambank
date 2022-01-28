@@ -30,7 +30,7 @@
                 % endif
                 % if coder:
                     <p>
-                        ${h.link(req, cid, label='Contributed datapoints for {} languages and dialects'.format(len(cid.contribution_assocs)))}
+                        ${h.link(req, cid, label='Contributed {} datapoints for {} languages and dialects'.format(ndatapoint.get(cid.pk, ''), nlangs.get(cid.pk, '')))}
                     </p>
                 % endif
             </div>

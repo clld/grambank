@@ -26,7 +26,7 @@ from clld_phylogeny_plugin.models import Phylogeny
 from clldutils.misc import slug
 from markdown import markdown
 
-from grambank.models import GrambankLanguage
+from grambank.models import GrambankLanguage, DatapointContributor, Datapoint
 
 COLORS = [
     #            red     yellow
@@ -66,9 +66,13 @@ def process_markdown(text, req, section=None):
 
 
 def contributor_index_html(request=None, context=None, **kw):
-    contribs = DBSession.query(Contributor).order_by(Contributor.pk).options(
-        joinedload(Contributor.contribution_assocs)
-        .joinedload(ContributionContributor.contribution)).all()
+    contribs = DBSession.query(Contributor).all()
+
+    ndatapoint = {r[0]: r[1] for r in DBSession.query(
+        DatapointContributor.contributor_pk, func.count(DatapointContributor.datapoint_pk)).group_by(DatapointContributor.contributor_pk)}
+    nlangs = {r[0]: r[1] for r in DBSession.query(
+        ContributionContributor.contributor_pk, func.count(ContributionContributor.contribution_pk)).group_by(ContributionContributor.contributor_pk)}
+
     res = []
     for role in [
         'Project leader',
@@ -85,7 +89,7 @@ def contributor_index_html(request=None, context=None, **kw):
         people = list(itertools.zip_longest(iter_, iter_, iter_, iter_))
         res.append((role, slug(role), people))
 
-    return dict(contribs=res)
+    return dict(contribs=res, ndatapoint=ndatapoint, nlangs=nlangs)
 
 
 def family_detail_html(request=None, context=None, **kw):
@@ -111,20 +115,17 @@ def source_detail_html(context=None, request=None, **kw):
 
 
 def contributor_detail_html(context=None, request=None, **kw):
-    counts = {
-        r[0]: r[1] for r in DBSession.query(Language.pk, func.count(ValueSet.pk))
-        .join(ValueSet)
-        .join(Contribution)
-        .join(ContributionContributor)
-        .filter(ContributionContributor.contributor_pk == context.pk)
-        .group_by(Language.pk)}
+    counts = {r[0]: r[1] for r in DBSession.query(Datapoint.language_pk, func.count(DatapointContributor.pk))\
+        .join(DatapointContributor)\
+        .filter(DatapointContributor.contributor_pk == context.pk)\
+        .group_by(Datapoint.language_pk)}
     languages = []
     for lang in DBSession.query(Language) \
-            .join(Family) \
+            .outerjoin(Family) \
             .join(ValueSet) \
             .join(Contribution) \
             .join(ContributionContributor) \
-            .filter(ContributionContributor.contributor_pk == context.pk) \
+            .filter(Language.pk.in_(list(counts.keys()))) \
             .order_by(Family.name, Language.name) \
             .options(joinedload(GrambankLanguage.family)):
         languages.append((lang, counts[lang.pk]))

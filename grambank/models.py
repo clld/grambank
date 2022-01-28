@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
-from clld.db.models.common import Contribution, Parameter, Language, Contributor, Dataset
+from clld.db.models.common import Contribution, Parameter, Language, Contributor, Dataset, ValueSet
 from clld_glottologfamily_plugin.models import HasFamilyMixin
 
 
@@ -23,6 +23,24 @@ class Grambank(CustomModelMixin, Dataset):
 
     def formatted_editors(self):
         return 'The Grambank Consortium'
+
+
+@implementer(interfaces.IValueSet)
+class Datapoint(CustomModelMixin, ValueSet):
+    pk = Column(Integer, ForeignKey('valueset.pk'), primary_key=True)
+
+
+class DatapointContributor(Base):
+
+    """Many-to-many association between contributors and contributions."""
+
+    __table_args__ = (UniqueConstraint('datapoint_pk', 'contributor_pk'),)
+
+    datapoint_pk = Column(Integer, ForeignKey('datapoint.pk'), nullable=False)
+    contributor_pk = Column(Integer, ForeignKey('contributor.pk'), nullable=False)
+
+    datapoint = relationship(Datapoint, innerjoin=True, backref='contributor_assocs')
+    contributor = relationship(Contributor, innerjoin=True, lazy=False, backref='datapoint_assocs')
 
 
 @implementer(interfaces.ILanguage)

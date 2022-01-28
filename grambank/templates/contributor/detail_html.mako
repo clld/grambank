@@ -5,19 +5,27 @@
 
 <h2>${_('Contributor')} ${ctx.name}</h2>
 
-<p>coded datapoints for ${len(languages)} languages</p>
+<p>coded ${sum([i[1] for i in languages])} datapoints for ${len(languages)} languages</p>
 
 <div style="float: left">
     <%util:table items="${languages}" args="item" class_="table-nonfluid" options="${dict(searching=False)}">
         <%def name="head()">
+            <th>Datapoints</th>
             <th>Language</th>
             <th>Glottocode</th>
             <th>Family</th>
             <th>Macroarea</th>
         </%def>
-        <td>${h.link(request, item[0])}</td>
+            <td class="align-right right">${item[1]}</td>
+            <td>${h.link(request, item[0])}</td>
         <td>${u.glottolog.link(req, item[0].id, label=item[0].id)}</td>
-        <td>${h.link(request, item[0].family)}</td>
+        <td>
+            % if item[0].family:
+                ${h.link(request, item[0].family)}
+            % else:
+                isolate
+            % endif
+        </td>
         <td>${item[0].macroarea}</td>
     </%util:table>
 </div>

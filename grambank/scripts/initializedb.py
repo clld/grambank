@@ -29,6 +29,7 @@ def iter_trees(families):  # pragma: no cover
 def main(args):  # pragma: no cover
     cldf = args.cldf
     data = Data()
+    nsheets = int(input('Sheets to load [int]: ') or 10000)
     dataset = models.Grambank(
         id=grambank.__name__,
         name="Grambank",
@@ -73,7 +74,11 @@ def main(args):  # pragma: no cover
         sorted(cldf['ValueTable'], key=lambda r: r['Language_ID']),
         lambda r: r['Language_ID'],
     )]
+    count = 0
     for lid, values in tqdm(values_by_sheet, desc='loading values'):
+        count += 1
+        if count > nsheets:
+            break
         transaction.begin()
         import_values(values, contributions[lid], features, codes, contributors, sources)
         transaction.commit()
@@ -96,14 +101,14 @@ def main(args):  # pragma: no cover
                     jsondata=dict(icon=next(icons)))
             for l in langs:
                 if l['ID'] not in gblangs:
-                    print('skipping languoid with no values: {}'.format(l['ID']))
+                    #print('skipping languoid with no values: {}'.format(l['ID']))
                     continue
                 gblangs[l['ID']].family = family
         else:
             # Add isolates
             for l in langs:
                 if l['ID'] not in gblangs:
-                    print('skipping languoid with no values: {}'.format(l['ID']))
+                    #print('skipping languoid with no values: {}'.format(l['ID']))
                     continue
                 family = data.add(
                     Family, l['ID'],
