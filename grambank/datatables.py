@@ -221,8 +221,10 @@ class Datapoints(Values):
                     .join(common.ValueSet.contribution)\
                     .join(common.Contribution.contributor_assocs)\
                     .join(common.ContributionContributor.contributor)\
+                    .outerjoin(Family)\
                     .options(
                     joinedload(common.Value.valueset, common.ValueSet.language),
+                    joinedload(common.Value.valueset, common.ValueSet.language, GrambankLanguage.family),
                     joinedload(common.Value.valueset)
                     .joinedload(common.ValueSet.contribution)
                     .joinedload(common.Contribution.contributor_assocs)
@@ -251,6 +253,16 @@ class Datapoints(Values):
                     self, 'Glottocode',
                     model_col=common.Language.id,
                     get_object=lambda i: i.valueset.language),
+                FamilyLinkCol(
+                    self, 'Family', GrambankLanguage,
+                    get_object=lambda i: i.valueset.language,
+                ),
+                Col(
+                    self, 'Macroarea',
+                    model_col=GrambankLanguage.macroarea,
+                    get_object=lambda i: i.valueset.language,
+                    choices=get_distinct_values(GrambankLanguage.macroarea),
+                ),
                 LinkCol(
                     self, 'Contributor',
                     model_col=common.Contributor.name,
