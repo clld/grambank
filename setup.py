@@ -21,7 +21,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'cldfcatalog',
-        'clld>=8',
+        'clld>=9.2.1',
         'clldmpg>=4.2',
         'clld-glottologfamily-plugin>=4',
         'clld-phylogeny-plugin>=1.5',
