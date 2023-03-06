@@ -1,6 +1,5 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
-<% from clld.db.meta import DBSession %>
 <% from grambank import models %>
 
 <%! active_menu_item = "parameters" %>
@@ -72,7 +71,7 @@ ${u.process_markdown(ctx.description, req)|n}
         <input type="hidden" name="parameters" value="${ctx.id}"/>
         <select id="pa" name="parameters">
             <label for="pa">Variable</label>
-            % for param in DBSession.query(models.Parameter).filter(models.Parameter.pk != ctx.pk):
+            % for param in request.db.query(models.Parameter).filter(models.Parameter.pk != ctx.pk):
                 <option value="${param.id}">${param.id} ${param.name}</option>
             % endfor
         </select>
