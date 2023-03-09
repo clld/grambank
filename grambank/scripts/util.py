@@ -16,7 +16,8 @@ def import_values(values, lang, features, codes, contributors, sources):  # prag
         id=lang['ID'],
         name='Dataset for {0}'.format(lang['Name']),
     )
-    coders = lang['Coders'][:]
+    lang_coders = lang.get('Coders') or ()
+    coders = list(lang_coders)
     l = GrambankLanguage(
         id=lang['ID'],
         name=lang['Name'],
@@ -38,7 +39,7 @@ def import_values(values, lang, features, codes, contributors, sources):  # prag
             name=value['Value'] if value['Value'] else '?',
             description=value['Comment'],
             domainelement_pk=codes[value['Code_ID'] or '{}-NA'.format(value['Parameter_ID'])])
-        for cid in set(lang['Coders']).union(value['Coders']):
+        for cid in set(lang_coders).union(value['Coders']):
             DBSession.add(DatapointContributor(datapoint=vs, contributor_pk=contributors[cid]))
         for cid in value['Coders']:
             if cid not in coders:
