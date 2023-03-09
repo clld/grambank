@@ -43,11 +43,12 @@
         <div id="feature-container" class="${'alert alert-info' if feature else 'well well-small'}">
             <p>
                 To display the datapoints for a particular feature on the map and on the
-                classification tree, select the feauture then click "submit".
+                classification tree, select the feature then click "submit".
             </p>
-            <form action="${request.route_url('family', id=ctx.id)}"
+            <form action="${request.route_url('combine_feature_with_family')}"
                   method="get"
                   class="form-inline">
+                <input type="hidden" name="family" value="${ctx.id}" />
                 <select id="ps" name="feature" class="input-xxlarge">
                     <label for="ps">Feature</label>
                     % for f in features:
