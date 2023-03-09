@@ -1,5 +1,6 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
+<% from clld_glottologfamily_plugin.models import Family %>
 <% from grambank import models %>
 
 <%! active_menu_item = "parameters" %>
@@ -59,6 +60,25 @@
 ${u.process_markdown(ctx.description, req)|n}
 
 <br style="clear: right"/>
+
+<div class="well well-small">
+    <p>
+        To display the datapoints for a particular language family on the map
+        and on the classification tree, select the feature then click "submit".
+    </p>
+    <form action="${request.route_url('combine_feature_with_family')}"
+          method="get"
+          class="form-inline">
+        <input type="hidden" name="feature" value="${ctx.id}" />
+        <select id="fs" name="family">
+            <label for="fs">Family</label>
+            % for f in request.db.query(Family).order_by(Family.name):
+              <option value="${f.id}">${f.name}</option>
+            % endfor
+        </select>
+        <button class="btn" type="submit">Submit</button>
+    </form>
+</div>
 
 <div class="well well-small">
     <p>
