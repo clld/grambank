@@ -1,5 +1,6 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
+<% from grambank import models %>
 
 <%! active_menu_item = "parameters" %>
 <%block name="title">Feature ${ctx.id}: ${ctx.name}</%block>
@@ -58,6 +59,25 @@
 ${u.process_markdown(ctx.description, req)|n}
 
 <br style="clear: right"/>
+
+<div class="well well-small">
+    <p>
+        You may combine this variable with a different variable by selecting on in the list below
+        and clicking "Submit".
+    </p>
+    <form action="${request.route_url('select_combination')}"
+          method="get"
+          class="form-inline">
+        <input type="hidden" name="parameters" value="${ctx.id}"/>
+        <select id="pa" name="parameters">
+            <label for="pa">Variable</label>
+            % for param in request.db.query(models.Parameter).filter(models.Parameter.pk != ctx.pk):
+                <option value="${param.id}">${param.id} ${param.name}</option>
+            % endfor
+        </select>
+        <button class="btn" type="submit">Submit</button>
+    </form>
+</div>
 
 <h3 id="map-container">
     Map
