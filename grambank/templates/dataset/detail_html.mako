@@ -75,6 +75,6 @@
 
 <h3>Contributing</h3>
 <p>
-    For more information, including contributing data, see
-    ${h.external_link('https://github.com/grambank/grambank/wiki', label='our wiki')}.
+    For more information about the coding process and definition of features, see
+    ${h.external_link('https://github.com/grambank/grambank/wiki', label='our wiki')}. Want to contribute changes or additions? ${h.external_link('https://github.com/grambank/grambank/wiki/Contribute', label='Go here')}.
 </p>
