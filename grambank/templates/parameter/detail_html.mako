@@ -66,7 +66,7 @@ ${u.process_markdown(ctx.description, req)|n}
 <div class="well well-small">
     <p>
         To display the datapoints for a particular language family on the map
-        and on the classification tree, select the feature then click "submit".
+        and on the classification tree, select the family then click "submit".
     </p>
     <form action="${request.route_url('combine_feature_with_family')}"
           method="get"
