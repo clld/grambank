@@ -68,12 +68,13 @@ def import_features(cldf, contributors):  # pragma: no cover
     3 = orange cee7733
     """
     features, codes = {}, {}
-    icons = [
-        'cffffff',  # 'c0077bb'
-        'cff0000',  # 'ccc3311'
-        'c0000ff',  # 'c009988'
-        'cffff00',  # 'cee7733'
-    ]
+    icons = {
+        '?': 'cffffff',
+        '0': 'c009E73',  # 'c00ffff',
+        '1': 'cF0E442',  # 'c593d9c',
+        '2': 'c0072B2',  # 'cf68f46',
+        '3': 'cD55E00',  # 'c73d055',
+    }
     domains = {}
     for fid, des in itertools.groupby(
             sorted(cldf['CodeTable'], key=lambda c: c['Parameter_ID']),
@@ -93,7 +94,7 @@ def import_features(cldf, contributors):  # pragma: no cover
             if code['Name'] == '?':
                 icon, number, value = 'tcccccc', 999, None
             else:
-                icon, number, value = icons[int(code['Name'])], int(code['Name']), code['Name']
+                icon, number, value = icons[code['Name']], int(code['Name']), code['Name']
             DomainElement(
                 id=code['ID'],
                 parameter=f,
