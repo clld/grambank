@@ -66,7 +66,7 @@ def combine_feature_with_family(ctx, req):
         raise httpexceptions.HTTPFound(
             req.route_url('family', id=family_id, _query=query))
     else:
-        raise httpexceptions.HTTPNotFound
+        raise httpexceptions.HTTPNotFound()
 
 
 def main(global_config, **settings):
