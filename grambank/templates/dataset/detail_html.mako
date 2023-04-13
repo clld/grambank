@@ -64,7 +64,7 @@
 
 <p>
     The current release version of the Grambank data can be downloaded from
-    <a href="https://doi.org/10.5281/zenodo.7740140">https://doi.org/10.5281/zenodo.7740140</a>
+    <a href="https://doi.org/10.5281/zenodo.7740139">https://doi.org/10.5281/zenodo.7740139</a>
 </p>
 
 <p>
