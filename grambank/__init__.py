@@ -76,7 +76,6 @@ def main(global_config, **settings):
         ('parameters', functools.partial(menu_item, 'parameters', label='Features')),
         ('languages', functools.partial(menu_item, 'languages', label='Languages and dialects')),
         ('contributors', functools.partial(menu_item, 'contributors', label='People')),
-        ('faq', functools.partial(menu_item, 'faq', label='FAQ')),
     )
 
     return config.make_wsgi_app()
