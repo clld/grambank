@@ -31,7 +31,7 @@
 <p>
     Grambank was constructed in an international collaboration between the Max Planck institutes in Leipzig and Nijmegen,
     the Australian National University, the University of Auckland, Harvard University, Yale University, the University of Turku,
-    Kiel University, Uppsala University, SOAS, the Endangered Language Protection Programme, and over a hundred scholars from
+    Kiel University, Uppsala University, SOAS, the Endangered Language Documentation Programme, and over a hundred scholars from
     around the world. Grambank is designed to be used to investigate the global distribution of features, language universals,
     functional dependencies, language prehistory and interactions between language, cognition, culture and environment.
 
@@ -42,9 +42,7 @@
     from word order to verbal tense, nominal plurals, and many other well-studied comparative linguistic variables.
     Grambank's coverage spans 215 different language families and 101 isolates from all inhabited continents. The aim is for
     Grambank to ultimately cover all languages for which a grammar or sketch grammar exists. Grambank is part of
-
-    Glottobank,
-
+    <a href="https://glottobank.org">Glottobank</a>,
     a research consortium that involves work on complementary databases of lexical data, paradigms, numerals and sound patterns
     in the world's languages. Grambank can be used in concert with other databases, such as those in Glottobank and D-PLACE,
     to deepen our understanding of our history and communicative capabilities.
