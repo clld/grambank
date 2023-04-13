@@ -74,20 +74,20 @@ def contributor_index_html(request=None, context=None, **kw):
         ContributionContributor.contributor_pk, func.count(ContributionContributor.contribution_pk)).group_by(ContributionContributor.contributor_pk)}
 
     res = []
-    for role in [
-        'Project leader',
-        'Project coordinator',
-        'Database manager',
-        'Patron',
-        'Node leader',
-        'Coder',
-        'Methods-team',
-        'Senior advisor',
+    for role, plural in [
+        ('Project leader', None),
+        ('Senior advisor', 'Senior advisors'),
+        ('Project coordinator', None),
+        ('Database manager', None),
+        ('Patron', 'Patrons'),
+        ('Node leader', 'Node leaders'),
+        ('Coder', 'Coders'),
+        ('Methods-team', None),
     ]:
         cs = [c for c in contribs if role in c.jsondata['roles']]
         iter_ = iter(reversed(cs) if role == 'Project leader' else cs)
         people = list(itertools.zip_longest(iter_, iter_, iter_, iter_))
-        res.append((role, slug(role), people))
+        res.append((plural or role, slug(role), people))
 
     return dict(contribs=res, ndatapoint=ndatapoint, nlangs=nlangs)
 
