@@ -31,7 +31,7 @@
 <p>
     Grambank was constructed in an international collaboration between the Max Planck institutes in Leipzig and Nijmegen,
     the Australian National University, the University of Auckland, Harvard University, Yale University, the University of Turku,
-    Kiel University, Uppsala University, SOAS, the Endangered Language Documentation Programme, and over a hundred scholars from
+    Kiel University, Uppsala University, SOAS, the Endangered Languages Documentation Programme, and over a hundred scholars from
     around the world. Grambank is designed to be used to investigate the global distribution of features, language universals,
     functional dependencies, language prehistory and interactions between language, cognition, culture and environment.
 
