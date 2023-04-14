@@ -84,8 +84,8 @@ def contributor_index_html(request=None, context=None, **kw):
         ('Coder', 'Coders'),
         ('Methods-team', None),
     ]:
-        cs = [c for c in contribs if role in c.jsondata['roles']]
-        iter_ = iter(reversed(cs) if role == 'Project leader' else cs)
+        cs = sorted([c for c in contribs if role in c.jsondata['roles']], key=lambda cc: cc.name.split()[-1])
+        iter_ = iter(cs)
         people = list(itertools.zip_longest(iter_, iter_, iter_, iter_))
         res.append((plural or role, slug(role), people))
 
