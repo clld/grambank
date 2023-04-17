@@ -21,13 +21,6 @@
         <td style="width: 25%; vertical-align: top;">
             <div class="well-small well">
                 <h5>${cid.name}</h5>
-                % if cid.url:
-                    <img width="150" style="float: left; margin: 0px 15px 15px 0px;" src="${cid.url}"
-                         class="img-polaroid">
-                % endif
-                % if cid.description:
-                    <p>${cid.description}</p>
-                % endif
                 % if coder:
                     <p>
                         ${h.link(req, cid, label='Contributed {} datapoints for {} languages and dialects'.format(ndatapoint.get(cid.pk, ''), nlangs.get(cid.pk, '')))}
