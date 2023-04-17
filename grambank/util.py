@@ -78,7 +78,7 @@ def contributor_index_html(request=None, context=None, **kw):
         ('Project leader', None),
         ('Senior advisor', 'Senior advisors'),
         ('Project coordinator', None),
-        ('Database manager', None),
+        ('Database managers', None),
         ('Patron', 'Patrons'),
         ('Node leader', 'Node leaders'),
         ('Coder', 'Coders'),
