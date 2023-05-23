@@ -1,7 +1,12 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "parameters" %>
+<% from clld.web.icon import Icon %>
+
 <%block name="title">F-Dependency ${'&#8594;'.join(p.id for p in ctx.parameters)|n}</%block>
+<%block name="head">
+    ${util.head_coloris()|n}
+</%block>
 
 <h3>${_('F-Dependency')} ${' &#8594; '.join(h.link(request, p) for p in ctx.parameters)|n}</h3>
 
@@ -30,13 +35,8 @@
         </td>
         <td>
             % if item[1].languages:
-                % if iconselect:
-                    <%self:iconselect id="iconselect${str(item[0])}" param="v${str(item[0])}" placement="right" tag="span">
-                        <img height="20" width="20" src="${item[1].icon.url(request)}"/>
-                    </%self:iconselect>
-                % else:
-                    <img height="20" width="20" src="${item[1].icon.url(request)}"/>
-                % endif
+            ${util.coloris_icon_picker(Icon.from_req(item[1], req))|n}
+            ${util.parameter_map_reloader([Icon.from_req(de, req) for de in ctx.domain])|n}
             % endif
         </td>
         <td>

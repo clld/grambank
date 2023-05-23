@@ -21,6 +21,7 @@ from clld.db.models.common import (
 )
 from clld_glottologfamily_plugin.models import Family
 from clld.web.util.multiselect import CombinationMultiSelect
+from clld.web.icon import Icon
 from clld.web.util import glottolog  # used in templates!
 from clld_phylogeny_plugin.models import Phylogeny
 from clldutils.misc import slug
@@ -33,6 +34,18 @@ COLORS = [
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
 assert markdown
+
+
+def icon_from_req(ctx, req):
+    return Icon.from_req(
+        ctx,
+        req,
+        icon_map={
+            'cffffff': 'c0077bb',
+            'cff0000': 'ccc3311',
+            'c0000ff': 'c009988',
+            'cffff00': 'cee7733',
+        })
 
 
 def process_markdown(text, req, section=None):
