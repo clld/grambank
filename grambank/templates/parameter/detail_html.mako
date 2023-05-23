@@ -8,6 +8,7 @@
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
+    ${util.head_coloris()|n}
 </%block>
 
 
@@ -79,10 +80,31 @@ ${u.process_markdown(ctx.description, req)|n}
     </form>
 </div>
 
+
+<div class="alert alert-info" style="float: right">
+    <button type="button" class="close" data-dismiss="alert">&times;</button>
+    Customize map markers:
+    <table class="table-condensed">
+        <tbody>
+        % for de in ctx.domain:
+        <tr>
+            <td>${util.coloris_icon_picker(u.icon_from_req(de, req))|n}</td>
+            <td>${de.name}</td>
+            <td>${de.description}</td>
+        </tr>
+        % endfor
+        </tbody>
+    </table>
+    ${util.parameter_map_reloader([u.icon_from_req(de, req) for de in ctx.domain])}
+</div>
+
 <h3 id="map-container">
     Map
     <a href="#top" title="go to top of the page" style="vertical-align: bottom">&#x21eb;</a>
 </h3>
+
+<br style="clear: both">
+
 ${request.map.render()}
 
 <h3 id="table-container">

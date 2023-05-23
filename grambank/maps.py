@@ -21,9 +21,6 @@ class FeatureMap(ParameterMap):
                 ),
                 marker=helpers.map_marker_img(self.req, de, marker=self.map_marker))
 
-    #def get_default_options(self):
-    #    return {'hash': True, 'icon_size': 15, 'base_layer': "Esri.WorldPhysical"}
-
 
 def includeme(config):
     config.register_map('parameter', FeatureMap)

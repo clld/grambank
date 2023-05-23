@@ -3,9 +3,7 @@ import functools
 from pyramid.config import Configurator
 from sqlalchemy.orm import joinedload
 
-from clld.interfaces import (
-    IValue, IDomainElement, IMapMarker, IValueSet, ILinkAttrs, IContribution, ICtxFactoryQuery,
-)
+from clld.interfaces import IMapMarker, ILinkAttrs, IContribution, ICtxFactoryQuery
 from clld.web.app import CtxFactoryQuery, menu_item
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
 from clld.db.models import common
@@ -15,6 +13,7 @@ from clldutils import svg
 from grambank import models
 from grambank import views
 from grambank import datatables
+from grambank.util import icon_from_req
 
 _ = lambda s: s
 _('Parameters')
@@ -25,21 +24,11 @@ _('Languages')
 
 class GrambankMapMarker(LanguageByFamilyMapMarker):
     def __call__(self, ctx, req):
-        if IValue.providedBy(ctx):  # pragma: no cover
-            icon = ctx.domainelement.jsondata['icon']
-        elif IValueSet.providedBy(ctx):
-            icon = ctx.values[0].domainelement.jsondata['icon']
-        elif IDomainElement.providedBy(ctx):
-            icon = ctx.jsondata['icon']
-        else:
-            icon = LanguageByFamilyMapMarker.get_icon(self, ctx, req)
-        icon = {
-            'cffffff': 'c0077bb',
-            'cff0000': 'ccc3311',
-            'c0000ff': 'c009988',
-            'cffff00': 'cee7733',
-        }.get(icon, icon)
-        return svg.data_url(svg.icon(icon, opacity=0.8))
+        icon = icon_from_req(ctx, req)
+        if icon:
+            return icon.url(req)
+        return svg.data_url(
+            svg.icon(LanguageByFamilyMapMarker.get_icon(self, ctx, req), opacity='0.7'))
 
 
 class GrambankCtxFactoryQuery(CtxFactoryQuery):
