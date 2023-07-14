@@ -108,7 +108,7 @@ def contributor_index_html(request=None, context=None, **kw):
 def family_detail_html(request=None, context=None, **kw):
     return {
         'features': DBSession.query(Parameter).all(),
-        'feature': Parameter.get(request.params['feature']) if request.params.get('feature') else None,
+        'feature': Parameter.get(request.params['feature'], default=None) if request.params.get('feature') else None,
         'phylogeny': Phylogeny.get(context.id, default=None),
     }
 
