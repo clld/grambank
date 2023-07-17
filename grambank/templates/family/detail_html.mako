@@ -58,6 +58,15 @@
                 </select>
                 <button class="btn" type="submit">Submit</button>
             </form>
+            % if 'feature' in request.query_params and not feature:
+            <div class="error">
+              <p>
+                <strong>Error:</strong>
+                The feature <code>${request.query_params['feature']}</code> does
+                not exist.
+              </p>
+            </div>
+            % endif
         </div>
 
 <h3 id="varieties">

@@ -125,4 +125,11 @@ a:hover {
         background-image: none;
 }
 
+div.error {
+    background-color: #f5e5e5;
+    border: 1px solid #e35e61;
+    border-radius: 4px;
+    padding: 3px;
+}
+
 /*img.leaflet-marker-icon {opacity: 0.5;}*/

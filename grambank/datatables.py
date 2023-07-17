@@ -197,7 +197,7 @@ class Datapoints(Values):
     def __init__(self, req, *args, **kw):
         self.feature = kw.pop('feature', None)
         if (not self.feature) and 'feature' in req.params:
-            self.feature = common.Parameter.get(req.params['feature'])
+            self.feature = common.Parameter.get(req.params['feature'], default=None)
         Values.__init__(self, req, *args, **kw)
 
     def base_query(self, query):
