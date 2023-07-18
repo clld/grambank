@@ -73,7 +73,7 @@ def process_markdown(text, req, section=None):
             in_section = True
 
     html = markdown('\n'.join(md), extensions=['tables', 'fenced_code', 'toc'])
-    wiki_url_pattern = re.compile('https://github.com/grambank/[gG]rambank/wiki/(?P<id>GB[0-9]{3})')
+    wiki_url_pattern = re.compile('https://github.com/grambank/[gG]rambank/wiki/(?P<id>GB[0-9]{3}[a-z]?)')
     html = wiki_url_pattern.sub(lambda m: req.route_url('parameter', id=m.group('id')), html)
     return html.replace('<code>', '').replace('</code>', '').replace('<table>', '<table class="table table-nonfluid">')
 
