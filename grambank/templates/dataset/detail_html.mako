@@ -51,12 +51,8 @@
 
 <h3>How to cite Grambank</h3>
 
-<p>Please cite the Grambank paper</p>
-
-<blockquote>
-    Skirgård, Hedvig, Haynie, Hannah J., Blasi, Damián E., Hammarström, Harald, Collins, Jeremy, Latarche, Jay J., Lesage, Jakob, Weber, Tobias, Witzlack-Makarevich, Alena, Passmore, Sam, Chira, Angela, Maurits, Luke, Dinnage, Russell, Dunn, Michael, Reesink, Ger, Singer, Ruth, Bowern, Claire, Epps, Patience, Hill, Jane, Vesakoski, Outi, Robbeets, Martine, Abbas, Noor Karolin, Auer, Daniel, Bakker, Nancy A., Barbos, Giulia, Borges, Robert D., Danielsen, Swintha, Dorenbusch, Luise, Dorn, Ella, Elliott, John, Falcone, Giada, Fischer, Jana, Ghanggo Ate, Yustinus, Gibson, Hannah, Göbel, Hans-Philipp, Goodall, Jemima A., Gruner, Victoria, Harvey, Andrew, Hayes, Rebekah, Heer, Leonard, Herrera Miranda, Roberto E., Hübler, Nataliia, Huntington-Rainey, Biu, Ivani, Jessica K., Johns, Marilen, Just, Erika, Kashima, Eri, Kipf, Carolina, Klingenberg, Janina V., König, Nikita, Koti, Aikaterina, Kowalik, Richard G. A., Krasnoukhova, Olga, Lindvall, Nora L.M., Lorenzen, Mandy, Lutzenberger, Hannah, Martins, Tônia R.A., Mata German, Celia, van der  Meer, Suzanne, Montoya Samamé, Jaime, Müller, Michael, Muradoglu, Saliha, Neely, Kelsey, Nickel, Johanna, Norvik, Miina, Oluoch, Cheryl Akinyi, Peacock, Jesse, Pearey, India O.C., Peck, Naomi, Petit, Stephanie, Pieper, Sören, Poblete, Mariana, Prestipino, Daniel, Raabe, Linda, Raja, Amna, Reimringer, Janis, Rey, Sydney C., Rizaew, Julia, Ruppert, Eloisa, Salmon, Kim K., Sammet, Jill, Schembri, Rhiannon, Schlabbach, Lars, Schmidt, Frederick W.P., Skilton, Amalia, Smith, Wikaliler Daniel, de  Sousa, Hilário, Sverredal, Kristin, Valle, Daniel, Vera, Javier, Voß, Judith, Witte, Tim, Wu, Henry, Yam, Stephanie, Ye 葉婧婷, Jingting, Yong, Maisie, Yuditha, Tessa, Zariquiey, Roberto, Forkel, Robert, Evans, Nicholas, Levinson, Stephen C., Haspelmath, Martin, Greenhill, Simon J., Atkinson, Quentin D. and Gray, Russell D. (2023). Grambank reveals the importance of genealogical constraints on linguistic diversity and highlights the impact of language loss. Science Advances. DOI: 10.1126/sciadv.adg6175
-</blockquote>
-
+<p>Please see instructions here: <a href="https://github.com/grambank/grambank/wiki/Citing-grambank">https://github.com/grambank/grambank/wiki/Citing-grambank</a>
+</p>
 
 <h3>Data availability</h3>
 
