@@ -152,6 +152,7 @@ def main(args):  # pragma: no cover
     glottocodes = {
         language_id: common.Identifier(
             id=language_id,
+            name=language_id,
             type=common.IdentifierType.glottolog.value)
         for language_id in itertools.chain(cldf_languages, family_glottocodes)}
     DBSession.add_all(glottocodes.values())
@@ -159,6 +160,7 @@ def main(args):  # pragma: no cover
     isocodes = {
         language_id: common.Identifier(
             id=isocode,
+            name=isocode,
             type=common.IdentifierType.iso.value)
         for language_id, cldf_language in cldf_languages.items()
         if (isocode := cldf_language.get('ISO639P3code'))}
