@@ -231,7 +231,7 @@ def main(args):  # pragma: no cover
         if (identifier := isocodes.get(language.id)))
 
     print('done.', file=sys.stderr)
-    print('adding cldf values...', file=sys.stderr)
+    print('loading cldf values...', file=sys.stderr)
 
     def _limit_sheets(nsheets, values):
         if nsheets is None:
