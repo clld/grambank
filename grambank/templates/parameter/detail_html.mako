@@ -84,13 +84,14 @@ ${u.process_markdown(ctx.description, req)|n}
 <div class="alert alert-info" style="float: right">
     <button type="button" class="close" data-dismiss="alert">&times;</button>
     Customize map markers:
-    <table class="table-condensed">
+    <table class="table table-condensed">
         <tbody>
         % for de in ctx.domain:
         <tr>
             <td>${util.coloris_icon_picker(u.icon_from_req(de, req))|n}</td>
             <td>${de.name}</td>
             <td>${de.description}</td>
+            <td class="right">${len(de.values)}</td>
         </tr>
         % endfor
         </tbody>
