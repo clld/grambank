@@ -21,7 +21,7 @@
         <td style="width: 25%; vertical-align: top;">
             <div class="well-small well">
                 <h5>${cid.name}</h5>
-                % if coder:
+                % if coder and ndatapoint.get(cid.pk) and nlangs.get(cid.pk):
                     <p>
                         ${h.link(req, cid, label='Contributed {} datapoints for {} languages and dialects'.format(ndatapoint.get(cid.pk, ''), nlangs.get(cid.pk, '')))}
                     </p>
