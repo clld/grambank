@@ -11,6 +11,7 @@
 <%block name="title">Family ${ctx.name}</%block>
 
 <%! from sqlalchemy.orm import joinedload %>
+<%! import sqlalchemy %>
 
 <ul class="nav nav-pills" style="float: right">
     <li class="">
@@ -43,17 +44,28 @@
         <div id="feature-container" class="${'alert alert-info' if feature else 'well well-small'}">
             <p>
                 To display the datapoints for a particular feature on the map and on the
-                classification tree, select the feauture then click "submit".
+                classification tree, select the feature then click "submit".
             </p>
-            <form action="${request.route_url('family', id=ctx.id)}"
+            <form action="${request.route_url('combine_feature_with_family')}"
                   method="get"
                   class="form-inline">
+                <input type="hidden" name="family" value="${ctx.id}" />
                 <select id="ps" name="feature" class="input-xxlarge">
                     <label for="ps">Feature</label>
-                    % for f in features:
-                        <option value="${f.id}"${' selected="selected"' if feature and feature.id == f.id else ''}>
-                            ${f.id} ${f.name}
-                        </option>
+                    ## XXX: This can probably be expressed in SQLAlchemy dot-notation.
+                    <%! query = sqlalchemy.text('''
+                        SELECT DISTINCT parameter.id, parameter.name
+                        FROM value
+                        JOIN valueset ON valueset.pk = value.valueset_pk
+                        JOIN parameter ON parameter.pk = valueset.parameter_pk
+                        JOIN grambanklanguage ON grambanklanguage.pk = valueset.language_pk
+                        WHERE grambanklanguage.family_pk = :family_pk
+                        ORDER BY parameter.id;''')
+                    %>
+                    % for feature_id, feature_name in request.db.execute(query, {'family_pk': ctx.pk}):
+                      <option value="${feature_id}"${' selected="selected"' if feature and feature.id == feature_id else ''}>
+                         ${feature_id} ${feature_name}
+                      </option>
                     % endfor
                 </select>
                 <button class="btn" type="submit">Submit</button>

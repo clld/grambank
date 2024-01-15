@@ -1,6 +1,7 @@
 import functools
 
 from pyramid.config import Configurator
+from pyramid import httpexceptions
 from sqlalchemy.orm import joinedload
 
 from clld.interfaces import IMapMarker, ILinkAttrs, IContribution, ICtxFactoryQuery
@@ -46,6 +47,17 @@ def link_attrs(req, obj, **kw):
     return kw
 
 
+def combine_feature_with_family(ctx, req):
+    if 'feature' in req.params and 'family' in req.params:
+        feature_id = req.params.get('feature')
+        family_id = req.params.get('family')
+        query = {'feature': feature_id}
+        raise httpexceptions.HTTPFound(
+            req.route_url('family', id=family_id, _query=query))
+    else:
+        raise httpexceptions.HTTPNotFound()
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -55,6 +67,10 @@ def main(global_config, **settings):
     config.include('clld_phylogeny_plugin')
     config.register_datatable('familys', datatables.Families)
     config.add_route_and_view('faq', '/faq', lambda *args, **kw: {}, renderer='faq.mako')
+    config.add_route_and_view(
+        'combine_feature_with_family',
+        '/_combine_feature_with_family',
+        combine_feature_with_family)
 
     config.registry.registerUtility(GrambankCtxFactoryQuery(), ICtxFactoryQuery)
     config.registry.registerUtility(GrambankMapMarker(), IMapMarker)

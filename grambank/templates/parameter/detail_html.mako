@@ -5,6 +5,8 @@
 <%! active_menu_item = "parameters" %>
 <%block name="title">Feature ${ctx.id}: ${ctx.name}</%block>
 
+<%! import sqlalchemy %>
+
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
@@ -60,6 +62,35 @@
 ${u.process_markdown(ctx.description, req)|n}
 
 <br style="clear: right"/>
+
+<div class="well well-small">
+    <p>
+        To display the datapoints for a particular language family on the map
+        and on the classification tree, select the family then click "submit".
+    </p>
+    <form action="${request.route_url('combine_feature_with_family')}"
+          method="get"
+          class="form-inline">
+        <input type="hidden" name="feature" value="${ctx.id}" />
+        <select id="fs" name="family">
+            <label for="fs">Family</label>
+            ## XXX: This can probably be expressed in SQLAlchemy dot-notation.
+            <%! query = sqlalchemy.text('''
+                SELECT DISTINCT family.id, family.name
+                FROM value
+                JOIN valueset ON valueset.pk = value.valueset_pk
+                JOIN grambanklanguage ON grambanklanguage.pk = valueset.language_pk
+                JOIN family ON family.pk = grambanklanguage.family_pk
+                WHERE valueset.parameter_pk = :param_pk
+                ORDER BY family.name;''')
+            %>
+            % for family_id, family_name in request.db.execute(query, {'param_pk': ctx.pk}):
+              <option value="${family_id}">${family_name}</option>
+            % endfor
+        </select>
+        <button class="btn" type="submit">Submit</button>
+    </form>
+</div>
 
 <div class="well well-small">
     <p>
