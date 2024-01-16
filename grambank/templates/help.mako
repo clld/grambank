@@ -4,7 +4,7 @@ Grambank is a database that is available in a web browser interface (grambank.cl
 <h2> Functionalities of the web browser-interface </h2>The web browser interface is built on the CLLD framework.  </h2>
 
 <h2> Menus </h2>
-![Screenshot 2023-10-06 at 12 59 39](https://github.com/grambank/grambank/assets/5327845/460287a2-09b2-43b6-b339-0ccf44181dac)
+<img alt="Screenshot 2023-10-06 at 12 59 39" src="${request.static_url('grambank:static/screenshot-menu.png')}" />
 
 There are two horizontal menu bars. The top one contains tabs for information about the dataset. The bottom one is a sub-menu to the tab "home" on the first menu.
 
