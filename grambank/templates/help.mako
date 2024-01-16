@@ -3,8 +3,9 @@
 <p>
   Grambank is a database that is available in a web browser interface
   (grambank.clld.org) and also as a CLDF-dataset archived with
-  <a href="https://zenodo.org/record/7844558">Zenodo</a> and released on
-  <a href="https://github.com/grambank/grambank/releases">GitHub</a>.
+  ${h.external_link('https://zenodo.org/record/7844558', 'Zenodo')}
+  and released on
+  ${h.external_link('https://github.com/grambank/grambank/releases', 'GitHub')}.
 </p>
 
 <h2>Functionalities of the web browser-interface</h2>
@@ -71,7 +72,7 @@
   <a href="https://grambank.clld.org/download">download</a> the dataset and
   access it through python/R/spreadsheet programs etc. For advice on using
   R with Grambank, go
-  <a href="https://github.com/grambank/grambank/wiki/Fetching-and-analysing-Grambank-data-with-R">here</a>.
+  ${h.external_link('https://github.com/grambank/grambank/wiki/Fetching-and-analysing-Grambank-data-with-R', 'here')}.
 </p>
 
 <h2>General info</h2>
@@ -82,14 +83,15 @@
   The dataset is released in versions, with additions and revisions each time.
   If you use the dataset, please note clearly what version is used. Please see
   our instructions
-  <a href="https://github.com/grambank/grambank/wiki/Citing-grambank">here</a>
+  ${h.external_link('https://github.com/grambank/grambank/wiki/Citing-grambank', 'here')}
   for citing Grambank.
 </p>
 
 <h2>Suggesting changes/additions</h2>
 
 <p>
-  Please go <a href="https://github.com/grambank/grambank/wiki/Contribute">here</a>
+  Please go
+  ${h.external_link('https://github.com/grambank/grambank/wiki/Contribute', 'here')}
   for instructions on suggesting changes or additions.
 </p>
 
@@ -97,5 +99,5 @@
 
 <p>
   Please see the wiki articles
-  <a href="https://github.com/grambank/grambank/wiki#2-practical-information-for-users-and-collaborators">here</a>.
+  ${h.external_link('https://github.com/grambank/grambank/wiki#2-practical-information-for-users-and-collaborators', 'here')}.
 </p>
