@@ -44,10 +44,10 @@
   Once you click "Submit", you will be taken to a new webpage with a map and
   table illustrating the combination of the features you selected. The URL will
   contain the Feature ID numbers, for example
-  <a href="https://grambank.clld.org/combinations/GB020_GB023">https://grambank.clld.org/combinations/GB020<em>GB023</a>.
+  <a href="${request.route_url('combination', id='GB020_GB023')}">${request.route_url('combination', id='GB020_GB023')}</a>.
   If you add further Feature ID numbers to this URL, they will also be included,
   for example
-  <a href="https://grambank.clld.org/combinations/GB020_GB023_GB058">https://grambank.clld.org/combinations/GB020</em>GB023_GB058</a>.
+  <a href="${request.route_url('combination', id='GB020_GB023_GB058')}">${request.route_url('combination', id='GB020_GB023_GB058')}</a>.
 </p>
 
 <h3>Visualizing feature values on a language family tree</h3>
@@ -58,7 +58,7 @@
   where you can select a feature. Once you click "Submit", you will be taken to
   a page showing that feature for that language family in a map and if you
   scroll down also on a tree, see example
-  <a href="https://grambank.clld.org/familys/aust1307?feature=GB020#tree-container">here</a>.
+  <a href="${request.route_url('familys', 'aust1307', _anchor='tree-container', _query={'feature': 'GB020'})}">here</a>.
   The URL will specify the language family glottocode and Grambank feature ID,
   you can share this URL to send others to the page.
 </p>
@@ -68,7 +68,7 @@
 <p>
   The web browser interface for Grambank is just providing basic access to the
   dataset. For further visualizations and analysis, we suggest you
-  <a href="https://grambank.clld.org/download">download</a> the dataset and
+  <a href="${request.route_url('download')}">download</a> the dataset and
   access it through python/R/spreadsheet programs etc. For advice on using
   R with Grambank, go
   ${h.external_link('https://github.com/grambank/grambank/wiki/Fetching-and-analysing-Grambank-data-with-R', 'here')}.
