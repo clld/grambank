@@ -1,18 +1,17 @@
 <%inherit file="grambank.mako"/>
 
+<h2>Functionalities of the web browser-interface</h2>
+
 <p>
   Grambank is a database that is available in a web browser interface
   (grambank.clld.org) and also as a CLDF-dataset archived with
   ${h.external_link('https://zenodo.org/record/7844558', 'Zenodo')}
   and released on
   ${h.external_link('https://github.com/grambank/grambank/releases', 'GitHub')}.
+  The web browser interface is built on the CLLD framework.
 </p>
 
-<h2>Functionalities of the web browser-interface</h2>
-
-<p>The web browser interface is built on the CLLD framework.</p>
-
-<h2>Menus</h2>
+<h3>Menus</h3>
 
 <p>
   <img
@@ -26,14 +25,14 @@
   menu.
 </p>
 
-<h2>Visualizing feature values on a map</h2>
+<h3>Visualizing feature values on a map</h3>
 
 <p>
   Click the tab "Features" in the top menu. Select a feature. Scroll down to the
   heading "map".
 </p>
 
-<h2>Combining features</h2>
+<h3>Combining features</h3>
 
 <p>
   Click the tab "Features" in the top menu. Select a feature. Scroll down to
@@ -51,7 +50,7 @@
   <a href="https://grambank.clld.org/combinations/GB020_GB023_GB058">https://grambank.clld.org/combinations/GB020</em>GB023_GB058</a>.
 </p>
 
-<h2>Visualizing feature values on a language family tree</h2>
+<h3>Visualizing feature values on a language family tree</h3>
 
 <p>
   Go to the tab "Languages and dialects" in the top menu. Click on the language
@@ -64,7 +63,7 @@
   you can share this URL to send others to the page.
 </p>
 
-<h2>Further functionalities, such as comparing languages, other kinds of plotting, combining datasets, etc</h2>
+<h3>Further functionalities, such as comparing languages, other kinds of plotting, combining datasets, etc</h3>
 
 <p>
   The web browser interface for Grambank is just providing basic access to the
@@ -75,9 +74,9 @@
   ${h.external_link('https://github.com/grambank/grambank/wiki/Fetching-and-analysing-Grambank-data-with-R', 'here')}.
 </p>
 
-<h2>General info</h2>
+<h3>General info</h3>
 
-<h2>Versions and citing</h2>
+<h4>Versions and citing</h4>
 
 <p>
   The dataset is released in versions, with additions and revisions each time.
@@ -87,7 +86,7 @@
   for citing Grambank.
 </p>
 
-<h2>Suggesting changes/additions</h2>
+<h4>Suggesting changes/additions</h4>
 
 <p>
   Please go
@@ -95,7 +94,7 @@
   for instructions on suggesting changes or additions.
 </p>
 
-<h2>Practical information for users (including R-scripts, SQL etc)</h2> 
+<h4>Practical information for users (including R-scripts, SQL etc)</h4> 
 
 <p>
   Please see the wiki articles
