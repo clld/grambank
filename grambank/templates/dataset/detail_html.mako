@@ -10,7 +10,7 @@
         <table class="table table-condensed">
             <tbody>
             <tr>
-                <th>Languages</th>
+                <th>Languages and dialects</th>
                 <td class="right">${'{:,}'.format(stats['language'])}</td>
             </tr>
             <tr>
