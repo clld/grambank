@@ -34,6 +34,8 @@ setup(
             'flake8',
             'psycopg2',
             'tox',
+            'ete3',
+            'numpy',  # needed by ete3
         ],
         'test': [
             'mock',
