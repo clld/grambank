@@ -166,10 +166,9 @@ def contributor_detail_html(context=None, request=None, **kw):
 
 def dataset_detail_html(context=None, request=None, **kw):
     contribs = DBSession.query(Contributor.name, func.count(ValueSet.id).label('c'))\
-        .join(
-            Contributor.contribution_assocs,
-            ContributionContributor.contribution,
-            Contribution.valuesets)\
+        .join(Contributor.contribution_assocs)\
+        .join(ContributionContributor.contribution)\
+        .join(Contribution.valuesets)\
         .group_by(Contributor.name)\
         .order_by(desc(text('c')))
     return dict(
