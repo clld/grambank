@@ -147,9 +147,11 @@ def source_detail_html(context=None, request=None, **kw):
 
 
 def contributor_detail_html(context=None, request=None, **kw):
-    counts = {r[0]: r[1] for r in DBSession.query(Datapoint.language_pk, func.count(DatapointContributor.pk))\
-        .join(DatapointContributor)\
-        .filter(DatapointContributor.contributor_pk == context.pk)\
+    counts = {
+        r[0]: r[1]
+        for r in DBSession.query(Datapoint.language_pk, func.count(DatapointContributor.pk))
+        .join(DatapointContributor)
+        .filter(DatapointContributor.contributor_pk == context.pk)
         .group_by(Datapoint.language_pk)}
     languages = []
     for lang in DBSession.query(Language) \
