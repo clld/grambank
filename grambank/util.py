@@ -6,7 +6,7 @@ following a special naming convention which are called to update the template co
 before rendering resource's detail or index views.
 """
 import re
-import itertools
+from itertools import islice, takewhile, zip_longest
 import collections
 
 from sqlalchemy import func, desc, text
@@ -48,11 +48,34 @@ def icon_from_req(ctx, req):
         })
 
 
+RE_SOURCE_BLOCK = re.compile(r'\n```.*?\n```\n', flags=re.DOTALL)
+
+
+def unindent_source_block(re_match):
+    text = re_match.group(0)
+    lines = text.splitlines()
+    # if there is nothing to unindent, just short-circuit out of here
+    if len(lines) < 3:
+        return text
+    block_start = lines[0].lstrip()
+    block_end = lines[-1].lstrip()
+    indentation = min(
+        sum(1 for i in takewhile(lambda c: c.isspace(), line))
+        for line in islice(lines, 1, len(lines) - 1))
+    return '{}\n{}\n{}'.format(
+        block_start,
+        '\n'.join(
+            line[indentation:]
+            for line in islice(lines, 1, len(lines) - 1)),
+        block_end)
+
+
 def process_markdown(text, req, section=None):
     from markdown import markdown
 
+    text = RE_SOURCE_BLOCK.sub(unindent_source_block, text)
+
     md, in_section, current_section = [], False, None
-    in_example = False
     for i, line in enumerate(text.strip().split('\n'), start=1):
         if line.startswith('##'):
             current_section = line[2:].strip()
@@ -63,10 +86,6 @@ def process_markdown(text, req, section=None):
             in_section = False
         if i == 1 and line.startswith('##'):
             continue
-        if line.startswith('```'):
-            in_example = not in_example
-        elif in_example:
-            line = line.lstrip()
         if (not section) or in_section:
             md.append(line)
         if section and current_section == section:
@@ -99,7 +118,7 @@ def contributor_index_html(request=None, context=None, **kw):
     ]:
         cs = sorted([c for c in contribs if role in c.jsondata['roles']], key=lambda cc: cc.name.split()[-1])
         iter_ = iter(cs)
-        people = list(itertools.zip_longest(iter_, iter_, iter_, iter_))
+        people = list(zip_longest(iter_, iter_, iter_, iter_))
         res.append((plural or role, slug(role), people))
 
     return dict(contribs=res, ndatapoint=ndatapoint, nlangs=nlangs)
