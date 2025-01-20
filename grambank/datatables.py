@@ -195,40 +195,59 @@ class Datapoints(Values):
     __constraints__ = [common.Parameter, common.Contribution, common.Language, Family]
 
     def __init__(self, req, *args, **kw):
+        # NOTE:
+        #  * self.parameter refers to a parameter in general
+        #  * self.feature refers to a parameter specifically on the
+        #    Family+Feature combination page
         self.feature = kw.pop('feature', None)
         if (not self.feature) and 'feature' in req.params:
             self.feature = common.Parameter.get(req.params['feature'], default=None)
         Values.__init__(self, req, *args, **kw)
 
     def base_query(self, query):
-        query = Values.base_query(self, query)
+        query = query.join(common.Value.valueset)
+        query = query.options(
+            joinedload(common.Value.valueset)
+            .joinedload(common.ValueSet.references)
+            .joinedload(common.ValueSetReference.source))
+        query = query.options(
+            joinedload(common.Value.domainelement))
+
+        if self.contribution:
+            query = query.filter(common.ValueSet.contribution_pk == self.contribution.pk)
+
+        query = query.join(common.ValueSet.language)
+        if self.language:
+            query = query.filter(common.ValueSet.language_pk == self.language.pk)
+
         if self.family:
-            if self.feature:
-                query = query.filter(common.ValueSet.parameter_pk == int(self.feature.pk))
-            query = query.join(GrambankLanguage).join(Family).filter(GrambankLanguage.family == self.family)
+            query = query.filter(GrambankLanguage.family_pk == self.family.pk)
+
+        if self.parameter:
+            query = query.filter(common.ValueSet.parameter_pk == self.parameter.pk)
+            # only the parameter page shows language family
+            query = query.outerjoin(GrambankLanguage.family)
+            # only the parameter page shows contributors
             query = query.options(
-                joinedload(common.Value.valueset).joinedload(common.ValueSet.parameter),
-                joinedload(common.Value.domainelement),
-            )
+                joinedload(common.Value.valueset)
+                .joinedload(common.ValueSet.contribution)
+                .joinedload(common.Contribution.contributor_assocs)
+                .joinedload(common.ContributionContributor.contributor))
+            # also, we need to explicitly join in the contributors as well,
+            # otherwise the search box won't work
+            query = query\
+                .join(common.ValueSet.contribution)\
+                .join(common.Contribution.contributor_assocs)\
+                .join(common.ContributionContributor.contributor)
+            # due to the contributor join above, every datapoint with multiple
+            # contributors will show up multiple times, so we need to squash
+            # them back together
+            query = query.distinct()
+        elif self.feature:
+            query = query.filter(common.ValueSet.parameter_pk == int(self.feature.pk))
         else:
-            if self.language:
-                query = query.options(
-                    joinedload(common.Value.valueset).joinedload(common.ValueSet.parameter),
-                    joinedload(common.Value.domainelement),
-                )
-            if self.parameter:
-                query = query\
-                    .join(common.ValueSet.contribution)\
-                    .join(common.Contribution.contributor_assocs)\
-                    .join(common.ContributionContributor.contributor)\
-                    .outerjoin(Family)\
-                    .options(
-                    joinedload(common.Value.valueset, common.ValueSet.language),
-                    joinedload(common.Value.valueset, common.ValueSet.language, GrambankLanguage.family),
-                    joinedload(common.Value.valueset)
-                    .joinedload(common.ValueSet.contribution)
-                    .joinedload(common.Contribution.contributor_assocs)
-                    .joinedload(common.ContributionContributor.contributor)).distinct()
+            query = query.join(common.ValueSet.parameter)
+
         return query
 
     def xhr_query(self):
