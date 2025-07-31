@@ -50,6 +50,16 @@ class GrambankGeoJsonParameter(GeoJsonParameter):
                     joinedload(Value.valueset, ValueSet.language))]
         return self.get_query(ctx, req)
 
+    def feature_properties(self, ctx, req, valueset):
+        # use language names as tool tips for parameters with a closed domain
+        if getattr(ctx, 'domain', None):
+            label = self.get_language(ctx, req, valueset).name
+        else:
+            label = ', '.join(v.name for v in valueset.values if v.name)
+        return {
+            'values': list(valueset.values),
+            'label': label}
+
 
 def includeme(config):
     config.registry.registerUtility(GrambankTree, ITree)
