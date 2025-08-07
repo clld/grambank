@@ -290,7 +290,7 @@ class Datapoints(Values):
             ]
         elif self.language:
             cols = [
-                IdCol(
+                FeatureIdCol(
                     self, 'Feature Id',
                     sClass='left', model_col=common.Parameter.id,
                     get_object=lambda i: i.valueset.parameter),
@@ -308,7 +308,7 @@ class Datapoints(Values):
             ]
             if not self.feature:
                 cols.extend([
-                    IdCol(
+                    FeatureIdCol(
                         self, 'Feature Id',
                         sClass='left', model_col=common.Parameter.id,
                         get_object=lambda i: i.valueset.parameter),
