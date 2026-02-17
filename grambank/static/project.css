@@ -109,6 +109,10 @@ a:hover {
 }
 a:visited {
         color: #481d7f;
+        text-decoration: underline dotted;
+}
+a:visited:hover {
+        color: #935dda;
         text-decoration: underline;
 }
 
