@@ -21,12 +21,12 @@ setup(
     zip_safe=False,
     install_requires=[
         'cldfcatalog',
-        'clld>=11.0.1',
+        'clld>=11.5.1',
         'clldmpg>=4.2',
         'clld-glottologfamily-plugin>=4',
         'clld-phylogeny-plugin>=1.5',
         'pyglottolog>=2.0',
-        'sqlalchemy',
+        'sqlalchemy<2.0',
         'waitress',
     ],
     extras_require={
