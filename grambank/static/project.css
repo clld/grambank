@@ -100,11 +100,19 @@ filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e8d9d2bc', e
 }
 
 a {
-        color: #382E45;
+        color: #0c84ac;
         text-decoration: underline dotted;
 }
 a:hover {
-        color: #898193;
+        color: #4fcaf3;
+        text-decoration: underline;
+}
+a:visited {
+        color: #481d7f;
+        text-decoration: underline dotted;
+}
+a:visited:hover {
+        color: #935dda;
         text-decoration: underline;
 }
 
