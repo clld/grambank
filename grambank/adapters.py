@@ -1,3 +1,5 @@
+import functools
+
 from sqlalchemy.orm import joinedload
 
 from clld import interfaces
@@ -7,7 +9,6 @@ from clld.db.models.common import ValueSet, Value, DomainElement, Parameter
 from clld_phylogeny_plugin.interfaces import ITree
 from clld_phylogeny_plugin.tree import Tree
 from clld_glottologfamily_plugin.models import Family
-from clldutils.misc import lazyproperty
 
 from grambank import models
 
@@ -17,7 +18,7 @@ class GrambankTree(Tree):
         self.pids = pids or []
         Tree.__init__(self, *args, **kw)
 
-    @lazyproperty
+    @functools.cached_property
     def parameters(self):
         if self.pids:
             return DBSession.query(Parameter) \
