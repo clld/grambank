@@ -26,21 +26,30 @@ class ValueNameCol(LinkCol):
         return item.valueset
 
     def get_attrs(self, item):
-        label = str(item)
-        title = label
+        title = str(item)
         if self.dt.parameter:
-            label = HTML.span(map_marker_img(self.dt.req, item), literal('&nbsp;'), label)
+            label = HTML.span(map_marker_img(self.dt.req, item), literal('&nbsp;'), title)
+        elif self.dt.feature:
+            label = HTML.span(map_marker_img(self.dt.req, item), literal('&nbsp;'), title)
+        else:
+            label = title
         return {'label': label, 'title': title}
 
     def order(self):
-        return common.DomainElement.number \
-            if self.dt.parameter and self.dt.parameter.domain \
-            else common.Value.name
+        if self.dt.parameter and self.dt.parameter.domain:
+            return common.DomainElement.number
+        elif self.dt.feature and self.dt.feature.domain:
+            return common.DomainElement.number
+        else:
+            return common.Value.name
 
     def search(self, qs):
         if self.dt.parameter and self.dt.parameter.domain:
             return common.DomainElement.name.__eq__(qs)
-        return icontains(common.Value.name, qs)
+        elif self.dt.feature and self.dt.feature.domain:
+            return common.DomainElement.name.__eq__(qs)
+        else:
+            return icontains(common.Value.name, qs)
 
 
 class LanguagesCol(Col):
@@ -206,12 +215,11 @@ class Datapoints(Values):
 
     def base_query(self, query):
         query = query.join(common.Value.valueset)
+        query = query.outerjoin(common.Value.domainelement)
         query = query.options(
             joinedload(common.Value.valueset)
             .joinedload(common.ValueSet.references)
             .joinedload(common.ValueSetReference.source))
-        query = query.options(
-            joinedload(common.Value.domainelement))
 
         if self.contribution:
             query = query.filter(common.ValueSet.contribution_pk == self.contribution.pk)
@@ -257,81 +265,56 @@ class Datapoints(Values):
         return res
 
     def col_defs(self):
+        language_name = LinkCol(
+            self, 'Name',
+            model_col=common.Language.name,
+            get_object=lambda i: i.valueset.language)
+        feature_id = FeatureIdCol(
+            self, 'Feature Id',
+            sClass='left', model_col=common.Parameter.id,
+            get_object=lambda i: i.valueset.parameter)
+        feature = LinkCol(
+            self, 'Feature',
+            model_col=common.Parameter.name,
+            get_object=lambda i: i.valueset.parameter,
+            choices=get_distinct_values(common.Parameter.name))
         name_col = ValueNameCol(self, 'value')
         if self.parameter and self.parameter.domain:
             name_col.choices = [(de.name, de.description) for de in self.parameter.domain]
+        elif self.feature and self.feature.domain:
+            name_col.choices = [(de.name, de.description) for de in self.feature.domain]
+        source = RefsCol(
+            self, 'Source',
+            model_col=common.ValueSet.source,
+            get_object=lambda i: i.valueset)
+        comment = Col(self, 'Comment', model_col=common.Value.description)
 
-        cols = []
         if self.parameter:
-            cols = [
-                LinkCol(
-                    self, 'Name',
-                    model_col=common.Language.name,
-                    get_object=lambda i: i.valueset.language),
-                Col(
-                    self, 'Glottocode',
-                    model_col=common.Language.id,
-                    get_object=lambda i: i.valueset.language),
-                FamilyLinkCol(
-                    self, 'Family', GrambankLanguage,
-                    get_object=lambda i: i.valueset.language,
-                ),
-                Col(
-                    self, 'Macroarea',
-                    model_col=GrambankLanguage.macroarea,
-                    get_object=lambda i: i.valueset.language,
-                    choices=get_distinct_values(GrambankLanguage.macroarea),
-                ),
-                LinkCol(
-                    self, 'Contributor',
-                    model_col=common.Contributor.name,
-                    get_object=lambda i: i.valueset.contribution.contributor_assocs[0].contributor,
-                )
-            ]
+            glottocode = Col(
+                self, 'Glottocode',
+                model_col=common.Language.id,
+                get_object=lambda i: i.valueset.language)
+            family = FamilyLinkCol(
+                self, 'Family', GrambankLanguage,
+                get_object=lambda i: i.valueset.language)
+            macroarea = Col(
+                self, 'Macroarea',
+                model_col=GrambankLanguage.macroarea,
+                get_object=lambda i: i.valueset.language,
+                choices=get_distinct_values(GrambankLanguage.macroarea))
+            contributor = LinkCol(
+                self, 'Contributor',
+                model_col=common.Contributor.name,
+                get_object=lambda i: i.valueset.contribution.contributor_assocs[0].contributor)
+            return [language_name, glottocode, family, macroarea, contributor, name_col, source, comment]
         elif self.language:
-            cols = [
-                FeatureIdCol(
-                    self, 'Feature Id',
-                    sClass='left', model_col=common.Parameter.id,
-                    get_object=lambda i: i.valueset.parameter),
-                LinkCol(
-                    self, 'Feature',
-                    model_col=common.Parameter.name,
-                    get_object=lambda i: i.valueset.parameter)
-            ]
+            return [feature_id, feature, name_col, source, comment]
+        elif self.family and self.feature:
+            return [language_name, name_col, source, comment]
         elif self.family:
-            cols = [
-                LinkCol(
-                    self, 'Name',
-                    model_col=common.Language.name,
-                    get_object=lambda i: i.valueset.language)
-            ]
-            if not self.feature:
-                cols.extend([
-                    FeatureIdCol(
-                        self, 'Feature Id',
-                        sClass='left', model_col=common.Parameter.id,
-                        get_object=lambda i: i.valueset.parameter),
-                    LinkCol(
-                        self, 'Feature',
-                        model_col=common.Parameter.name,
-                        get_object=lambda i: i.valueset.parameter,
-                        choices=get_distinct_values(common.Parameter.name),
-                    )
-                ])
-
-        cols = cols + [
-            name_col,
-            #Col(self, 'name', sTitle='Value'),
-            RefsCol(self, 'Source',
-                model_col=common.ValueSet.source,
-                get_object=lambda i: i.valueset),
-            Col(self, 'Comment', model_col=common.Value.description),
-            #Col(self, 'Contributed By', model_col=common.Contribution.name,
-            #        get_object=lambda i: i.valueset.contribution)
- 
-        ]
-        return cols
+            return [language_name, feature_id, feature, name_col, source, comment]
+        else:
+            return [name_col, source, comment]
 
     def get_options(self):
         if self.language:
