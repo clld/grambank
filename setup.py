@@ -28,11 +28,13 @@ setup(
         'pyglottolog>=2.0',
         'sqlalchemy<2.0',
         'waitress',
+        'psycopg2',
+        'ete3',
+        'numpy',
     ],
     extras_require={
         'dev': [
             'flake8',
-            'psycopg2',
             'tox',
             'ete3',
             'numpy',  # needed by ete3
