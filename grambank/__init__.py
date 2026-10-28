@@ -66,7 +66,6 @@ def main(global_config, **settings):
     config.include('clld_glottologfamily_plugin')
     config.include('clld_phylogeny_plugin')
     config.register_datatable('familys', datatables.Families)
-    config.add_route_and_view('faq', '/faq', lambda *args, **kw: {}, renderer='faq.mako')
     config.add_route_and_view(
         'combine_feature_with_family',
         '/_combine_feature_with_family',
