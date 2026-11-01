@@ -2,8 +2,7 @@
 
 ```shell
 git clone https://github.com/clld/grambank
-git clone https://github.com/grambank/grambank grambank-cldf
-git -C grambank-cldf checkout v1.0.3
+git clone --branch v1.0.3 --depth 1 https://github.com/grambank/grambank grambank-cldf
 cd grambank
 pip install -e .[test]
 ```
@@ -25,8 +24,6 @@ pip freeze > requirements.txt
 
 Store a db dump:
 ```shell
-pg_dump -xO grambank > grambank.sql
-zip grambank.sql.zip grambank.sql
-rm grambank.sql
+pg_dump -xO --compress gzip:9 grambank > grambank.sql.gz
 ```
 
